@@ -1,1 +1,43 @@
-<h1> Neuropower rules! </h1>
+{% extends 'base.html' %}
+{% block head_title %} Welcome | {{block.super}}{% endblock %}
+
+
+<div class="jumbotron">
+{% block jumbotron%}
+  <div class="jumbotron">
+    <div class="container">
+    <div class="row">
+      <div class="col-xs-6">
+    <h1> Try Django 1.8</h1>
+    <p>This example is a quick exercise to illustrate how the default, static and fixed to top navbar work. It includes the responsive CSS and HTML, so it also adapts to your viewport and device.</p>
+    <p>To see the difference between static and fixed top navbars, just scroll.</p>
+    <p>
+      <a class="btn btn-lg btn-primary" href="" role="button">Join us &raquo;</a>
+    </p>
+  </div>
+  <div class="col-xs-6" style="background-color:black; min-height:300px;">
+  </div>
+  </div>
+  </div>
+  </div>
+{%endblock%}
+</div>
+
+
+{% block content %}
+  <div class="row">
+    <div class = 'col-sm-3'>
+      <p class='lead text-align-center'>Built with Django &amp; Bootstrap</p>
+    </div>
+    <div class="col-sm-3 col-xs-3 pull-right">
+        <p class='lead text-align-center'> {{title}} </p>
+        <!-- {{user}} shows username -->
+      </div>
+    <div class = 'col-sm-3'>
+      <p class='lead text-align-center'>reated for starters</p>
+    </div>
+    <div class = 'col-sm-3'>
+      <p class='lead text-align-center'>Hello there</p>
+    </div>
+  </div>
+{% endblock %}
