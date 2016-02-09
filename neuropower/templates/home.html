@@ -1,45 +1,47 @@
 {% extends 'base.html' %}
-{% block head_title %} Welcome | {{block.super}}{% endblock %}
+{% load staticfiles %}
 
+{% block head_title %}
+  Welcome | {{block.super}}
+{% endblock %}
 
+{%block jumbotron%}
 <div class="jumbotron">
-  {%block jumbotron%}
   <div class="container">
     <div class="row">
-      <div class="col-xs-8">
+      <div class="col-sm-8">
         <br>
         <h2>Welcome</h2>
         <p>Neuropower is a webtool that allows you to compute the necessary sample size for your fMRI study to obtain a certain predefined level of statistical power. This site is still very much under construction but you'll find the necessary links here.</p>
       </div>
-      <div class="col-xs-4">
+      <div class="col-sm-4">
         <br>
         <br>
         <br>
-        <img src="neuropowertoolbox/brain.png"/>
+        <img src={% static 'img/brain.png'%} width=40%/>
       </div>
     </div>
   </div>
-  {%endblock%}
 </div>
+{%endblock%}
 
-
-{% load static %}
-<img src="{% static 'brain.png' %}"/>
 
 {% block content %}
-  <div class="row">
-    <div class = 'col-sm-3'>
-      <p class='lead text-align-center'>Built with Django &amp; Bootstrap</p>
-    </div>
-    <div class="col-sm-3 col-xs-3 pull-right">
-        <p class='lead text-align-center'> {{title}} </p>
-        <!-- {{user}} shows username -->
-      </div>
-    <div class = 'col-sm-3'>
-      <p class='lead text-align-center'>reated for starters</p>
-    </div>
-    <div class = 'col-sm-3'>
-      <p class='lead text-align-center'>Hello there</p>
-    </div>
+<div class="row">
+  <div class="col-md-4">
+    <h2>Methods</h2>
+    <p> The toolbox itself is a simple online application of more complex underlying methods.  If you want to know more about the methods, pitfalls, assumptions,... you'll find that information here. </p>
+    <p><a class="btn btn-primary" role="button">Methods &raquo;</a></p>
   </div>
+  <div class="col-md-4">
+    <h2>Application</h2>
+    <p> Use the webtool yourself.  All you need is a T-statistics map and some information about the research.  Access the app here.</p>
+    <p><a class="btn btn-primary" role="button">NeuroPower &raquo;</a></p>
+  </div>
+  <div class="col-md-4">
+    <h2>About</h2>
+    <p>Want to know more about me?  Here you'll find information about my background. </p>
+    <p><a class="btn btn-primary" role="button">More about me &raquo;</a></p>
+  </div>
+</div>
 {% endblock %}
