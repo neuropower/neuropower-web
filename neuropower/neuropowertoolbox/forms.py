@@ -67,7 +67,6 @@ class ParameterForm(forms.Form):
 
     helper = FormHelper()
     helper.form_method = 'POST'
-    helper.add_input(Submit('login', 'login', css_class='btn-primary'))
     helper.field_class = 'col-lg-12'
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
@@ -93,8 +92,8 @@ class ParameterForm(forms.Form):
            Div(Field('Voxy'), css_class='col-xs-4'),
            Div(Field('Voxz'), css_class='col-xs-4'),
             css_class='row-xs-12'
-        )
-
+        ),
+    helper.add_input(Submit('Submit', 'Submit', css_class='btn-secondary'))
     )
 
 
