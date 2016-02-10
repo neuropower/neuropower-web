@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # own
-    'neuropowertoolbox'
+    'neuropowertoolbox',
+    # third party
+    'crispy_forms',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -130,3 +132,7 @@ STATICFILES_DIRS = [
 
 MEDIA_URL="/media/"
 MEDIA_ROOT=os.path.join(os.path.dirname(BASE_DIR),"static_in_virtualenv","media_root")
+
+## App specific settings
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'

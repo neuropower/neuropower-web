@@ -1,14 +1,12 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+
+{% load crispy_forms_tags %}
 {% block head_title %}
   NeuroPower | {{block.super}}
 {% endblock %}
 
-
 {% block content %}
-
-
-
-
-
+{% crispy form %}
+<img src={% url 'plot' %} width=40%/>
 {% endblock %}
