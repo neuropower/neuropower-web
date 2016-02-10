@@ -7,6 +7,14 @@
 {% endblock %}
 
 {% block content %}
-{% crispy form %}
-<img src={% url 'plot' %} width=40%/>
+<div class="row">
+  <br>
+  <br>
+  <div class="col-xs-4">
+    {% crispy form %}
+  </div>
+  <div class="col-xs-8">
+    <img src={% url 'plot' %} width=100%/>
+  </div>
+</div>
 {% endblock %}

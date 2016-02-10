@@ -1,20 +1,103 @@
 from django import forms
-
+from django.forms import fields
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Field
+from crispy_forms.layout import Submit, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import (
     PrependedText, PrependedAppendedText, FormActions)
 
-class NeuroPowerForm(forms.Form):
-    #ZorT = forms.ChoiceField(label="Are the values Z- or T-values?",required=True,choices=['Z','T'])
-    #excthresunits = forms.ChoiceField(label="What are the units of your filtering threshold?",required=True,choices=['units = p-value','units = t-value'])
-    excthres = forms.DecimalField(label="What is your filtering threshold?",required=True)
-    #subj = forms.IntegerField(label="How many subjects does the pilot data contain?",required=True)
-    #onetwo = forms.ChoiceField(label="Is the study a one- or two-sample test",choices=["One-sample","Two-sample"])
+class ParameterForm(forms.Form):
+    ZorT_c = (
+        (1,("T")),
+        (2,("Z"))
+    )
+    ZorT = forms.ChoiceField(
+        label="Are the values Z- or T-values?",
+        required=True,
+        choices=ZorT_c
+        )
+    ExcUnits_c = (
+        (1,("units = p-values (SPM default)")),
+        (2,("units = t-values (FSL default)"))
+    )
+    ExcUnits = forms.ChoiceField(
+        label="What are the units of your filtering threshold?",
+        required=True,
+        choices=ExcUnits_c
+        )
+    Exc = forms.DecimalField(
+        label="What is your filtering threshold?",
+        required=True
+        )
+    Subj = forms.IntegerField(
+        label="How many subjects does the pilot data contain?",
+        required=True
+        )
+    Samples_c = (
+        (1, ("One-sample")),
+        (2, ("Two-sample"))
+        )
+    Samples = forms.ChoiceField(
+        label="Is the study a one- or two-sample test",
+        choices=Samples_c
+        )
+    Smoothx = forms.CharField(
+        label="",
+        widget=forms.TextInput(attrs={'placeholder':'x'})
+        )
+    Smoothy = forms.CharField(
+        label="",
+        widget=forms.TextInput(attrs={'placeholder':'y'})
+        )
+    Smoothz = forms.CharField(
+        label="",
+        widget=forms.TextInput(attrs={'placeholder':'z'})
+        )
+    Voxx = forms.CharField(
+        label="",
+        widget=forms.TextInput(attrs={'placeholder':'x'})
+        )
+    Voxy = forms.CharField(
+        label="",
+        widget=forms.TextInput(attrs={'placeholder':'y'})
+        )
+    Voxz = forms.CharField(
+        label="",
+        widget=forms.TextInput(attrs={'placeholder':'z'})
+        )
 
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.add_input(Submit('login', 'login', css_class='btn-primary'))
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        'ZorT',
+        'ExcUnits',
+        'Exc',
+        'Subj',
+        'Samples',
+        HTML("""
+        <p style="margin-left: 15px"><b> \n What is the smoothness of the data? </b></p>
+        """),
+        Div(
+           Div(Field('Smoothx'), css_class='col-xs-4'),
+            Div(Field('Smoothy'), css_class='col-xs-4'),
+            Div(Field('Smoothz'), css_class='col-xs-4'),
+            css_class='row-xs-12'
+        ),
+        HTML("""
+        <p style="margin-left: 15px"><b> \n What is the voxel size? </b></p>
+        """),
+        Div(
+           Div(Field('Voxx'), css_class='col-xs-4'),
+           Div(Field('Voxy'), css_class='col-xs-4'),
+           Div(Field('Voxz'), css_class='col-xs-4'),
+            css_class='row-xs-12'
+        )
+
+    )
+
+
 
 class SimpleForm(forms.Form):
     username = forms.CharField(label="Username", required=True)
