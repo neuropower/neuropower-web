@@ -5,6 +5,17 @@ from crispy_forms.layout import Submit, Layout, Field
 from crispy_forms.bootstrap import (
     PrependedText, PrependedAppendedText, FormActions)
 
+class NeuroPowerForm(forms.Form):
+    #ZorT = forms.ChoiceField(label="Are the values Z- or T-values?",required=True,choices=['Z','T'])
+    #excthresunits = forms.ChoiceField(label="What are the units of your filtering threshold?",required=True,choices=['units = p-value','units = t-value'])
+    excthres = forms.DecimalField(label="What is your filtering threshold?",required=True)
+    #subj = forms.IntegerField(label="How many subjects does the pilot data contain?",required=True)
+    #onetwo = forms.ChoiceField(label="Is the study a one- or two-sample test",choices=["One-sample","Two-sample"])
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.add_input(Submit('login', 'login', css_class='btn-primary'))
+
 class SimpleForm(forms.Form):
     username = forms.CharField(label="Username", required=True)
     password = forms.CharField(

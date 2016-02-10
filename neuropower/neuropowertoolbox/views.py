@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .forms import SimpleForm, CartForm, CreditCardForm
+from .forms import SimpleForm, CartForm, CreditCardForm,NeuroPowerForm
 # Create your views here.
 
 def home(request):
@@ -8,9 +8,9 @@ def home(request):
 
 def neuropower(request):
     if request.method == 'POST':
-        form = SimpleForm(request.POST)
+        form = NeuroPowerForm(request.POST)
     else:
-        form=SimpleForm()
+        form=NeuroPowerForm()
     return render(request,"neuropower.html",{'form':form})
 
 def plotResults(request):
