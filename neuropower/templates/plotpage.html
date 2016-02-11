@@ -3,18 +3,13 @@
 
 {% load crispy_forms_tags %}
 {% block head_title %}
-  NeuroPower | {{block.super}}
+  Plot | {{block.super}}
 {% endblock %}
 
 {% block content %}
 <div class="row">
-  <br>
-  <br>
-  <div class="col-xs-4">
-    <form method='POST' action='.'>{% csrf_token %}{{form|crispy}}</form>
-    <p>{{title}}</p>
-  </div>
-  <div class="col-xs-8">
+  <div class="col-xs-12">
+    <h1> Plotting is fun! </h1>
     <img src={% url 'plot' %} width=100%/>
   </div>
 </div>

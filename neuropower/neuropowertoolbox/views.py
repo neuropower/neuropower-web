@@ -1,17 +1,20 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .forms import SimpleForm, CartForm, CreditCardForm,ParameterForm
+from .forms import SimpleForm, CartForm, CreditCardForm,ParameterForm, NiftiForm
 # Create your views here.
 
 def home(request):
     return render(request,"home.html",{})
 
 def neuropower(request):
-    if request.method == 'POST':
-        form = ParameterForm(request.POST)
-    else:
-        form=ParameterForm()
-    return render(request,"neuropower.html",{'form':form})
+    form = NiftiForm(request.POST or None)
+    context = {"form":form}
+    if form.is_valid():
+        context={"title":"Thank you"}
+    return render(request,"neuropower.html",context)
+
+def plotpage(request):
+    return render(request,"plotpage.html",{})
 
 def plotResults(request):
     import matplotlib.pyplot as plt

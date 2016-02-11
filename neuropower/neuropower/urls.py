@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$',views.home,name='home'),
     url(r'^neuropower/$',views.neuropower,name='neuropower'),
-    url(r'^neuropower/result.png$', views.plotResults,name='plot'),
+    url(r'^plotpage/$',views.plotpage,name='plotpage'),
+    url(r'^plotpage/result.png$', views.plotResults,name='plot'),
     ]

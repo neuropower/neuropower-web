@@ -5,6 +5,12 @@ from crispy_forms.layout import Submit, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import (
     PrependedText, PrependedAppendedText, FormActions)
 
+class NiftiForm(forms.Form):
+    file=forms.URLField(required=True)
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.add_input(Submit('Upload', 'Upload', css_class='btn-primary'))
+
 class ParameterForm(forms.Form):
     ZorT_c = (
         (1,("T")),
