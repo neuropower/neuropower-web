@@ -1,17 +1,42 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from .forms import SimpleForm, CartForm, CreditCardForm,ParameterForm, NiftiForm
+from django.http import HttpResponse, HttpResponseRedirect
+from .forms import ParameterForm, NiftiForm
 # Create your views here.
 
 def home(request):
     return render(request,"home.html",{})
 
 def neuropower(request):
-    form = NiftiForm(request.POST or None)
-    context = {"form":form}
-    if form.is_valid():
-        context={"title":"Thank you"}
+    niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
+    parsform = ParameterForm(None)
+    context = {
+    "niftiform": niftiform,
+    "parsform": parsform
+    }
+    if niftiform.is_valid():
+        url = niftiform.cleaned_data['file']
+        return HttpResponseRedirect('/neuropowerviewer')
+        print(url)
+    else:
+        niftiform=NiftiForm(request.POST)
     return render(request,"neuropower.html",context)
+
+def neuropowerviewer(request):
+    niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
+    parsform = ParameterForm(request.POST or None)
+    context = {
+    "niftiform": niftiform,
+    "parsform": parsform
+    }
+    if parsform.is_valid():
+        niftidata = niftiform.cleaned_data
+        print(niftidata)
+        parsform=ParameterForm(request.POST or None)
+        context = {
+        "niftiform":niftiform,
+        "parsform": parsform
+        }
+    return render(request,"neuropowerviewer.html",context)
 
 def plotpage(request):
     return render(request,"plotpage.html",{})

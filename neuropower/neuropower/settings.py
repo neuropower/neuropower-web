@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'neuropowertoolbox',
     # third party
     'crispy_forms',
+    'djangosecure',
+    'sslserver',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -52,10 +54,11 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'djangosecure.middleware.SecurityMiddleware',
 ]
 
 ROOT_URLCONF = 'neuropower.urls'
-
+SECURE_SSL_REDIRECT = True
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
