@@ -7,6 +7,7 @@ from neuropowertoolbox.models import NiftiModel
 from neuropower.utils import BUM, cluster, model, neuropower,peakdistribution
 import nibabel as nib
 import os
+import numpy as np
 
 def home(request):
     return render(request,"home.html",{})
@@ -33,7 +34,8 @@ def neuropowerviewer(request):
     ## THIS PART SHOULD BE REMOVED AND GET THE REAL FILE!! ##########
     name="zstat1.nii.gz"
     new_name = os.path.join(settings.STATICFILES_DIRS[0],"img",name)
-    SPM=nib.load(new_name).get_data()
+    #SPM=nib.load(new_name).get_data()
+    #print(np.mean(SPM))
     #################################################################
 
     context = {
