@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from .forms import ParameterForm, NiftiForm
+from neuropowertoolbox.forms import ParameterForm, NiftiForm
 from django.db import models
-from .models import NiftiModel
-
-# Create your views here.
+from django.conf import settings
+from neuropowertoolbox.models import NiftiModel
+from neuropower.utils import BUM, cluster, model, neuropower,peakdistribution
+import nibabel as nib
+import os
 
 def home(request):
     return render(request,"home.html",{})
@@ -16,22 +18,29 @@ def neuropower(request):
     "niftiform": niftiform,
     "parsform": parsform
     }
-    if niftiform.is_valid():
-        request.session["url"] = niftiform.cleaned_data['file']
-        return HttpResponseRedirect('/neuropowerviewer')
-    else:
+    if not niftiform.is_valid():
         niftiform=NiftiForm(request.POST)
         return render(request,"neuropower.html",context)
+    else:
+        newform = niftiform.save()
+        request.session["url"] = niftiform.cleaned_data['file']
+        return HttpResponseRedirect('/neuropowerviewer')
 
 def neuropowerviewer(request):
-    niftiform2 = NiftiForm(request.POST or None,default="yes")
+    url = request.session["url"]
+    niftiform2 = NiftiForm(request.POST or None,default=url)
     parsform = ParameterForm(request.POST or None)
-
     context = {
     "niftiform": niftiform2,
     "parsform": parsform,
-    "url": request.session["url"]
+    "url": url
     }
+    ## THIS PART SHOULD BE REMOVED AND GET THE REAL FILE!! ##########
+    name="zstat1.nii.gz"
+    new_name = os.path.join(settings.STATICFILES_DIRS[0],"img",name)
+    SPM=nib.load(new_name).get_data()
+    #################################################################
+
     if parsform.is_valid():
         niftidata = niftiform2.cleaned_data
         print(niftidata)
@@ -40,7 +49,6 @@ def neuropowerviewer(request):
         "niftiform":niftiform2,
         "parsform": parsform
         }
-
     return render(request,"neuropowerviewer.html",context)
 
 def plotpage(request):
