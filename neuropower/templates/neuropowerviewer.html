@@ -1,6 +1,16 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 
+{% block head %}
+<link href="{% static 'css/papaya.css' %}" rel="stylesheet">
+<script type="text/javascript" src="{% static 'scripts/papaya.js'%}"></script>
+<script type="text/javascript">
+var params = [];
+  params["images"]=["{{ url }}"];
+</script>
+{% endblock %}
+
+
 {% load crispy_forms_tags %}
 {% block head_title %}
   Papaya Viewer | {{block.super}}
@@ -19,8 +29,8 @@
   </div>
 
   <div class="col-xs-8">
-        <div class="papaya"></div>
-        <p>{{url}}</p>
+        <div class="papaya" data-params="params"></div>
+        <p>{{SPMfile}}</p>
   </div>
 </div>
 {% endblock %}

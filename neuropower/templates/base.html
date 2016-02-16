@@ -9,13 +9,11 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
-
     <title>{%block head_title %} {% endblock%} Neuropower</title>
     {% load staticfiles %}
     <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet">
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
-    <link href="{% static 'css/papaya.css' %}" rel="stylesheet">
-    <script type="text/javascript" src="{% static 'scripts/papaya.js'%}"></script>
+    {%block head %}{% endblock %}
   </head>
 
 

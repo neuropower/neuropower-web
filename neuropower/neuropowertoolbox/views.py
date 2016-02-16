@@ -30,16 +30,19 @@ def neuropowerviewer(request):
     url = request.session["url"]
     niftiform2 = NiftiForm(request.POST or None,default=url)
     parsform = ParameterForm(request.POST or None)
-    context = {
-    "niftiform": niftiform2,
-    "parsform": parsform,
-    "url": url
-    }
     ## THIS PART SHOULD BE REMOVED AND GET THE REAL FILE!! ##########
     name="zstat1.nii.gz"
     new_name = os.path.join(settings.STATICFILES_DIRS[0],"img",name)
     SPM=nib.load(new_name).get_data()
     #################################################################
+
+    context = {
+    "niftiform": niftiform2,
+    "parsform": parsform,
+    "url": url,
+    "SPMfile":new_name,
+    }
+    print(new_name)
 
     if parsform.is_valid():
         niftidata = niftiform2.cleaned_data
