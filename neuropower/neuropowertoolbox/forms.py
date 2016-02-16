@@ -2,14 +2,16 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
+from .models import NiftiModel
 
-class NiftiForm(forms.Form):
+class NiftiForm(forms.ModelForm):
+    class Meta:
+        model = NiftiModel
+        fields = '__all__'
     def __init__(self,*args,**kwargs):
         self.default=kwargs.pop('default',None)
         super(NiftiForm,self).__init__(*args,**kwargs)
         self.fields['file'].widget = forms.URLInput(attrs={'placeholder':self.default})
-        print(self.default)
-    file = forms.URLField(label="URL", required=True)
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'

@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from .forms import ParameterForm, NiftiForm
+from django.db import models
+from .models import NiftiModel
+
 # Create your views here.
 
 def home(request):
@@ -14,28 +17,30 @@ def neuropower(request):
     "parsform": parsform
     }
     if niftiform.is_valid():
-        url = niftiform.cleaned_data['file']
-        return HttpResponseRedirect('/neuropowerviewer')
-        print(url)
+        newsave = niftiform.save()
+        return HttpResponseRedirect('neuropowerviewer')
     else:
         niftiform=NiftiForm(request.POST)
-    return render(request,"neuropower.html",context)
+        return render(request,"neuropower.html",context)
 
 def neuropowerviewer(request):
-    niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
+    niftiform2 = NiftiForm(request.POST or None,default="yes")
     parsform = ParameterForm(request.POST or None)
+
     context = {
-    "niftiform": niftiform,
-    "parsform": parsform
+    "niftiform": niftiform2,
+    "parsform": parsform,
+    "objects":NiftiModel.objects.all
     }
     if parsform.is_valid():
-        niftidata = niftiform.cleaned_data
+        niftidata = niftiform2.cleaned_data
         print(niftidata)
         parsform=ParameterForm(request.POST or None)
         context = {
-        "niftiform":niftiform,
+        "niftiform":niftiform2,
         "parsform": parsform
         }
+
     return render(request,"neuropowerviewer.html",context)
 
 def plotpage(request):

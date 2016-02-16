@@ -58,7 +58,7 @@ MIDDLEWARE_CLASSES = [
 ]
 
 ROOT_URLCONF = 'neuropower.urls'
-SECURE_SSL_REDIRECT = True
+#SECURE_SSL_REDIRECT = True
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
