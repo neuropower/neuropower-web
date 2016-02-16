@@ -17,8 +17,8 @@ def neuropower(request):
     "parsform": parsform
     }
     if niftiform.is_valid():
-        newsave = niftiform.save()
-        return HttpResponseRedirect('neuropowerviewer')
+        request.session["url"] = niftiform.cleaned_data['file']
+        return HttpResponseRedirect('/neuropowerviewer')
     else:
         niftiform=NiftiForm(request.POST)
         return render(request,"neuropower.html",context)
@@ -30,7 +30,7 @@ def neuropowerviewer(request):
     context = {
     "niftiform": niftiform2,
     "parsform": parsform,
-    "objects":NiftiModel.objects.all
+    "url": request.session["url"]
     }
     if parsform.is_valid():
         niftidata = niftiform2.cleaned_data
