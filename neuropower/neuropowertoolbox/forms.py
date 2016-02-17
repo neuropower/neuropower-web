@@ -2,12 +2,12 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
-from .models import NiftiModel
+from .models import NiftiModel, ParameterModel
 
 class NiftiForm(forms.ModelForm):
     class Meta:
         model = NiftiModel
-        fields = ['url','location']
+        fields = '__all__'
     def __init__(self,*args,**kwargs):
         self.default=kwargs.pop('default',None)
         super(NiftiForm,self).__init__(*args,**kwargs)
@@ -17,47 +17,14 @@ class NiftiForm(forms.ModelForm):
     helper.field_class = 'col-lg-12'
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
-        'url',
-        'location',
-    helper.add_input(Submit('Load', 'Load Image', css_class='btn-secondary'))
-        )
+        'url','location',
+        helper.add_input(Submit('Load', 'Load Image', css_class='btn-secondary'))
+    )
 
-class ParameterForm(forms.Form):
-    ZorT_c = ((1,"Z"),(2,"T"))
-    ZorT = forms.TypedChoiceField(
-        label="Are the values Z- or T-values?",
-        required=True,
-        choices=ZorT_c
-        )
-    ExcUnits_c = ((1,"units = p-values (SPM default)"),(2,"units = t-values (FSL default)"))
-    ExcUnits = forms.ChoiceField(
-        label="What are the units of your filtering threshold?",
-        required=True,
-        choices=ExcUnits_c
-        )
-    Exc = forms.DecimalField(
-        label="What is your filtering threshold?",
-        required=True
-        )
-    Subj = forms.IntegerField(
-        label="How many subjects does the pilot data contain?",
-        required=True
-        )
-    Samples_c = (
-        (1, ("One-sample")),
-        (2, ("Two-sample"))
-        )
-    Samples = forms.ChoiceField(
-        label="Is the study a one- or two-sample test",
-        choices=Samples_c
-        )
-    Smoothx = forms.CharField(label="",widget=forms.TextInput(attrs={'placeholder':'x'}))
-    Smoothy = forms.CharField(label="",widget=forms.TextInput(attrs={'placeholder':'y'}))
-    Smoothz = forms.CharField(label="",widget=forms.TextInput(attrs={'placeholder':'z'}))
-    Voxx = forms.CharField(label="",widget=forms.TextInput(attrs={'placeholder':'x'}))
-    Voxy = forms.CharField(label="",widget=forms.TextInput(attrs={'placeholder':'y'}))
-    Voxz = forms.CharField(label="",widget=forms.TextInput(attrs={'placeholder':'z'}))
-
+class ParameterForm(forms.ModelForm):
+    class Meta:
+        model = ParameterModel
+        fields = '__all__'
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'

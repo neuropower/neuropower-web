@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
-{% load crispy_forms_tags %}
 
+{% load crispy_forms_tags %}
 {% block head_title %}
-  NeuroPower | {{block.super}}
+  Neuropower Table | {{block.super}}
 {% endblock %}
 
 {% block content %}
@@ -14,11 +14,12 @@
     <form method='POST' action='.'>
       {% csrf_token %}
       {% crispy niftiform %}
+      {% crispy parsform %}
     </form>
   </div>
 
   <div class="col-xs-8">
-    <p>{{title}}</p>
+        {{data}}
   </div>
 </div>
 {% endblock %}
