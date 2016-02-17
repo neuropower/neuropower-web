@@ -1,11 +1,13 @@
 from __future__ import unicode_literals
 from django.db import models
+from picklefield.fields import PickledObjectField
+import numpy as np
 
 class NiftiModel(models.Model):
     url = models.URLField()
     location = models.CharField(max_length=300,default="/Users/Joke/Documents/Onderzoek/neuropower/neuropower-dev/neuropower/static_in_pro/our_static/img/zstat1.nii.gz")
     def __unicode__(self): # Python 3: __str__
-        return self
+        self.url
 
 class ParameterModel(models.Model):
     ZorT_c = (("Z","Z"),("T","T"))
@@ -22,5 +24,10 @@ class ParameterModel(models.Model):
     Voxx = models.DecimalField(max_digits=5,decimal_places=2)
     Voxy = models.DecimalField(max_digits=5,decimal_places=2)
     Voxz = models.DecimalField(max_digits=5,decimal_places=2)
+    def __unicode__(self): # Python 3: __str__
+        return self
+
+class PeakTableModel(models.Model):
+    data = PickledObjectField()
     def __unicode__(self): # Python 3: __str__
         return self
