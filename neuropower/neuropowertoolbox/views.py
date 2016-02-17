@@ -32,11 +32,6 @@ def neuropowerviewer(request):
     url = request.session["url"]
     niftiform = NiftiForm(None,default=url)
     parsform = ParameterForm(request.POST or None)
-    #print(location)
-    #location = request.session["location"]
-    #SPM=nib.load(location).get_data()
-    #peaks = cluster.cluster(SPM,2.3)
-    #print(peaks)
     context = {
     "niftiform": niftiform,
     "parsform": parsform,
@@ -46,14 +41,27 @@ def neuropowerviewer(request):
         return render(request,"neuropowerviewer.html",context)
     else:
         saveparsform = parsform.save()
-        request.session = parsform.cleaned_data
+        request.session["ZorT"] = parsform.cleaned_data['ZorT']
+        request.session["ExcUnits"] = parsform.cleaned_data['ExcUnits']
+        request.session["Exc"] = str(parsform.cleaned_data['Exc'])
+        request.session["Subj"] = parsform.cleaned_data['Subj']
+        request.session["Smoothness"] = str([parsform.cleaned_data['Smoothx'],parsform.cleaned_data['Smoothy'],parsform.cleaned_data['Smoothz']])
+        request.session["Voxelsize"] = str([parsform.cleaned_data['Voxx'],parsform.cleaned_data['Voxy'],parsform.cleaned_data['Voxz']])
         return HttpResponseRedirect('/neuropowertable/')
 
 def neuropowertable(request):
+    url = request.session["url"]
+    niftiform = NiftiForm(None,default=url)
+    parsform = ParameterForm(None)
+    print(request.session)
+    ExcUnits = request.session["ExcUnits"]
+    Exc = request.session["Exc"]
+    ZorT = request.session["ZorT"]
+    print(ZorT)
     context = {
+    "url":url,
     "niftiform": niftiform,
     "parsform": parsform,
-    "url": url,
     }
     return render(request,"neuropowertable.html",context)
 
