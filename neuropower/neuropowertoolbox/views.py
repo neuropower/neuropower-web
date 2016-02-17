@@ -1,10 +1,12 @@
 from django.shortcuts import render
+from django.core.files import File
 from django.http import HttpResponse, HttpResponseRedirect
 from neuropowertoolbox.forms import ParameterForm, NiftiForm
 from django.db import models
 from django.conf import settings
 from neuropowertoolbox.models import NiftiModel
 from neuropower.utils import BUM, cluster, model, neuropower,peakdistribution
+from django.forms import model_to_dict
 import nibabel as nib
 import os
 import numpy as np
@@ -13,6 +15,7 @@ def home(request):
     return render(request,"home.html",{})
 
 def neuropower(request):
+    #/Users/Joke/Documents/Onderzoek/neuropower/neuropower-dev/neuropower/static_in_pro/our_static/img/zstat1.nii.gz
     niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
     parsform = ParameterForm(None)
     context = {
@@ -20,38 +23,30 @@ def neuropower(request):
     "parsform": parsform
     }
     if not niftiform.is_valid():
-        niftiform=NiftiForm(request.POST)
         return render(request,"neuropower.html",context)
     else:
         newform = niftiform.save()
-        request.session["url"] = niftiform.cleaned_data['file']
-        return HttpResponseRedirect('/neuropowerviewer')
+        request.session["url"] = niftiform.cleaned_data['url']
+        request.session["location"] = niftiform.cleaned_data['location']
+        return HttpResponseRedirect('/neuropowerviewer/')
 
 def neuropowerviewer(request):
     url = request.session["url"]
-    niftiform2 = NiftiForm(request.POST or None,default=url)
+    location = request.session["location"]
+    niftiform = NiftiForm(None,default=url)
     parsform = ParameterForm(request.POST or None)
-    ## THIS PART SHOULD BE REMOVED AND GET THE REAL FILE!! ##########
-    name="zstat1.nii.gz"
-    new_name = os.path.join(settings.STATICFILES_DIRS[0],"img",name)
-    #SPM=nib.load(new_name).get_data()
-    #print(np.mean(SPM))
-    #################################################################
-
+    #print(location)
+    SPM=nib.load(location).get_data()
+    print(np.mean(SPM))
     context = {
-    "niftiform": niftiform2,
+    "niftiform": niftiform,
     "parsform": parsform,
     "url": url,
-    "SPMfile":new_name,
     }
-    print(new_name)
-
     if parsform.is_valid():
-        niftidata = niftiform2.cleaned_data
         print(niftidata)
         parsform=ParameterForm(request.POST or None)
         context = {
-        "niftiform":niftiform2,
         "parsform": parsform
         }
     return render(request,"neuropowerviewer.html",context)

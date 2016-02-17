@@ -7,17 +7,18 @@ from .models import NiftiModel
 class NiftiForm(forms.ModelForm):
     class Meta:
         model = NiftiModel
-        fields = '__all__'
+        fields = ['url','location']
     def __init__(self,*args,**kwargs):
         self.default=kwargs.pop('default',None)
         super(NiftiForm,self).__init__(*args,**kwargs)
-        self.fields['file'].widget = forms.URLInput(attrs={'placeholder':self.default})
+        self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default})
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
-        'file',
+        'url',
+        'location',
     helper.add_input(Submit('Load', 'Load Image', css_class='btn-secondary'))
         )
 
