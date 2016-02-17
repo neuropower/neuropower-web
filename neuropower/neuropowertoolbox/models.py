@@ -8,11 +8,11 @@ class NiftiModel(models.Model):
         return self
 
 class ParameterModel(models.Model):
-    ZorT_c = ((1,"Z"),(2,"T"))
-    ExcUnits_c = ((1,"units = p-values (SPM default)"),(2,"units = t-values (FSL default)"))
+    ZorT_c = (("Z","Z"),("T","T"))
+    ExcUnits_c = (("p","units = p-values (SPM default)"),("t","units = t-values (FSL default)"))
     Samples_c = ((1, ("One-sample")),(2, ("Two-sample")))
-    ZorT = models.IntegerField(choices=ZorT_c)
-    ExcUnits = models.IntegerField(choices=ExcUnits_c)
+    ZorT = models.CharField(max_length=10,choices=ZorT_c)
+    ExcUnits = models.CharField(max_length=10,choices=ExcUnits_c)
     Exc = models.DecimalField(max_digits=5,decimal_places=2)
     Subj = models.IntegerField()
     Samples = models.IntegerField(choices=Samples_c)
