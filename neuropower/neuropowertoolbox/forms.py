@@ -7,7 +7,7 @@ from .models import NiftiModel, ParameterModel
 class NiftiForm(forms.ModelForm):
     class Meta:
         model = NiftiModel
-        fields = '__all__'
+        fields = ['url','location']
     def __init__(self,*args,**kwargs):
         self.default=kwargs.pop('default',None)
         super(NiftiForm,self).__init__(*args,**kwargs)

@@ -17,6 +17,8 @@ def home(request):
     return render(request,"home.html",{})
 
 def neuropower(request):
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
     niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
     context = {
         "niftiform": niftiform,
@@ -24,8 +26,9 @@ def neuropower(request):
     if not niftiform.is_valid():
         return render(request,"neuropower.html",context)
     else:
-        saveniftiform = niftiform.save()
-        request.session["NiftiID"] = saveniftiform.pk
+        saveniftiform = niftiform.save(commit=False)
+        saveniftiform.SID = request.session.session_key
+        saveniftiform.save()
         return HttpResponseRedirect('/neuropowerviewer/')
 
 def neuropowerviewer(request):

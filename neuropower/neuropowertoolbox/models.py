@@ -2,12 +2,15 @@ from __future__ import unicode_literals
 from django.db import models
 from picklefield.fields import PickledObjectField
 import numpy as np
+from django.contrib.sessions.backends.db import SessionStore
+from django.contrib.sessions.models import Session
 
 class NiftiModel(models.Model):
+    SID = models.CharField(max_length=300,default="")
     url = models.URLField()
     location = models.CharField(max_length=300,default="/Users/Joke/Documents/Onderzoek/neuropower/neuropower-dev/neuropower/static_in_pro/our_static/img/zstat1.nii.gz")
     def __unicode__(self): # Python 3: __str__
-        self.url
+        self
 
 class ParameterModel(models.Model):
     ZorT_c = (("Z","Z"),("T","T"))

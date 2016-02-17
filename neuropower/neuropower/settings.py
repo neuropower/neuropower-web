@@ -148,3 +148,5 @@ MEDIA_ROOT=os.path.join(os.path.dirname(BASE_DIR),"static_in_virtualenv","media_
 ## App specific settings
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
