@@ -15,7 +15,8 @@
 <div class="row">
   <br>
   <br>
-  <div class="col-xs-4">
+  <div class="col-xs-2"></div>
+  <div class="col-xs-8">
     <form method='POST' action='.'>
       {% csrf_token %}
       {% crispy niftiform %}
@@ -23,8 +24,6 @@
     </form>
   </div>
 
-  <div class="col-xs-8">
-    <p>{{title}}</p>
-  </div>
+  <div class="col-xs-2"></div>
 </div>
 {% endblock %}

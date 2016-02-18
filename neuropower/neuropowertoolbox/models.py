@@ -36,3 +36,11 @@ class PeakTableModel(models.Model):
     data = PickledObjectField()
     def __unicode__(self): # Python 3: __str__
         return self
+
+class MixtureModel(models.Model):
+    SID = models.CharField(max_length=300,default="")
+    pi1 = models.DecimalField(max_digits=10,decimal_places=4)
+    mu = models.DecimalField(max_digits=10,decimal_places=4)
+    sigma = models.DecimalField(max_digits=10,decimal_places=4)
+    def __unicode__(self): # Python 3: __str__
+        return self

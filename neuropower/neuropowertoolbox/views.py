@@ -5,65 +5,74 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .forms import ParameterForm, NiftiForm, PeakTableForm
 from django.db import models
 from django.conf import settings
-from .models import NiftiModel, PeakTableModel, ParameterModel
+from .models import NiftiModel, PeakTableModel, ParameterModel, MixtureModel
 from neuropower.utils import BUM, cluster, model, neuropower,peakdistribution
 from django.forms import model_to_dict
 import nibabel as nib
 import os
 import numpy as np
-from scipy.stats import norm
+from scipy.stats import norm, t
 
 def home(request):
     return render(request,"home.html",{})
 
 def neuropower(request):
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
     sid = request.session.session_key
-    niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
-    parsform = ParameterForm(request.POST or None)
-    context = {
-        "niftiform": niftiform,
-        "parsform": parsform
-    }
-    if not niftiform.is_valid():
-        return render(request,"neuropower.html",context)
+    if not NiftiModel.objects.filter(SID=sid):
+        niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
+        parsform = ParameterForm(None)
+        context = {"niftiform": niftiform,"parsform": parsform}
+        if not niftiform.is_valid():
+            return render(request,"neuropower.html",context)
+            print("not valid")
+        else:
+            saveniftiform = niftiform.save(commit=False)
+            saveniftiform.SID = sid
+            saveniftiform.save()
+            return HttpResponseRedirect('/neuropowerviewer/')
+    if NiftiModel.objects.filter(SID=sid) and not ParameterModel.objects.filter(SID=sid):
+        niftiform = NiftiForm(None,default="URL to nifti image")
+        parsform = ParameterForm(request.POST or None)
+        context = {"niftiform": niftiform,"parsform": parsform}
+        if not parsform.is_valid():
+            return render(request,"neuropower.html",context)
+        else:
+            saveparsform = parsform.save(commit=False)
+            saveparsform.SID = sid
+            saveparsform.save()
+            return HttpResponseRedirect('/neuropowertable/')
     else:
-        saveniftiform = niftiform.save(commit=False)
-        saveniftiform.SID = sid
-        saveniftiform.save()
-        return HttpResponseRedirect('/neuropowerviewer/')
+        return render(request,"neuropower.html",context)
 
 def neuropowerviewer(request):
     sid = request.session.session_key
     niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
-    niftiform = NiftiForm(None,default=niftidata.url)
     parsform = ParameterForm(request.POST or None)
     context = {
-        "niftiform": niftiform,
-        "parsform": parsform,
         "url":niftidata.url,
     }
     if not parsform.is_valid():
         return render(request,"neuropowerviewer.html",context)
     else:
-        saveparsform = parsform.save(commit=False)
-        saveparsform.SID = sid
-        saveparsform.save()
         return HttpResponseRedirect('/neuropowertable/')
 
 
 def neuropowertable(request):
     sid = request.session.session_key
-    niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
-    parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
-    niftiform = NiftiForm(None,default=niftidata.url)
-    parsform = ParameterForm(None)
     if not PeakTableModel.objects.filter(SID=sid):
-        dof = [parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2]
+        niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
+        parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
+        dof = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
         SPM=nib.load(niftidata.location).get_data()
         if parsdata.ZorT=='T':
             SPM = -norm.ppf(t.cdf(-SPM,df=float(dof)))
-        excZ = [float(parsdata.Exc) if parsdata.ExcUnits=='Z' else -norm.ppf(float(parsdata.Exc))]
-        peaks = cluster.cluster(SPM,excZ[0])
+        ExcZ = float(parsdata.Exc) if parsdata.ExcUnits=='t' else -norm.ppf(float(parsdata.Exc))
+        peaks = cluster.cluster(SPM,ExcZ)
+        pvalues = np.exp(-ExcZ*(np.array(peaks.peak)-ExcZ))
+        pvalues = [max(10**(-6),p) for p in pvalues]
+        peaks['pval'] = pvalues
         peakform = PeakTableForm()
         savepeakform = peakform.save(commit=False)
         savepeakform.SID = sid
@@ -73,21 +82,21 @@ def neuropowertable(request):
         peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
         peaks = peakdata.data
     context = {
-    "url":niftidata.url,
-    "niftiform": niftiform,
-    "parsform": parsform,
     "peaks":peaks.to_html(classes=["table table-striped"]),
     }
     return render(request,"neuropowertable.html",context)
 
-def neuropowermodelplot(request):
+def neuropowermodel(request):
     sid = request.session.session_key
-    peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
-    peaks = peakdata.data
+    if not MixtureModel.objects.filter(SID=sid):
+        peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
+        peaks = peakdata.data
+        bum = BUM.bumOptim(peaks['pval'].tolist(),starts=10)
+        #modelfit = neuropower.modelfit(peaks.peak,bum['pi1'],exc=exc,starts=10,method="RFT")
     context = {
     "peaks":peaks.to_html(classes=["table table-striped"]),
     }
-    return render(request,"neuropowermodelplot.html",context)
+    return render(request,"neuropowermodel.html",context)
 
 def plotpage(request):
     return render(request,"plotpage.html",{})
