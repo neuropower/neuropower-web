@@ -44,6 +44,9 @@ def neuropower(request):
             saveparsform.save()
             return HttpResponseRedirect('/neuropowertable/')
     else:
+        niftiform = NiftiForm(None,default="URL to nifti image")
+        parsform = ParameterForm(None)
+        context = {"niftiform": niftiform,"parsform": parsform}
         return render(request,"neuropower.html",context)
 
 def neuropowerviewer(request):
