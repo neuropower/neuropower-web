@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url,include
 from django.contrib import admin
-from neuropowertoolbox import views
+from neuropowertoolbox import views, plots
 #from django.contrib.staticfiles.urls import staticfiles.urlpatterns
 #urlpatterns += staticfile_urlpatterns()
 
@@ -27,5 +27,5 @@ urlpatterns = [
     url(r'^neuropowertable/$',views.neuropowertable,name='neuropowertable'),
     url(r'^neuropowermodelplot/$',views.neuropowermodelplot,name='neuropowermodelplot'),
     url(r'^plotpage/$',views.plotpage,name='plotpage'),
-    url(r'^plotpage/result.png$', views.plotResults,name='plot'),
+    url(r'^plotpage/result.png$', plots.plotResults,name='plot'),
     ]
