@@ -26,9 +26,10 @@ var params = [];
   <br>
   <div class="col-xs-2"></div>
   <div class="col-xs-8">
-        <div class="papaya" data-params="params"></div>
-        <div class="col-xs-2"></div>
+        {{viewer | safe}}
+        <h2> {{text}} </h2>
+    </div>
+  <div class="col-xs-2"></div>
         <!-- <p>{{SPMfile}}</p> -->
-  </div>
 </div>
 {% endblock %}

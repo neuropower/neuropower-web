@@ -16,6 +16,7 @@ from scipy.stats import norm, t
 def home(request):
     return render(request,"home.html",{})
 
+
 def neuropower(request):
     if not request.session.exists(request.session.session_key):
         request.session.create()
@@ -50,56 +51,82 @@ def neuropower(request):
         return render(request,"neuropower.html",context)
 
 def neuropowerviewer(request):
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
     sid = request.session.session_key
-    niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
-    parsform = ParameterForm(request.POST or None)
-    context = {
-        "url":niftidata.url,
-    }
-    if not parsform.is_valid():
+    if not NiftiModel.objects.filter(SID=sid):
+        context = {
+            "text":"Please first fill out the 'Data Location' form in the input."
+        }
         return render(request,"neuropowerviewer.html",context)
     else:
-        return HttpResponseRedirect('/neuropowertable/')
-
+        sid = request.session.session_key
+        niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
+        parsform = ParameterForm(request.POST or None)
+        context = {
+            "url":niftidata.url,
+            "viewer":"<div class='papaya' data-params='params'></div>"
+        }
+        if not parsform.is_valid():
+            return render(request,"neuropowerviewer.html",context)
+        else:
+            return HttpResponseRedirect('/neuropowertable/')
 
 def neuropowertable(request):
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
     sid = request.session.session_key
-    if not PeakTableModel.objects.filter(SID=sid):
-        niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
-        parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
-        dof = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
-        SPM=nib.load(niftidata.location).get_data()
-        if parsdata.ZorT=='T':
-            SPM = -norm.ppf(t.cdf(-SPM,df=float(dof)))
-        ExcZ = float(parsdata.Exc) if parsdata.ExcUnits=='t' else -norm.ppf(float(parsdata.Exc))
-        peaks = cluster.cluster(SPM,ExcZ)
-        pvalues = np.exp(-ExcZ*(np.array(peaks.peak)-ExcZ))
-        pvalues = [max(10**(-6),p) for p in pvalues]
-        peaks['pval'] = pvalues
-        peakform = PeakTableForm()
-        savepeakform = peakform.save(commit=False)
-        savepeakform.SID = sid
-        savepeakform.data = peaks
-        savepeakform.save()
+    if not ParameterModel.objects.filter(SID=sid):
+        context = {
+            "text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
+        }
+        return render(request,"neuropowerviewer.html",context)
     else:
-        peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
-        peaks = peakdata.data
-    context = {
-    "peaks":peaks.to_html(classes=["table table-striped"]),
-    }
-    return render(request,"neuropowertable.html",context)
+        sid = request.session.session_key
+        if not PeakTableModel.objects.filter(SID=sid):
+            niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
+            parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
+            dof = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
+            SPM=nib.load(niftidata.location).get_data()
+            if parsdata.ZorT=='T':
+                SPM = -norm.ppf(t.cdf(-SPM,df=float(dof)))
+            ExcZ = float(parsdata.Exc) if parsdata.ExcUnits=='t' else -norm.ppf(float(parsdata.Exc))
+            peaks = cluster.cluster(SPM,ExcZ)
+            pvalues = np.exp(-ExcZ*(np.array(peaks.peak)-ExcZ))
+            pvalues = [max(10**(-6),p) for p in pvalues]
+            peaks['pval'] = pvalues
+            peakform = PeakTableForm()
+            savepeakform = peakform.save(commit=False)
+            savepeakform.SID = sid
+            savepeakform.data = peaks
+            savepeakform.save()
+        else:
+            peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
+            peaks = peakdata.data
+        context = {
+        "peaks":peaks.to_html(classes=["table table-striped"]),
+        }
+        return render(request,"neuropowertable.html",context)
 
 def neuropowermodel(request):
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
     sid = request.session.session_key
-    if not MixtureModel.objects.filter(SID=sid):
-        peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
-        peaks = peakdata.data
-        bum = BUM.bumOptim(peaks['pval'].tolist(),starts=10)
-        #modelfit = neuropower.modelfit(peaks.peak,bum['pi1'],exc=exc,starts=10,method="RFT")
-    context = {
-    "peaks":peaks.to_html(classes=["table table-striped"]),
-    }
-    return render(request,"neuropowermodel.html",context)
+    if not ParameterModel.objects.filter(SID=sid) or not NiftiModel.objects.filter(SID=sid):
+        context = {
+            "text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
+        }
+        return render(request,"neuropowerviewer.html",context)
+    else:
+        if not MixtureModel.objects.filter(SID=sid):
+            peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
+            peaks = peakdata.data
+            bum = BUM.bumOptim(peaks['pval'].tolist(),starts=10)
+            #modelfit = neuropower.modelfit(peaks.peak,bum['pi1'],exc=exc,starts=10,method="RFT")
+        context = {
+        "peaks":peaks.to_html(classes=["table table-striped"]),
+        }
+        return render(request,"neuropowermodel.html",context)
 
 def plotpage(request):
     return render(request,"plotpage.html",{})
