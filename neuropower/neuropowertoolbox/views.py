@@ -19,8 +19,10 @@ def home(request):
 def neuropower(request):
     sid = request.session.session_key
     niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
+    parsform = ParameterForm(request.POST or None)
     context = {
         "niftiform": niftiform,
+        "parsform": parsform
     }
     if not niftiform.is_valid():
         return render(request,"neuropower.html",context)
@@ -55,17 +57,21 @@ def neuropowertable(request):
     parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
     niftiform = NiftiForm(None,default=niftidata.url)
     parsform = ParameterForm(None)
-    dof = [parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2]
-    SPM=nib.load(niftidata.location).get_data()
-    if parsdata.ZorT=='T':
-        SPM = -norm.ppf(t.cdf(-SPM,df=float(dof)))
-    excZ = [float(parsdata.Exc) if parsdata.ExcUnits=='Z' else -norm.ppf(float(parsdata.Exc))]
-    peaks = cluster.cluster(SPM,excZ[0])
-    peakform = PeakTableForm()
-    savepeakform = peakform.save(commit=False)
-    savepeakform.SID = sid
-    savepeakform.data = peaks
-    savepeakform.save()
+    if not PeakTableModel.objects.filter(SID=sid):
+        dof = [parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2]
+        SPM=nib.load(niftidata.location).get_data()
+        if parsdata.ZorT=='T':
+            SPM = -norm.ppf(t.cdf(-SPM,df=float(dof)))
+        excZ = [float(parsdata.Exc) if parsdata.ExcUnits=='Z' else -norm.ppf(float(parsdata.Exc))]
+        peaks = cluster.cluster(SPM,excZ[0])
+        peakform = PeakTableForm()
+        savepeakform = peakform.save(commit=False)
+        savepeakform.SID = sid
+        savepeakform.data = peaks
+        savepeakform.save()
+    else:
+        peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
+        peaks = peakdata.data
     context = {
     "url":niftidata.url,
     "niftiform": niftiform,

@@ -24,16 +24,10 @@ var params = [];
 <div class="row">
   <br>
   <br>
-  <div class="col-xs-4">
-    <form method='POST' action='.'>
-      {% csrf_token %}
-      {% crispy niftiform %}
-      {% crispy parsform %}
-    </form>
-  </div>
-
+  <div class="col-xs-2"></div>
   <div class="col-xs-8">
         <div class="papaya" data-params="params"></div>
+        <div class="col-xs-2"></div>
         <!-- <p>{{SPMfile}}</p> -->
   </div>
 </div>

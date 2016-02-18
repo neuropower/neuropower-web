@@ -14,13 +14,6 @@
 <div class="row">
   <br>
   <br>
-  <div class="col-xs-4">
-    <form method='POST' action='.'>
-      {% csrf_token %}
-      {% crispy niftiform %}
-      {% crispy parsform %}
-    </form>
-  </div>
   <div class="col-xs-8">
     <div class="table-responsive">
     {{peaks | safe}}
