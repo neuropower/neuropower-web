@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  NeuroPower | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{%include 'navbar.html' %}
+{%include 'neuropowernavbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <br>
+  <br>
+  <div class="col-xs-4">
+
+
+
+  </div>
+  <div class="col-xs-8">
+
+
+
+  </div>
+
+</div>
+{% endblock %}

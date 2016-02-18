@@ -139,7 +139,7 @@ def neuropowermodel(request):
         }
         return render(request,"neuropowermodel.html",context)
 
-def plotpage(request):
+def neuropowersamplesize(request):
     if not request.session.exists(request.session.session_key):
         request.session.create()
     sid = request.session.session_key
@@ -147,4 +147,10 @@ def plotpage(request):
         context = {
             "text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
         }
-    return render(request,"plotpage.html",{})
+    if not MixtureModel.objects.filter(SID=sid):
+        context = {
+            "text":"Please first go to the 'Model Fit' page to initiate and inspect the fit of the mixture model to the distribution."
+        }
+    else:
+        mixdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
+    return render(request,"neuropowersamplesize.html",{})
