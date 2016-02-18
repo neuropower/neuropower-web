@@ -16,13 +16,9 @@
 <div class="row">
   <br>
   <br>
-  <div class="col-xs-2"></div>
-  <div class="col-xs-8">
+  <div class="col-xs-12">
     <h2> {{text}} </h2>
-    <div class="table-responsive">
-    {{peaks | safe}}
-    </div>
+    <img src={% url 'plotmodel' %} width=100%/>
   </div>
-  <div class="col-xs-2"></div>
 </div>
 {% endblock %}

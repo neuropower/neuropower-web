@@ -20,6 +20,8 @@ class ParameterModel(models.Model):
     ZorT = models.CharField(max_length=10,choices=ZorT_c)
     ExcUnits = models.CharField(max_length=10,choices=ExcUnits_c)
     Exc = models.DecimalField(max_digits=5,decimal_places=2)
+    ExcZ = models.DecimalField(max_digits=5,decimal_places=2,default='NaN')
+    DoF = models.DecimalField(max_digits=5,decimal_places=2,default='NaN')
     Subj = models.IntegerField()
     Samples = models.IntegerField(choices=Samples_c)
     Smoothx = models.DecimalField(max_digits=5,decimal_places=2)
@@ -40,6 +42,7 @@ class PeakTableModel(models.Model):
 class MixtureModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     pi1 = models.DecimalField(max_digits=10,decimal_places=4)
+    a = models.DecimalField(max_digits=10,decimal_places=4,default="NaN")
     mu = models.DecimalField(max_digits=10,decimal_places=4)
     sigma = models.DecimalField(max_digits=10,decimal_places=4)
     def __unicode__(self): # Python 3: __str__

@@ -2,11 +2,11 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from django.core.files import File
 from django.http import HttpResponse, HttpResponseRedirect
-from .forms import ParameterForm, NiftiForm, PeakTableForm
+from .forms import ParameterForm, NiftiForm, PeakTableForm, MixtureForm
 from django.db import models
 from django.conf import settings
 from .models import NiftiModel, PeakTableModel, ParameterModel, MixtureModel
-from neuropower.utils import BUM, cluster, model, neuropower,peakdistribution
+from neuropower.utils import BUM, cluster, model, neuropowermodels,peakdistribution
 from django.forms import model_to_dict
 import nibabel as nib
 import os
@@ -34,7 +34,8 @@ def neuropower(request):
             saveniftiform.save()
             return HttpResponseRedirect('/neuropowerviewer/')
     if NiftiModel.objects.filter(SID=sid) and not ParameterModel.objects.filter(SID=sid):
-        niftiform = NiftiForm(None,default="URL to nifti image")
+        niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
+        niftiform = NiftiForm(None,default=niftidata.url)
         parsform = ParameterForm(request.POST or None)
         context = {"niftiform": niftiform,"parsform": parsform}
         if not parsform.is_valid():
@@ -86,13 +87,13 @@ def neuropowertable(request):
         if not PeakTableModel.objects.filter(SID=sid):
             niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
             parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
-            dof = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
+            parsdata.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
             SPM=nib.load(niftidata.location).get_data()
             if parsdata.ZorT=='T':
-                SPM = -norm.ppf(t.cdf(-SPM,df=float(dof)))
-            ExcZ = float(parsdata.Exc) if parsdata.ExcUnits=='t' else -norm.ppf(float(parsdata.Exc))
-            peaks = cluster.cluster(SPM,ExcZ)
-            pvalues = np.exp(-ExcZ*(np.array(peaks.peak)-ExcZ))
+                SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
+            parsdata.ExcZ = float(parsdata.Exc) if parsdata.ExcUnits=='t' else -norm.ppf(float(parsdata.Exc))
+            peaks = cluster.cluster(SPM,parsdata.ExcZ)
+            pvalues = np.exp(-parsdata.ExcZ*(np.array(peaks.peak)-parsdata.ExcZ))
             pvalues = [max(10**(-6),p) for p in pvalues]
             peaks['pval'] = pvalues
             peakform = PeakTableForm()
@@ -100,6 +101,7 @@ def neuropowertable(request):
             savepeakform.SID = sid
             savepeakform.data = peaks
             savepeakform.save()
+            parsdata.save()
         else:
             peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
             peaks = peakdata.data
@@ -119,12 +121,21 @@ def neuropowermodel(request):
         return render(request,"neuropowerviewer.html",context)
     else:
         if not MixtureModel.objects.filter(SID=sid):
+            parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
             peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
             peaks = peakdata.data
-            bum = BUM.bumOptim(peaks['pval'].tolist(),starts=10)
-            #modelfit = neuropower.modelfit(peaks.peak,bum['pi1'],exc=exc,starts=10,method="RFT")
+            bum = BUM.bumOptim(peaks.pval.tolist(),starts=10)
+            modelfit = neuropowermodels.modelfit(peaks.peak.tolist(),bum['pi1'],exc=float(parsdata.ExcZ),starts=10,method="RFT")
+            mixtureform = MixtureForm()
+            savemixtureform = mixtureform.save(commit=False)
+            savemixtureform.SID = sid
+            savemixtureform.pi1 = bum['pi1']
+            savemixtureform.a = bum['a']
+            savemixtureform.mu = modelfit['mu']
+            savemixtureform.sigma = modelfit['sigma']
+            savemixtureform.save()
         context = {
-        "peaks":peaks.to_html(classes=["table table-striped"]),
+        #"peaks":peaks.to_html(classes=["table table-striped"]),
         }
         return render(request,"neuropowermodel.html",context)
 
