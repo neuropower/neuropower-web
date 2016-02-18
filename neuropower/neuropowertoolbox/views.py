@@ -140,4 +140,11 @@ def neuropowermodel(request):
         return render(request,"neuropowermodel.html",context)
 
 def plotpage(request):
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
+    sid = request.session.session_key
+    if not ParameterModel.objects.filter(SID=sid) or not NiftiModel.objects.filter(SID=sid):
+        context = {
+            "text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
+        }
     return render(request,"plotpage.html",{})
