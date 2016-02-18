@@ -10,6 +10,10 @@ var params = [];
 </script>
 {% endblock %}
 
+{% block navbar %}
+{%include 'navbar.html' %}
+{%include 'neuropowernavbar.html' %}
+{% endblock %}
 
 {% load crispy_forms_tags %}
 {% block head_title %}
