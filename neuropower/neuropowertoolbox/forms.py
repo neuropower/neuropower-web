@@ -2,7 +2,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
-from .models import NiftiModel, ParameterModel
+from .models import NiftiModel, ParameterModel, PeakTableModel
 
 class NiftiForm(forms.ModelForm):
     class Meta:
@@ -51,3 +51,8 @@ class ParameterForm(forms.ModelForm):
         ),
     helper.add_input(Submit('Submit', 'Submit', css_class='btn-secondary'))
     )
+
+class PeakTableForm(forms.ModelForm):
+    class Meta:
+        model = PeakTableModel
+        fields = '__all__'

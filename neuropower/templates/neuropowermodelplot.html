@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% load crispy_forms_tags %}
+{% block head_title %}
+  Neuropower Model | {{block.super}}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <br>
+  <br>
+  <div class="col-xs-4">
+    <form method='POST' action='.'>
+    </form>
+  </div>
+  <div class="col-xs-8">
+    <div class="table-responsive">
+    {{peaks | safe}}
+    </div>
+  </div>
+</div>
+{% endblock %}

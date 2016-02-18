@@ -32,6 +32,7 @@ class ParameterModel(models.Model):
         return self
 
 class PeakTableModel(models.Model):
+    SID = models.CharField(max_length=300,default="")
     data = PickledObjectField()
     def __unicode__(self): # Python 3: __str__
         return self

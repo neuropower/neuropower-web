@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^neuropower/$',views.neuropower,name='neuropower'),
     url(r'^neuropowerviewer/$',views.neuropowerviewer,name='neuropowerviewer'),
     url(r'^neuropowertable/$',views.neuropowertable,name='neuropowertable'),
+    url(r'^neuropowermodelplot/$',views.neuropowermodelplot,name='neuropowermodelplot'),
     url(r'^plotpage/$',views.plotpage,name='plotpage'),
     url(r'^plotpage/result.png$', views.plotResults,name='plot'),
     ]
