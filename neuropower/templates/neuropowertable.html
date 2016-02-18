@@ -17,9 +17,10 @@
       {% crispy parsform %}
     </form>
   </div>
-
   <div class="col-xs-8">
-        {{data}}
+    <div class="table-responsive">
+    {{peaks | safe}}
+    </div>
   </div>
 </div>
 {% endblock %}

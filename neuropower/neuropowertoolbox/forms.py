@@ -24,7 +24,7 @@ class NiftiForm(forms.ModelForm):
 class ParameterForm(forms.ModelForm):
     class Meta:
         model = ParameterModel
-        fields = '__all__'
+        fields = ['ZorT','ExcUnits','Exc','Subj','Samples','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'
@@ -35,18 +35,14 @@ class ParameterForm(forms.ModelForm):
         'Exc',
         'Subj',
         'Samples',
-        HTML("""
-        <p style="margin-left: 15px"><b> \n What is the smoothness of the data? </b></p>
-        """),
+        HTML("""<p style="margin-left: 15px"><b> \n What is the smoothness of the data? </b></p>"""),
         Div(
            Div(Field('Smoothx'), css_class='col-xs-4'),
             Div(Field('Smoothy'), css_class='col-xs-4'),
             Div(Field('Smoothz'), css_class='col-xs-4'),
             css_class='row-xs-12'
         ),
-        HTML("""
-        <p style="margin-left: 15px"><b> \n What is the voxel size? </b></p>
-        """),
+        HTML("""<p style="margin-left: 15px"><b> \n What is the voxel size? </b></p>"""),
         Div(
            Div(Field('Voxx'), css_class='col-xs-4'),
            Div(Field('Voxy'), css_class='col-xs-4'),

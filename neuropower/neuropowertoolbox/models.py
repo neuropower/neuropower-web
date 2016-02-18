@@ -13,6 +13,7 @@ class NiftiModel(models.Model):
         self
 
 class ParameterModel(models.Model):
+    SID = models.CharField(max_length=300,default="")
     ZorT_c = (("Z","Z"),("T","T"))
     ExcUnits_c = (("p","units = p-values (SPM default)"),("t","units = t-values (FSL default)"))
     Samples_c = ((1, ("One-sample")),(2, ("Two-sample")))
