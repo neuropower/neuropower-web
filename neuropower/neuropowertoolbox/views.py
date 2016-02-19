@@ -2,10 +2,10 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from django.core.files import File
 from django.http import HttpResponse, HttpResponseRedirect
-from .forms import ParameterForm, NiftiForm, PeakTableForm, MixtureForm, PowerTableForm
+from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm
 from django.db import models
 from django.conf import settings
-from .models import NiftiModel, PeakTableModel, ParameterModel, MixtureModel, PowerTableModel
+from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel
 from neuropower.utils import BUM, cluster, model, neuropowermodels,peakdistribution
 from django.forms import model_to_dict
 import nibabel as nib
@@ -15,9 +15,9 @@ from scipy.stats import norm, t
 import pandas as pd
 import tempfile, shutil, os,urllib
 
-def create_temporary_copy(path):
+def create_temporary_copy(path,sid):
     temp_dir = tempfile.gettempdir()
-    temp_path = os.path.join(temp_dir, 'nifti_down.nii.gz')
+    temp_path = os.path.join(temp_dir, 'nifti_down_"+sid+".nii.gz')
     urllib.urlretrieve(path, temp_path)
     return temp_path
 
@@ -33,57 +33,39 @@ def get_session_id(request):
 
 def neuropower(request):
     sid = get_session_id(request)
-    if not NiftiModel.objects.filter(SID=sid):
-        niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
-        parsform = ParameterForm(None)
-        context = {"niftiform": niftiform,"parsform": parsform}
-        if not niftiform.is_valid():
-            return render(request,"neuropower.html",context)
-        else:
-            url = niftiform.cleaned_data['url']
-            location = create_temporary_copy(url)
-            saveniftiform = niftiform.save(commit=False)
-            saveniftiform.SID = sid
-            saveniftiform.location = location
-            saveniftiform.save()
-            return HttpResponseRedirect('/neuropowerviewer/')
-    if NiftiModel.objects.filter(SID=sid) and not ParameterModel.objects.filter(SID=sid):
-        niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
-        niftiform = NiftiForm(None,default=niftidata.url)
-        parsform = ParameterForm(request.POST or None)
-        context = {"niftiform": niftiform,"parsform": parsform}
+    if not ParameterModel.objects.filter(SID=sid):
+        parsform = ParameterForm(request.POST or None,default="URL to nifti image")
+        context = {"parsform": parsform}
         if not parsform.is_valid():
             return render(request,"neuropower.html",context)
         else:
+            url = parsform.cleaned_data['url']
+            location = create_temporary_copy(url,sid)
             saveparsform = parsform.save(commit=False)
             saveparsform.SID = sid
+            saveparsform.location = location
             saveparsform.save()
-            return HttpResponseRedirect('/neuropowertable/')
+            return HttpResponseRedirect('/neuropowerviewer/')
     else:
-        niftiform = NiftiForm(None,default="URL to nifti image")
-        parsform = ParameterForm(None)
-        context = {"niftiform": niftiform,"parsform": parsform}
+        parsform = ParameterForm(request.POST or None,default="URL to nifti image")
+        context = {"parsform": parsform}
         return render(request,"neuropower.html",context)
 
 def neuropowerviewer(request):
     sid = get_session_id(request)
-    if not NiftiModel.objects.filter(SID=sid):
+    if not ParameterModel.objects.filter(SID=sid):
         context = {
-            "text":"Please first fill out the 'Data Location' form in the input."
+            "text":"Please first fill out the input."
         }
         return render(request,"neuropowerviewer.html",context)
     else:
         sid = request.session.session_key
-        niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
-        parsform = ParameterForm(request.POST or None)
+        parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
         context = {
-            "url":niftidata.url,
+            "url":parsdata.url,
             "viewer":"<div class='papaya' data-params='params'></div>"
         }
-        if not parsform.is_valid():
-            return render(request,"neuropowerviewer.html",context)
-        else:
-            return HttpResponseRedirect('/neuropowertable/')
+        return render(request,"neuropowerviewer.html",context)
 
 def neuropowertable(request):
     sid = get_session_id(request)
@@ -95,14 +77,13 @@ def neuropowertable(request):
     else:
         sid = request.session.session_key
         if not PeakTableModel.objects.filter(SID=sid):
-            niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
             parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
             parsdata.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
-            SPM=nib.load(niftidata.location).get_data()
+            SPM=nib.load(parsdata.location).get_data()
             print(SPM)
             if parsdata.ZorT=='T':
                 SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-            parsdata.ExcZ = float(parsdata.Exc) if parsdata.ExcUnits=='t' else -norm.ppf(float(parsdata.Exc))
+            parsdata.ExcZ = float(parsdata.Exc) if float(parsdata.Exc)>1 else -norm.ppf(float(parsdata.Exc))
             peaks = cluster.cluster(SPM,parsdata.ExcZ)
             pvalues = np.exp(-parsdata.ExcZ*(np.array(peaks.peak)-parsdata.ExcZ))
             pvalues = [max(10**(-6),p) for p in pvalues]
@@ -123,8 +104,8 @@ def neuropowertable(request):
 
 def neuropowermodel(request):
     sid = get_session_id(request)
-    if not ParameterModel.objects.filter(SID=sid) or not NiftiModel.objects.filter(SID=sid):
-        context = {"text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."}
+    if not ParameterModel.objects.filter(SID=sid):
+        context = {"text":"Please first fill out the input."}
         return render(request,"neuropowerviewer.html",context)
     else:
         if not MixtureModel.objects.filter(SID=sid):
@@ -145,19 +126,20 @@ def neuropowermodel(request):
 
 def neuropowersamplesize(request):
     sid = get_session_id(request)
-    if not ParameterModel.objects.filter(SID=sid) or not NiftiModel.objects.filter(SID=sid):
+    if not ParameterModel.objects.filter(SID=sid):
         context = {"text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."}
+        return render(request,"neuropowersamplesize.html",context)
     if not MixtureModel.objects.filter(SID=sid):
         context = {"text":"Please first go to the 'Model Fit' page to initiate and inspect the fit of the mixture model to the distribution."}
+        return render(request,"neuropowersamplesize.html",context)
     else:
         #if not PowerTableModel.objects.filter(SID=sid):
-        niftidata = NiftiModel.objects.filter(SID=sid).reverse()[0]
         parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
         peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
         mixdata = MixtureModel.objects.filter(SID=sid).reverse()[0]
         peaks = peakdata.data
         # should be removed when mask is specified.#######
-        SPM=nib.load(niftidata.location).get_data()
+        SPM=nib.load(parsdata.location).get_data()
         mask = SPM!=0
         maskimg = nib.Nifti1Image(mask.astype(int),np.eye(4))
         ##################################################
@@ -176,4 +158,4 @@ def neuropowersamplesize(request):
         savepowerform.SID = sid
         savepowerform.data = power_predicted_df
         savepowerform.save()
-    return render(request,"neuropowersamplesize.html",{})
+        return render(request,"neuropowersamplesize.html",{})

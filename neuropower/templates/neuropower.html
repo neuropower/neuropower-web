@@ -19,11 +19,6 @@
   <div class="col-xs-8">
     <form method='POST' action='.'>
       {% csrf_token %}
-      {% crispy niftiform %}
-    </form>
-    <br><br><br>
-    <form method='POST' action='.'>
-      {% csrf_token %}
       {% crispy parsform %}
     </form>
   </div>

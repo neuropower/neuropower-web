@@ -5,20 +5,13 @@ import numpy as np
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
 
-class NiftiModel(models.Model):
-    SID = models.CharField(max_length=300,default="")
-    url = models.URLField()
-    location = models.CharField(max_length=300,default="")
-    def __unicode__(self): # Python 3: __str__
-        self
-
 class ParameterModel(models.Model):
     SID = models.CharField(max_length=300,default="")
+    url = models.URLField(default="")
+    location = models.CharField(max_length=300,default="")
     ZorT_c = (("Z","Z"),("T","T"))
-    ExcUnits_c = (("p","units = p-values (SPM default)"),("t","units = t-values (FSL default)"))
     Samples_c = ((1, ("One-sample")),(2, ("Two-sample")))
     ZorT = models.CharField(max_length=10,choices=ZorT_c)
-    ExcUnits = models.CharField(max_length=10,choices=ExcUnits_c)
     Exc = models.DecimalField(max_digits=5,decimal_places=2)
     ExcZ = models.DecimalField(max_digits=5,decimal_places=2,default='NaN')
     DoF = models.DecimalField(max_digits=5,decimal_places=2,default='NaN')

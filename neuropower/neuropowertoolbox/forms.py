@@ -2,39 +2,18 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
-from .models import NiftiModel, ParameterModel, PeakTableModel, MixtureModel, PowerTableModel
-
-class NiftiForm(forms.ModelForm):
-    class Meta:
-        model = NiftiModel
-        fields = ['url']
-    def __init__(self,*args,**kwargs):
-        self.default=kwargs.pop('default',None)
-        super(NiftiForm,self).__init__(*args,**kwargs)
-        self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default})
-        self.fields['url'].label = "URL to nifti-file"
-        #self.fields['location'].label = "Local link to nifti-file (goal: download URL, store in temp-folder,remove this field)"
-    helper = FormHelper()
-    helper.form_method = 'POST'
-    helper.field_class = 'col-lg-12'
-    helper.label_class = 'col-lg-12'
-    helper.layout = Layout(
-        Fieldset(
-            'Data location',
-            'url',#'location'
-            ),
-        HTML("""<br>"""),
-        ButtonHolder(Submit('Load', 'Load Image', css_class='btn-secondary'))
-    )
+from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel
 
 class ParameterForm(forms.ModelForm):
     class Meta:
         model = ParameterModel
-        fields = ['ZorT','ExcUnits','Exc','Subj','Samples','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
+        fields = ['url','ZorT','Exc','Subj','Samples','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
     def __init__(self,*args,**kwargs):
+        self.default=kwargs.pop('default',None)
         super(ParameterForm,self).__init__(*args,**kwargs)
+        self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default})
+        self.fields['url'].label = "URL to nifti-file"
         self.fields['ZorT'].label = "Are the data Z- or T-values?"
-        self.fields['ExcUnits'].label = "What are the units of the screening threshold?"
         self.fields['Exc'].label = "What is the screening threshold?"
         self.fields['Subj'].label = "How many subjects does the group map represent?"
         self.fields['Samples'].label = "Is this a one-sample or a two-sample test?"
@@ -57,7 +36,7 @@ class ParameterForm(forms.ModelForm):
     helper.layout = Layout(
         Fieldset(
             'Data parameters',
-            'ZorT','ExcUnits','Exc','Subj','Samples'
+            'url','ZorT','Exc','Subj','Samples'
             ),
         HTML("""<p style="margin-left: 15px"><b> \n What is the smoothness of the data? </b></p>"""),
         Div(
