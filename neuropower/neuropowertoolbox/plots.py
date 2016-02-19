@@ -24,7 +24,6 @@ def plotModel(request):
     mix = npm.mixprobdens(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=2,method="RFT")
     xn_p = np.arange(0,1,0.01)
     alt_p = [1-float(mixdata.pi1)]*scipy.stats.beta.pdf(xn_p, float(mixdata.a), 1)+1-float(mixdata.pi1)
-    print(alt_p)
     null_p = [1-float(mixdata.pi1)]*len(xn_p)
     mpl.rcParams['font.size']='11.0'
 

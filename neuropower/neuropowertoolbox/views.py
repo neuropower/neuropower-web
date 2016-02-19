@@ -17,10 +17,14 @@ def home(request):
     return render(request,"home.html",{})
 
 
-def neuropower(request):
+def get_session_id(request):
     if not request.session.exists(request.session.session_key):
         request.session.create()
     sid = request.session.session_key
+    return(sid)
+
+def neuropower(request):
+    sid = get_session_id(request)
     if not NiftiModel.objects.filter(SID=sid):
         niftiform = NiftiForm(request.POST or None,default="URL to nifti image")
         parsform = ParameterForm(None)
@@ -52,9 +56,7 @@ def neuropower(request):
         return render(request,"neuropower.html",context)
 
 def neuropowerviewer(request):
-    if not request.session.exists(request.session.session_key):
-        request.session.create()
-    sid = request.session.session_key
+    sid = get_session_id(request)
     if not NiftiModel.objects.filter(SID=sid):
         context = {
             "text":"Please first fill out the 'Data Location' form in the input."
@@ -74,9 +76,7 @@ def neuropowerviewer(request):
             return HttpResponseRedirect('/neuropowertable/')
 
 def neuropowertable(request):
-    if not request.session.exists(request.session.session_key):
-        request.session.create()
-    sid = request.session.session_key
+    sid = get_session_id(request)
     if not ParameterModel.objects.filter(SID=sid):
         context = {
             "text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
@@ -111,9 +111,7 @@ def neuropowertable(request):
         return render(request,"neuropowertable.html",context)
 
 def neuropowermodel(request):
-    if not request.session.exists(request.session.session_key):
-        request.session.create()
-    sid = request.session.session_key
+    sid = get_session_id(request)
     if not ParameterModel.objects.filter(SID=sid) or not NiftiModel.objects.filter(SID=sid):
         context = {
             "text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
@@ -134,15 +132,10 @@ def neuropowermodel(request):
             savemixtureform.mu = modelfit['mu']
             savemixtureform.sigma = modelfit['sigma']
             savemixtureform.save()
-        context = {
-        #"peaks":peaks.to_html(classes=["table table-striped"]),
-        }
-        return render(request,"neuropowermodel.html",context)
+        return render(request,"neuropowermodel.html",{})
 
 def neuropowersamplesize(request):
-    if not request.session.exists(request.session.session_key):
-        request.session.create()
-    sid = request.session.session_key
+    sid = get_session_id(request)
     if not ParameterModel.objects.filter(SID=sid) or not NiftiModel.objects.filter(SID=sid):
         context = {
             "text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
