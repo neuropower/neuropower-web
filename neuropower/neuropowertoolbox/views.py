@@ -80,7 +80,6 @@ def neuropowertable(request):
             parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
             parsdata.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
             SPM=nib.load(parsdata.location).get_data()
-            print(SPM)
             if parsdata.ZorT=='T':
                 SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
             parsdata.ExcZ = float(parsdata.Exc) if float(parsdata.Exc)>1 else -norm.ppf(float(parsdata.Exc))

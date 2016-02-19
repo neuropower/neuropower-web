@@ -3,7 +3,7 @@ db:
 
 uwsgi:
   restart: always
-  image: poldracklab/neuropower
+  image: joke/neuropower
   command: /code/run_uwsgi.sh
   volumes:
     - .:/code

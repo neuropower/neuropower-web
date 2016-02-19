@@ -11,6 +11,7 @@ import matplotlib as mpl
 from .models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
 
 def plotModel(request):
+    plt.switch_backend('agg')
     sid = get_session_id(request)
     mixdata = MixtureModel.objects.filter(SID=sid).reverse()[0]
     parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
@@ -56,6 +57,7 @@ def plotModel(request):
     return response
 
 def plotPower(request):
+    plt.switch_backend('agg')
     sid = get_session_id(request)
     powerdata = PowerTableModel.objects.filter(SID=sid).reverse()[0]
     power_predicted_df = powerdata.data
@@ -77,9 +79,10 @@ def plotPower(request):
     # axs.plot([sub,BHmin],[power_predicted_df['BH'][BHmin-sub],power_predicted_df['BH'][BHmin-sub]],color=colset1[1])
     # axs.plot([UNmin,UNmin],[0,power_predicted_df['UN'][UNmin-sub]],color=colset1[3])
     # axs.plot([sub,UNmin],[power_predicted_df['UN'][UNmin-sub],power_predicted_df['UN'][UNmin-sub]],color=colset1[3])
+    lty = ['--' if all(power_predicted_df['BF']==power_predicted_df['RFT']) else '-']
     axs.plot(newsubs,power_predicted_df['BF'],color=colset1[0],lw=2,label="Bonferroni")
     axs.plot(newsubs,power_predicted_df['BH'],color=colset1[1],lw=2,label="Benjamini-Hochberg")
-    axs.plot(newsubs,power_predicted_df['RFT'],color=colset1[2],lw=2,label="Random Field Theory")
+    axs.plot(newsubs,power_predicted_df['RFT'],color=colset1[2],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
     axs.plot(newsubs,power_predicted_df['UN'],color=colset1[3],lw=2,label="Uncorrected")
     # axs.text(RFTmin+1,0.02,str(RFTmin),color=colset1[2])
     # axs.text(BFmin-2.5,0.02,str(BFmin),color=colset1[0])
