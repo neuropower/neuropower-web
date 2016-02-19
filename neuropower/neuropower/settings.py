@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
@@ -103,6 +102,7 @@ DATABASES = {
     }
 }
 
+## Caches
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -110,58 +110,37 @@ CACHES = {
     }
 }
 
-## sessions
-
+## Sessions
 SESSION_ENGINE='django.contrib.sessions.backends.file'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static_in_pro","our_static"),
-    #os.path.join(BASE_DIR,"static_in_virtualenv")
-    #'/var/www/static_in_pro/',
+    os.path.join(BASE_DIR, "static"),
 ]
 
 MEDIA_URL="/media/"
-MEDIA_ROOT=os.path.join(os.path.dirname(BASE_DIR),"static_in_virtualenv","media_root")
+MEDIA_ROOT=os.path.join(os.path.dirname(BASE_DIR),"media")
 
 ## App specific settings
-
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
-
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
