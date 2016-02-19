@@ -8,7 +8,7 @@ from django.contrib.sessions.models import Session
 class NiftiModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     url = models.URLField()
-    location = models.CharField(max_length=300,default="/Users/Joke/Documents/Onderzoek/neuropower/neuropower-dev/neuropower/static_in_pro/our_static/img/zstat1.nii.gz")
+    location = models.CharField(max_length=300,default="")
     def __unicode__(self): # Python 3: __str__
         self
 

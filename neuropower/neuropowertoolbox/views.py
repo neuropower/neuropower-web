@@ -13,6 +13,13 @@ import os
 import numpy as np
 from scipy.stats import norm, t
 import pandas as pd
+import tempfile, shutil, os,urllib
+
+def create_temporary_copy(path):
+    temp_dir = tempfile.gettempdir()
+    temp_path = os.path.join(temp_dir, 'nifti_down.nii.gz')
+    urllib.urlretrieve(path, temp_path)
+    return temp_path
 
 def home(request):
     return render(request,"home.html",{})
@@ -32,10 +39,12 @@ def neuropower(request):
         context = {"niftiform": niftiform,"parsform": parsform}
         if not niftiform.is_valid():
             return render(request,"neuropower.html",context)
-            print("not valid")
         else:
+            url = niftiform.cleaned_data['url']
+            location = create_temporary_copy(url)
             saveniftiform = niftiform.save(commit=False)
             saveniftiform.SID = sid
+            saveniftiform.location = location
             saveniftiform.save()
             return HttpResponseRedirect('/neuropowerviewer/')
     if NiftiModel.objects.filter(SID=sid) and not ParameterModel.objects.filter(SID=sid):

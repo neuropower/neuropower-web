@@ -7,13 +7,13 @@ from .models import NiftiModel, ParameterModel, PeakTableModel, MixtureModel, Po
 class NiftiForm(forms.ModelForm):
     class Meta:
         model = NiftiModel
-        fields = ['url','location']
+        fields = ['url']
     def __init__(self,*args,**kwargs):
         self.default=kwargs.pop('default',None)
         super(NiftiForm,self).__init__(*args,**kwargs)
         self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default})
         self.fields['url'].label = "URL to nifti-file"
-        self.fields['location'].label = "Local link to nifti-file (goal: download URL, store in temp-folder,remove this field)"
+        #self.fields['location'].label = "Local link to nifti-file (goal: download URL, store in temp-folder,remove this field)"
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'
@@ -21,7 +21,7 @@ class NiftiForm(forms.ModelForm):
     helper.layout = Layout(
         Fieldset(
             'Data location',
-            'url','location'
+            'url',#'location'
             ),
         HTML("""<br>"""),
         ButtonHolder(Submit('Load', 'Load Image', css_class='btn-secondary'))
