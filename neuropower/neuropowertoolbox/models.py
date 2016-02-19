@@ -47,3 +47,9 @@ class MixtureModel(models.Model):
     sigma = models.DecimalField(max_digits=10,decimal_places=4)
     def __unicode__(self): # Python 3: __str__
         return self
+
+class PowerTableModel(models.Model):
+    SID = models.CharField(max_length=300,default="")
+    data = PickledObjectField()
+    def __unicode__(self): # Python 3: __str__
+        return self

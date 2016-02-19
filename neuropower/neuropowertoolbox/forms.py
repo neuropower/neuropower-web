@@ -2,7 +2,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
-from .models import NiftiModel, ParameterModel, PeakTableModel, MixtureModel
+from .models import NiftiModel, ParameterModel, PeakTableModel, MixtureModel, PowerTableModel
 
 class NiftiForm(forms.ModelForm):
     class Meta:
@@ -85,4 +85,9 @@ class PeakTableForm(forms.ModelForm):
 class MixtureForm(forms.ModelForm):
     class Meta:
         model = MixtureModel
+        fields = '__all__'
+
+class PowerTableForm(forms.ModelForm):
+    class Meta:
+        model = PowerTableModel
         fields = '__all__'
