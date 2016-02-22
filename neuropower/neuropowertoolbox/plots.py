@@ -9,6 +9,8 @@ import scipy
 from .views import get_session_id
 import matplotlib as mpl
 from .models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
+import mpld3
+from mpld3 import plugins
 
 def plotModel(request):
     plt.switch_backend('agg')
@@ -56,8 +58,7 @@ def plotModel(request):
     canvas.print_png(response)
     return response
 
-def plotPower(request):
-    plt.switch_backend('agg')
+def plotPower():
     sid = get_session_id(request)
     powerdata = PowerTableModel.objects.filter(SID=sid).reverse()[0]
     power_predicted_df = powerdata.data
@@ -69,31 +70,50 @@ def plotPower(request):
     RFTmin = np.min([i for i,elem in enumerate(power_predicted_df['RFT']>0.8,1) if elem])+sub
     BHmin = np.min([i for i,elem in enumerate(power_predicted_df['BH']>0.8,1) if elem])+sub
     UNmin = np.min([i for i,elem in enumerate(power_predicted_df['UN']>0.8,1) if elem])+sub
+
+    css = """
+    table
+    {
+    border-collapse: collapse;
+    }
+    td
+    {
+      background-color: rgba(217, 222, 230,50);
+    }
+    table, th, td
+    {
+      border: 1px solid;
+      border-color: rgba(217, 222, 230,50);
+      text-align: right;
+      font-size: 12px
+    }
+    """
+
+    labels_BF = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['BF'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
+    labels_BH = [pd.DataFrame(['Benjamini-Hochberg','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['BH'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
+    labels_RFT = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['RFT'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
+    labels_UN = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['UN'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
+
     fig,axs=plt.subplots(1,1,figsize=(8,5))
     fig.patch.set_facecolor('None')
-    # axs.plot([RFTmin,RFTmin],[0,power_predicted_df['RFT'][RFTmin-sub]],color=colset1[2])
-    # axs.plot([sub,RFTmin],[power_predicted_df['RFT'][RFTmin-sub],power_predicted_df['RFT'][RFTmin-sub]],color=colset1[2])
-    # axs.plot([BFmin,BFmin],[0,power_predicted_df['BF'][BFmin-sub]],color=colset1[0])
-    # axs.plot([sub,BFmin],[power_predicted_df['BF'][BFmin-sub],power_predicted_df['BF'][BFmin-sub]],color=colset1[0])
-    # axs.plot([BHmin,BHmin],[0,power_predicted_df['BH'][BHmin-sub]],color=colset1[1])
-    # axs.plot([sub,BHmin],[power_predicted_df['BH'][BHmin-sub],power_predicted_df['BH'][BHmin-sub]],color=colset1[1])
-    # axs.plot([UNmin,UNmin],[0,power_predicted_df['UN'][UNmin-sub]],color=colset1[3])
-    # axs.plot([sub,UNmin],[power_predicted_df['UN'][UNmin-sub],power_predicted_df['UN'][UNmin-sub]],color=colset1[3])
     lty = ['--' if all(power_predicted_df['BF']==power_predicted_df['RFT']) else '-']
+    BF=axs.plot(newsubs,power_predicted_df['BF'],'o',markersize=15,alpha=0)
+    BH=axs.plot(newsubs,power_predicted_df['BH'],'o',markersize=15,alpha=0)
+    RFT=axs.plot(newsubs,power_predicted_df['RFT'],'o',markersize=15,alpha=0)
+    UN=axs.plot(newsubs,power_predicted_df['UN'],'o',markersize=15,alpha=0)
+    plugins.clear(fig)
+    plugins.connect(fig, plugins.PointHTMLTooltip(BF[0], labels_BF,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(BH[0], labels_BH,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(RFT[0], labels_RFT,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(UN[0], labels_UN,hoffset=0,voffset=10,css=css))
     axs.plot(newsubs,power_predicted_df['BF'],color=colset1[0],lw=2,label="Bonferroni")
     axs.plot(newsubs,power_predicted_df['BH'],color=colset1[1],lw=2,label="Benjamini-Hochberg")
     axs.plot(newsubs,power_predicted_df['RFT'],color=colset1[2],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
     axs.plot(newsubs,power_predicted_df['UN'],color=colset1[3],lw=2,label="Uncorrected")
-    # axs.text(RFTmin+1,0.02,str(RFTmin),color=colset1[2])
-    # axs.text(BFmin-2.5,0.02,str(BFmin),color=colset1[0])
-    # axs.text(UNmin-2.5,0.02,str(UNmin),color=colset1[3])
-    # axs.text(BHmin-2.5,0.02,str(BHmin),color=colset1[1])
     axs.set_ylim([0,1])
     axs.set_title("Power curves")
     axs.set_xlabel("Subjects")
     axs.set_ylabel("Average power")
     axs.legend(loc="center right",frameon=False)
-    canvas = FigureCanvas(fig)
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-    return response
+    code = mpld3.fig_to_html(fig)
+    return code
