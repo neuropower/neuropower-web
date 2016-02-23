@@ -52,7 +52,7 @@ def plotModel(request):
     axs[0].set_ylabel("Density")
 
     axs[1].hist(peaks.peak,lw=0,facecolor=twocol[0],normed=True,bins=np.arange(min(peaks.peak),10,0.3),label="observed distribution")
-    axs[1].set_xlim([2,7])
+    axs[1].set_xlim([float(parsdata.ExcZ),7])
     axs[1].set_ylim([0,1])
     axs[1].plot(xn,nul,color=twocol[3],lw=2,label="null distribution")
     axs[1].plot(xn,alt,color=twocol[5],lw=2, label="alternative distribution")
@@ -122,6 +122,6 @@ def plotPower(sid):
     axs.set_title("Power curves")
     axs.set_xlabel("Subjects")
     axs.set_ylabel("Average power")
-    axs.legend(loc="bottom right",frameon=False,title="")
+    axs.legend(loc="lower right",frameon=False,title="")
     code = mpld3.fig_to_html(fig)
     return code

@@ -160,5 +160,4 @@ def neuropowersamplesize(request):
         savepowerform.data = power_predicted_df
         savepowerform.save()
         plothtml = plotPower(sid)
-        print(plothtml)
         return render(request,"neuropowersamplesize.html",{"plothtml":plothtml})
