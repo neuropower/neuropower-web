@@ -15,7 +15,7 @@ from scipy.stats import norm, t
 import pandas as pd
 import tempfile, shutil, os,urllib
 from .plots import plotPower
-import nilearn
+from nilearn import masking
 
 def create_temporary_copy(path,sid):
     temp_dir = tempfile.gettempdir()
@@ -43,12 +43,14 @@ def neuropower(request):
         else:
             url = parsform.cleaned_data['url']
             location = create_temporary_copy(url,sid)
-            SPM=nib.load(parsdata.location).get_data()
-            #mask=nilearn.masking.compute_background(SPM,border_size=2, opening=True)
-            #nvox = np.sum(mask)
+            SPM=nib.load(location)
+            mask=masking.compute_background_mask(SPM,border_size=2, opening=True)
+            nvox = np.sum(mask.get_data())
+            print(nvox)
             saveparsform = parsform.save(commit=False)
             saveparsform.SID = sid
             saveparsform.location = location
+            saveparsform.nvox = nvox
             saveparsform.save()
             return HttpResponseRedirect('/neuropowerviewer/')
     else:
@@ -84,8 +86,8 @@ def neuropowertable(request):
         if not PeakTableModel.objects.filter(SID=sid):
             parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
             parsdata.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
-            SPM=nib.load(parsdata.location).get_data()
             if parsdata.ZorT=='T':
+                SPM=nib.load(parsdata.location).get_data()
                 SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
             parsdata.ExcZ = float(parsdata.Exc) if float(parsdata.Exc)>1 else -norm.ppf(float(parsdata.Exc))
             peaks = cluster.cluster(SPM,parsdata.ExcZ)
