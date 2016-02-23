@@ -8,7 +8,9 @@ from palettable.colorbrewer.qualitative import Paired_12,Set1_9
 import scipy
 import matplotlib as mpl
 from .models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
+import jinja2
 import mpld3
+from mpld3 import plugins
 import pandas as pd
 
 def get_session_id(request):
@@ -103,15 +105,15 @@ def plotPower(sid):
     fig,axs=plt.subplots(1,1,figsize=(8,5))
     fig.patch.set_facecolor('None')
     lty = ['--' if all(power_predicted_df['BF']==power_predicted_df['RFT']) else '-']
-    BF=axs.plot(newsubs,power_predicted_df['BF'],'o',markersize=15,alpha=0)
-    BH=axs.plot(newsubs,power_predicted_df['BH'],'o',markersize=15,alpha=0)
-    RFT=axs.plot(newsubs,power_predicted_df['RFT'],'o',markersize=15,alpha=0)
-    UN=axs.plot(newsubs,power_predicted_df['UN'],'o',markersize=15,alpha=0)
-    mpl.plugins.clear(fig)
-    mpl.plugins.connect(fig, mpl.plugins.PointHTMLTooltip(BF[0], labels_BF,hoffset=0,voffset=10,css=css))
-    mpl.plugins.connect(fig, mpl.plugins.PointHTMLTooltip(BH[0], labels_BH,hoffset=0,voffset=10,css=css))
-    mpl.plugins.connect(fig, mpl.plugins.PointHTMLTooltip(RFT[0], labels_RFT,hoffset=0,voffset=10,css=css))
-    mpl.plugins.connect(fig, mpl.plugins.PointHTMLTooltip(UN[0], labels_UN,hoffset=0,voffset=10,css=css))
+    BF=axs.plot(newsubs,power_predicted_df['BF'],'o',markersize=15,alpha=0,label="")
+    BH=axs.plot(newsubs,power_predicted_df['BH'],'o',markersize=15,alpha=0,label="")
+    RFT=axs.plot(newsubs,power_predicted_df['RFT'],'o',markersize=15,alpha=0,label="")
+    UN=axs.plot(newsubs,power_predicted_df['UN'],'o',markersize=15,alpha=0,label="")
+    plugins.clear(fig)
+    plugins.connect(fig, plugins.PointHTMLTooltip(BF[0], labels_BF,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(BH[0], labels_BH,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(RFT[0], labels_RFT,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(UN[0], labels_UN,hoffset=0,voffset=10,css=css))
     axs.plot(newsubs,power_predicted_df['BF'],color=colset1[0],lw=2,label="Bonferroni")
     axs.plot(newsubs,power_predicted_df['BH'],color=colset1[1],lw=2,label="Benjamini-Hochberg")
     axs.plot(newsubs,power_predicted_df['RFT'],color=colset1[2],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
@@ -120,6 +122,6 @@ def plotPower(sid):
     axs.set_title("Power curves")
     axs.set_xlabel("Subjects")
     axs.set_ylabel("Average power")
-    axs.legend(loc="center right",frameon=False)
+    axs.legend(loc="bottom right",frameon=False,title="")
     code = mpld3.fig_to_html(fig)
     return code
