@@ -14,6 +14,8 @@ import numpy as np
 from scipy.stats import norm, t
 import pandas as pd
 import tempfile, shutil, os,urllib
+from .plots import plotPower
+
 
 def create_temporary_copy(path,sid):
     temp_dir = tempfile.gettempdir()
@@ -157,6 +159,6 @@ def neuropowersamplesize(request):
         savepowerform.SID = sid
         savepowerform.data = power_predicted_df
         savepowerform.save()
-        plothtml = plot.plotPower()
+        plothtml = plotPower(sid)
         print(power_predicted_df)
         return render(request,"neuropowersamplesize.html",{"plothtml":sid})

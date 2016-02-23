@@ -6,11 +6,17 @@ from neuropower.utils import BUM, cluster, model, peakdistribution
 from neuropower.utils import neuropowermodels as npm
 from palettable.colorbrewer.qualitative import Paired_12,Set1_9
 import scipy
-from .views import get_session_id
 import matplotlib as mpl
 from .models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
 import mpld3
-from mpld3 import plugins
+import pandas as pd
+
+def get_session_id(request):
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
+    sid = request.session.session_key
+    return(sid)
+
 
 def plotModel(request):
     plt.switch_backend('agg')
@@ -58,8 +64,8 @@ def plotModel(request):
     canvas.print_png(response)
     return response
 
-def plotPower():
-    sid = get_session_id(request)
+def plotPower(sid):
+    plt.switch_backend('agg')
     powerdata = PowerTableModel.objects.filter(SID=sid).reverse()[0]
     power_predicted_df = powerdata.data
     colset1 = Set1_9.mpl_colors
@@ -101,11 +107,11 @@ def plotPower():
     BH=axs.plot(newsubs,power_predicted_df['BH'],'o',markersize=15,alpha=0)
     RFT=axs.plot(newsubs,power_predicted_df['RFT'],'o',markersize=15,alpha=0)
     UN=axs.plot(newsubs,power_predicted_df['UN'],'o',markersize=15,alpha=0)
-    plugins.clear(fig)
-    plugins.connect(fig, plugins.PointHTMLTooltip(BF[0], labels_BF,hoffset=0,voffset=10,css=css))
-    plugins.connect(fig, plugins.PointHTMLTooltip(BH[0], labels_BH,hoffset=0,voffset=10,css=css))
-    plugins.connect(fig, plugins.PointHTMLTooltip(RFT[0], labels_RFT,hoffset=0,voffset=10,css=css))
-    plugins.connect(fig, plugins.PointHTMLTooltip(UN[0], labels_UN,hoffset=0,voffset=10,css=css))
+    mpl.plugins.clear(fig)
+    mpl.plugins.connect(fig, mpl.plugins.PointHTMLTooltip(BF[0], labels_BF,hoffset=0,voffset=10,css=css))
+    mpl.plugins.connect(fig, mpl.plugins.PointHTMLTooltip(BH[0], labels_BH,hoffset=0,voffset=10,css=css))
+    mpl.plugins.connect(fig, mpl.plugins.PointHTMLTooltip(RFT[0], labels_RFT,hoffset=0,voffset=10,css=css))
+    mpl.plugins.connect(fig, mpl.plugins.PointHTMLTooltip(UN[0], labels_UN,hoffset=0,voffset=10,css=css))
     axs.plot(newsubs,power_predicted_df['BF'],color=colset1[0],lw=2,label="Bonferroni")
     axs.plot(newsubs,power_predicted_df['BH'],color=colset1[1],lw=2,label="Benjamini-Hochberg")
     axs.plot(newsubs,power_predicted_df['RFT'],color=colset1[2],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
