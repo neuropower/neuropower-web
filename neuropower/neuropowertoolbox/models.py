@@ -9,6 +9,7 @@ class ParameterModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     url = models.URLField(default="")
     location = models.CharField(max_length=300,default="")
+    nvox = models.IntegerField()
     ZorT_c = (("Z","Z"),("T","T"))
     Samples_c = ((1, ("One-sample")),(2, ("Two-sample")))
     ZorT = models.CharField(max_length=10,choices=ZorT_c)

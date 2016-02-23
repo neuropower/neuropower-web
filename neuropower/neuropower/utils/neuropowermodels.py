@@ -138,11 +138,11 @@ def modelfit(peaks,pi1,exc=None,starts=1,method="RFT"):
 				'delta': par[minind]}
 	return out
 
-def threshold(peaks,pvalues,FWHM,mask,alpha=0.05,exc=None,method="RFT"):
+def threshold(peaks,pvalues,FWHM,nvox,alpha=0.05,exc=None,method="RFT"):
 	# only RFT
 	peakrange = np.arange(exc,15,0.001)
 	pN = 1-nulCDF(np.array(peakrange),exc=exc)
-	resels = np.sum(mask.get_data())/np.product(FWHM)
+	resels = nvox/np.product(FWHM)
 	pN_RFT = resels*np.exp(-peakrange**2/2)*peakrange**2
 	cutoff_UN = min(peakrange[pN<alpha])
 	cutoff_BF = min(peakrange[pN<alpha/len(peaks)])

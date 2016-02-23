@@ -15,7 +15,7 @@ from scipy.stats import norm, t
 import pandas as pd
 import tempfile, shutil, os,urllib
 from .plots import plotPower
-
+import nilearn
 
 def create_temporary_copy(path,sid):
     temp_dir = tempfile.gettempdir()
@@ -43,6 +43,9 @@ def neuropower(request):
         else:
             url = parsform.cleaned_data['url']
             location = create_temporary_copy(url,sid)
+            SPM=nib.load(parsdata.location).get_data()
+            #mask=nilearn.masking.compute_background(SPM,border_size=2, opening=True)
+            #nvox = np.sum(mask)
             saveparsform = parsform.save(commit=False)
             saveparsform.SID = sid
             saveparsform.location = location
@@ -134,30 +137,25 @@ def neuropowersamplesize(request):
         context = {"text":"Please first go to the 'Model Fit' page to initiate and inspect the fit of the mixture model to the distribution."}
         return render(request,"neuropowersamplesize.html",context)
     else:
-        #if not PowerTableModel.objects.filter(SID=sid):
-        parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
-        peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
-        mixdata = MixtureModel.objects.filter(SID=sid).reverse()[0]
-        peaks = peakdata.data
-        # should be removed when mask is specified.#######
-        SPM=nib.load(parsdata.location).get_data()
-        mask = SPM!=0
-        maskimg = nib.Nifti1Image(mask.astype(int),np.eye(4))
-        ##################################################
-        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=8,mask=maskimg,alpha=0.05,exc=float(parsdata.ExcZ))
-        effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
-        power_predicted = []
-        newsubs = range(parsdata.Subj,71)
-        for s in newsubs:
-            projected_effect = float(effect_cohen)*np.sqrt(float(s))
-            powerpred =  {k:1-neuropowermodels.altCDF(v,projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items() if v!='nan'}
-            power_predicted.append(powerpred)
-        power_predicted_df = pd.DataFrame(power_predicted)
-        power_predicted_df['newsamplesize']=newsubs
-        powerform = PowerTableForm()
-        savepowerform = powerform.save(commit=False)
-        savepowerform.SID = sid
-        savepowerform.data = power_predicted_df
-        savepowerform.save()
+        if not PowerTableModel.objects.filter(SID=sid):
+            parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
+            peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
+            mixdata = MixtureModel.objects.filter(SID=sid).reverse()[0]
+            peaks = peakdata.data
+            thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=8,nvox=float(parsdata.nvox),alpha=0.05,exc=float(parsdata.ExcZ))
+            effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
+            power_predicted = []
+            newsubs = range(parsdata.Subj,71)
+            for s in newsubs:
+                projected_effect = float(effect_cohen)*np.sqrt(float(s))
+                powerpred =  {k:1-neuropowermodels.altCDF(v,projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items() if v!='nan'}
+                power_predicted.append(powerpred)
+            power_predicted_df = pd.DataFrame(power_predicted)
+            power_predicted_df['newsamplesize']=newsubs
+            powerform = PowerTableForm()
+            savepowerform = powerform.save(commit=False)
+            savepowerform.SID = sid
+            savepowerform.data = power_predicted_df
+            savepowerform.save()
         plothtml = plotPower(sid)
         return render(request,"neuropowersamplesize.html",{"plothtml":plothtml})
