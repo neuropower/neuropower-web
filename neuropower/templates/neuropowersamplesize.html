@@ -15,12 +15,17 @@
 <div class="row">
   <br>
   <br>
-  <div class="col-xs-2"></div>
-  <div class="col-xs-8">
-  <h2> {{text}} </h2>
+  <div class="col-xs-4">
+    <form method='POST' action='.'>
+      {% csrf_token %}
+      {% crispy powerinputform %}
+    </form>
+  </div>
+  <div class="col-xs-7">
+  <h4> {{text}} </h4>
   {{plothtml | safe}}
   </div>
-  <div class="col-xs-2"></div>
+  <div class="col-xs-1"></div>
 
 </div>
 {% endblock %}

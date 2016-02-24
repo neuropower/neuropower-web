@@ -66,7 +66,7 @@ def plotModel(request):
     canvas.print_png(response)
     return response
 
-def plotPower(sid):
+def plotPower(sid,MCP='',pow=0,ss=0):
     plt.switch_backend('agg')
     powerdata = PowerTableModel.objects.filter(SID=sid).reverse()[0]
     power_predicted_df = powerdata.data
@@ -74,10 +74,6 @@ def plotPower(sid):
     parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
     sub = float(parsdata.Subj)
     newsubs = power_predicted_df['newsamplesize']
-    BFmin = np.min([i for i,elem in enumerate(power_predicted_df['BF']>0.8,1) if elem])+sub
-    RFTmin = np.min([i for i,elem in enumerate(power_predicted_df['RFT']>0.8,1) if elem])+sub
-    BHmin = np.min([i for i,elem in enumerate(power_predicted_df['BH']>0.8,1) if elem])+sub
-    UNmin = np.min([i for i,elem in enumerate(power_predicted_df['UN']>0.8,1) if elem])+sub
 
     css = """
     table
@@ -99,8 +95,8 @@ def plotPower(sid):
 
     labels_BF = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['BF'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
     labels_BH = [pd.DataFrame(['Benjamini-Hochberg','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['BH'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
-    labels_RFT = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['RFT'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
-    labels_UN = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['UN'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
+    labels_RFT = [pd.DataFrame(['Random Field Theory','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['RFT'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
+    labels_UN = [pd.DataFrame(['Uncorrected','Sample Size: '+str(newsubs[i]),'Power: '+str(np.round(power_predicted_df['UN'][i],decimals=2))]).to_html(header=False,index_names=False,index=False) for i in range(len(power_predicted_df))]
 
     fig,axs=plt.subplots(1,1,figsize=(8,5))
     fig.patch.set_facecolor('None')
@@ -118,7 +114,19 @@ def plotPower(sid):
     axs.plot(newsubs,power_predicted_df['BH'],color=colset1[1],lw=2,label="Benjamini-Hochberg")
     axs.plot(newsubs,power_predicted_df['RFT'],color=colset1[2],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
     axs.plot(newsubs,power_predicted_df['UN'],color=colset1[3],lw=2,label="Uncorrected")
+    if pow != 0:
+        pow = float(pow)
+        min = np.min([i for i,elem in enumerate(power_predicted_df[MCP]>float(pow),1) if elem])+sub
+        axs.plot([min,min],[0,power_predicted_df[MCP][min-sub]],color=colset1[2])
+        axs.plot([sub,min],[power_predicted_df[MCP][min-sub],power_predicted_df[MCP][RFTmin-sub]],color=colset1[2])
+        axs.text(min+1,0.02,str(min),color=colset1[2])
+    if ss != 0:
+        ss = float(ss)
+        axs.plot([ss,ss],[0,power_predicted_df[MCP][min-sub]],color=colset1[2])
+        axs.plot([sub,ss],[power_predicted_df[MCP][min-sub],power_predicted_df[MCP][RFTmin-sub]],color=colset1[2])
+        axs.text(0.02,power_predicted_df[MCP],str(power_predicted_df[MCP]),color=colset1[2])
     axs.set_ylim([0,1])
+    axs.set_xlim([sub,71])
     axs.set_title("Power curves")
     axs.set_xlabel("Subjects")
     axs.set_ylabel("Average power")

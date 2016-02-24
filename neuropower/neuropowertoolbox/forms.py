@@ -2,7 +2,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
-from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel
+from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel,PowerModel
 
 class ParameterForm(forms.ModelForm):
     class Meta:
@@ -70,3 +70,21 @@ class PowerTableForm(forms.ModelForm):
     class Meta:
         model = PowerTableModel
         fields = '__all__'
+
+class PowerForm(forms.ModelForm):
+    reqPow = forms.CharField(required=False,label = "What is the minimal power required for your study?")
+    reqSS = forms.DecimalField(required=False,label = "What is the estimated sample size for your study?")
+    class Meta:
+        model = PowerModel
+        fields = '__all__'
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        Fieldset(
+            'Power',
+            'MCP','reqPow','reqSS'
+            ),
+            ButtonHolder(Submit('Submit', 'Submit parameters', css_class='btn-secondary'))
+    )

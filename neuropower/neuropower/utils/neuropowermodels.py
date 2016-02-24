@@ -144,9 +144,9 @@ def threshold(peaks,pvalues,FWHM,nvox,alpha=0.05,exc=None,method="RFT"):
 	pN = 1-nulCDF(np.array(peakrange),exc=exc)
 	resels = nvox/np.product(FWHM)
 	pN_RFT = resels*np.exp(-peakrange**2/2)*peakrange**2
-	cutoff_UN = min(peakrange[pN<alpha])
-	cutoff_BF = min(peakrange[pN<alpha/len(peaks)])
-	cutoff_RFT = min(peakrange[pN_RFT<alpha])
+	cutoff_UN = np.min(peakrange[pN<alpha])
+	cutoff_BF = np.min(peakrange[pN<alpha/len(peaks)])
+	cutoff_RFT = np.min(peakrange[pN_RFT<alpha])
 	#Benjamini-Hochberg
 	pvals_sortind = np.argsort(pvalues)
 	pvals_order = pvals_sortind.argsort()
