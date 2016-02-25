@@ -28,5 +28,4 @@ urlpatterns = [
     url(r'^neuropowermodel/$',views.neuropowermodel,name='neuropowermodel'),
     url(r'^neuropowermodel/result.png$', plots.plotModel,name='plotmodel'),
     url(r'^neuropowersamplesize/$',views.neuropowersamplesize,name='neuropowersamplesize'),
-    url(r'^klad/$',views.klad,name='klad'),
     ]

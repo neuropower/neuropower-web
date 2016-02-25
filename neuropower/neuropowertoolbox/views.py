@@ -2,10 +2,10 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from django.core.files import File
 from django.http import HttpResponse, HttpResponseRedirect
-from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm, KladForm
+from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
 from django.db import models
 from django.conf import settings
-from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel, KladModel
+from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
 from neuropower.utils import BUM, cluster, model, neuropowermodels,peakdistribution
 from django.forms import model_to_dict
 import nibabel as nib
@@ -173,23 +173,3 @@ def neuropowersamplesize(request):
         "powerinputform":powerinputform
         }
         return render(request,"neuropowersamplesize.html",context)
-
-def klad(request):
-    sid = get_session_id(request)
-    kladform = KladForm(request.POST or None)
-    if request.method == "POST":
-        if kladform.is_valid():
-            savekladform = kladform.save(commit=False)
-            savekladform.SID = sid
-            savekladform.save()
-            kladdata = KladModel.objects.filter(SID=sid)[::-1][0]
-            text = kladdata.klad
-        else:
-            text = "Invalid"
-    else:
-        text = "Not posted"
-    context = {
-    "kladform":kladform,
-    "text":text
-    }
-    return render(request,"klad.html",context)
