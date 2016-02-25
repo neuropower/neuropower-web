@@ -50,9 +50,15 @@ class PowerTableModel(models.Model):
 
 class PowerModel(models.Model):
     SID = models.CharField(max_length=300,default="")
-    reqPow = models.DecimalField(max_digits=10,decimal_places=4,default=0,null=True,blank=True)
-    reqSS = models.IntegerField(default=0,null=True,blank=True)
+    reqPow = models.DecimalField(max_digits=10,decimal_places=4,default=0)
+    reqSS = models.IntegerField(default=0)
     MCP_c = (("RFT", "Random Field Theory"),("BH", "Benjamini-Hochberg"),("BF","Bonferroni"),("UN","Uncorrected"))
     MCP = models.CharField(max_length=10,choices=MCP_c)
+    def __unicode__(self):
+        return self
+
+class KladModel(models.Model):
+    SID = models.CharField(max_length=300,default="")
+    klad=models.CharField(max_length=300,default="")
     def __unicode__(self):
         return self

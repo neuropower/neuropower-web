@@ -2,10 +2,10 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from django.core.files import File
 from django.http import HttpResponse, HttpResponseRedirect
-from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
+from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm, KladForm
 from django.db import models
 from django.conf import settings
-from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
+from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel, KladModel
 from neuropower.utils import BUM, cluster, model, neuropowermodels,peakdistribution
 from django.forms import model_to_dict
 import nibabel as nib
@@ -25,7 +25,6 @@ def create_temporary_copy(path,sid):
 
 def home(request):
     return render(request,"home.html",{})
-
 
 def get_session_id(request):
     if not request.session.exists(request.session.session_key):
@@ -61,10 +60,12 @@ def neuropowerviewer(request):
         return render(request,"neuropowerviewer.html",context)
     else:
         sid = request.session.session_key
-        parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
+        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+        print(parsdata.Exc)
         context = {
             "url":parsdata.url,
-            "viewer":"<div class='papaya' data-params='params'></div>"
+            "viewer":"<div class='papaya' data-params='params'></div>",
+            "text":""
         }
         return render(request,"neuropowerviewer.html",context)
 
@@ -77,7 +78,7 @@ def neuropowertable(request):
         return render(request,"neuropowerviewer.html",context)
     else:
         sid = request.session.session_key
-        parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
+        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         parsdata.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
         SPM=nib.load(parsdata.location).get_data()
         if parsdata.ZorT=='T':
@@ -104,8 +105,8 @@ def neuropowermodel(request):
         context = {"text":"Please first fill out the input."}
         return render(request,"neuropowerviewer.html",context)
     else:
-        parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
-        peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
+        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+        peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
         peaks = peakdata.data
         bum = BUM.bumOptim(peaks.pval.tolist(),starts=10)
         modelfit = neuropowermodels.modelfit(peaks.peak.tolist(),bum['pi1'],exc=float(parsdata.ExcZ),starts=10,method="RFT")
@@ -131,9 +132,9 @@ def neuropowersamplesize(request):
     else:
         powerinputform = PowerForm(request.POST or None)
         text = "Hover over the lines to see detailed power predictions"
-        parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
-        peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
-        mixdata = MixtureModel.objects.filter(SID=sid).reverse()[0]
+        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+        peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
+        mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
         peaks = peakdata.data
         thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=8,nvox=float(parsdata.nvox),alpha=0.05,exc=float(parsdata.ExcZ))
         effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
@@ -151,19 +152,44 @@ def neuropowersamplesize(request):
         savepowertableform.data = power_predicted_df
         savepowertableform.save()
         plothtml = plotPower(sid)
-        powerinputform = PowerForm(request.POST)
-        if powerinputform.is_valid():
-            savepowerinputform = powerinputform.save(commit=False)
-            savepowerinputform.SID = sid
-            savepowerinputform.save()
-            powerinputdata = PowerModel.objects.filter(SID=sid).reverse()[0]
-            plothtml = plotPower(sid,powerinputdata.MCP,powerinputdata.reqPow,powerinputdata.reqSS)
-            text = "VALID"
+        powerinputform = PowerForm(request.POST or None)
+        if request.method == "POST":
+            if powerinputform.is_valid():
+                savepowerinputform = powerinputform.save(commit=False)
+                savepowerinputform.SID = sid
+                savepowerinputform.save()
+                powerinputdata = PowerModel.objects.filter(SID=sid)[::-1][0]
+                pow = float(powerinputdata.reqPow)
+                ss = float(powerinputdata.reqSS)
+                plothtml = plotPower(sid,powerinputdata.MCP,pow,ss)
+                text = "VALID"
+            else:
+                text = "NOT VALID"
         else:
-            text = "NOT VALID"
+            text = "NOT POSTED"
         context = {
         "text":text,
         "plothtml":plothtml,
         "powerinputform":powerinputform
         }
         return render(request,"neuropowersamplesize.html",context)
+
+def klad(request):
+    sid = get_session_id(request)
+    kladform = KladForm(request.POST or None)
+    if request.method == "POST":
+        if kladform.is_valid():
+            savekladform = kladform.save(commit=False)
+            savekladform.SID = sid
+            savekladform.save()
+            kladdata = KladModel.objects.filter(SID=sid)[::-1][0]
+            text = kladdata.klad
+        else:
+            text = "Invalid"
+    else:
+        text = "Not posted"
+    context = {
+    "kladform":kladform,
+    "text":text
+    }
+    return render(request,"klad.html",context)

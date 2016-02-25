@@ -2,7 +2,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
-from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel,PowerModel
+from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel,PowerModel, KladModel
 
 class ParameterForm(forms.ModelForm):
     class Meta:
@@ -72,8 +72,8 @@ class PowerTableForm(forms.ModelForm):
         fields = '__all__'
 
 class PowerForm(forms.ModelForm):
-    reqPow = forms.CharField(required=False,label = "What is the minimal power required for your study?")
-    reqSS = forms.DecimalField(required=False,label = "What is the estimated sample size for your study?")
+    reqPow = forms.CharField(label = "What is the minimal power required for your study?")
+    reqSS = forms.DecimalField(label = "What is the estimated sample size for your study?")
     class Meta:
         model = PowerModel
         fields = '__all__'
@@ -85,6 +85,20 @@ class PowerForm(forms.ModelForm):
         Fieldset(
             'Power',
             'MCP','reqPow','reqSS'
+            ),
+            ButtonHolder(Submit('Submit', 'Submit parameters', css_class='btn-secondary'))
+    )
+
+class KladForm(forms.ModelForm):
+    klad = forms.CharField(required=False,label="Put in the kladstring.")
+    class Meta:
+        model = KladModel
+        fields = ['klad']
+    helper = FormHelper()
+    helper.layout = Layout(
+        Fieldset(
+            'klad',
+            'klad'
             ),
             ButtonHolder(Submit('Submit', 'Submit parameters', css_class='btn-secondary'))
     )

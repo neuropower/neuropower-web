@@ -115,16 +115,16 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     axs.plot(newsubs,power_predicted_df['RFT'],color=colset1[2],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
     axs.plot(newsubs,power_predicted_df['UN'],color=colset1[3],lw=2,label="Uncorrected")
     if pow != 0:
-        pow = float(pow)
-        min = np.min([i for i,elem in enumerate(power_predicted_df[MCP]>float(pow),1) if elem])+sub
+        min = np.min([i for i,elem in enumerate(power_predicted_df[MCP]>pow,1) if elem])+sub
         axs.plot([min,min],[0,power_predicted_df[MCP][min-sub]],color=colset1[2])
-        axs.plot([sub,min],[power_predicted_df[MCP][min-sub],power_predicted_df[MCP][RFTmin-sub]],color=colset1[2])
+        axs.plot([sub,min],[power_predicted_df[MCP][min-sub],power_predicted_df[MCP][min-sub]],color=colset1[2])
         axs.text(min+1,0.02,str(min),color=colset1[2])
     if ss != 0:
-        ss = float(ss)
+        print(ss)
         axs.plot([ss,ss],[0,power_predicted_df[MCP][min-sub]],color=colset1[2])
-        axs.plot([sub,ss],[power_predicted_df[MCP][min-sub],power_predicted_df[MCP][RFTmin-sub]],color=colset1[2])
-        axs.text(0.02,power_predicted_df[MCP],str(power_predicted_df[MCP]),color=colset1[2])
+        axs.plot([sub,ss],[power_predicted_df[MCP][min-sub],power_predicted_df[MCP][min-sub]],color=colset1[2])
+        axs.text(ss,power_predicted_df[MCP][min-sub],str(np.round(power_predicted_df[MCP][min-sub],decimals=2)),color=colset1[2])
+        #axs.set_xticks(list(axs.set_xticks()[0])+ss)
     axs.set_ylim([0,1])
     axs.set_xlim([sub,71])
     axs.set_title("Power curves")
