@@ -61,7 +61,6 @@ def neuropowerviewer(request):
     else:
         sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        print(parsdata.Exc)
         context = {
             "url":parsdata.url,
             "viewer":"<div class='papaya' data-params='params'></div>",
@@ -121,17 +120,23 @@ def neuropowermodel(request):
         return render(request,"neuropowermodel.html",{})
 
 def neuropowersamplesize(request):
+
     sid = get_session_id(request)
     powerinputform = PowerForm(request.POST or None)
+
     if not ParameterModel.objects.filter(SID=sid):
-        text = "Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
+        texttop = "Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
         plothtml = ""
+        textbottom = ""
+
     if not MixtureModel.objects.filter(SID=sid):
-        text = "Please first go to the 'Model Fit' page to initiate and inspect the fit of the mixture model to the distribution."
+        texttop = "Please first go to the 'Model Fit' page to initiate and inspect the fit of the mixture model to the distribution."
         plothtml = ""
+        textbottom = ""
+
     else:
-        powerinputform = PowerForm(request.POST or None)
-        text = "Hover over the lines to see detailed power predictions"
+        texttop = "Hover over the lines to see detailed power predictions"
+        textbottom = ""
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
         mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
@@ -144,31 +149,29 @@ def neuropowersamplesize(request):
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
             powerpred =  {k:1-neuropowermodels.altCDF(v,projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items() if v!='nan'}
             power_predicted.append(powerpred)
-        power_predicted_df = pd.DataFrame(power_predicted)
-        power_predicted_df['newsamplesize']=newsubs
+        powertable = pd.DataFrame(power_predicted)
+        powertable['newsamplesize']=newsubs
         powertableform = PowerTableForm()
         savepowertableform = powertableform.save(commit=False)
         savepowertableform.SID = sid
-        savepowertableform.data = power_predicted_df
+        savepowertableform.data = powertable
         savepowertableform.save()
-        plothtml = plotPower(sid)
         powerinputform = PowerForm(request.POST or None)
+        plothtml = plotPower(sid)['code']
         if request.method == "POST":
             if powerinputform.is_valid():
                 savepowerinputform = powerinputform.save(commit=False)
                 savepowerinputform.SID = sid
                 savepowerinputform.save()
                 powerinputdata = PowerModel.objects.filter(SID=sid)[::-1][0]
-                pow = float(powerinputdata.reqPow)
-                ss = float(powerinputdata.reqSS)
-                plothtml = plotPower(sid,powerinputdata.MCP,pow,ss)
-                text = "VALID"
-            else:
-                text = "NOT VALID"
-        else:
-            text = "NOT POSTED"
+                pow = powerinputdata.reqPow
+                ss = powerinputdata.reqSS
+                plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
+                plothtml = plotpower['code']
+                textbottom = plotpower['text']
         context = {
-        "text":text,
+        "texttop":texttop,
+        "textbottom":textbottom,
         "plothtml":plothtml,
         "powerinputform":powerinputform
         }

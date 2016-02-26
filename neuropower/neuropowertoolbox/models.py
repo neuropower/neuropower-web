@@ -17,6 +17,7 @@ class ParameterModel(models.Model):
     ExcZ = models.DecimalField(max_digits=5,decimal_places=2,default='NaN')
     DoF = models.DecimalField(max_digits=5,decimal_places=2,default='NaN')
     Subj = models.IntegerField()
+    alpha = models.DecimalField(max_digits=5,decimal_places=4,default=0.05)
     Samples = models.IntegerField(choices=Samples_c)
     Smoothx = models.DecimalField(max_digits=5,decimal_places=2)
     Smoothy = models.DecimalField(max_digits=5,decimal_places=2)
@@ -50,7 +51,7 @@ class PowerTableModel(models.Model):
 
 class PowerModel(models.Model):
     SID = models.CharField(max_length=300,default="")
-    reqPow = models.DecimalField(max_digits=10,decimal_places=4,default=0,null=True, blank=True)
+    reqPow = models.DecimalField(max_digits=10,decimal_places=4,null=True, blank=True)
     reqSS = models.IntegerField(default=0,null=True, blank=True)
     MCP_c = (("RFT", "Random Field Theory"),("BH", "Benjamini-Hochberg"),("BF","Bonferroni"),("UN","Uncorrected"))
     MCP = models.CharField(max_length=10,choices=MCP_c)
