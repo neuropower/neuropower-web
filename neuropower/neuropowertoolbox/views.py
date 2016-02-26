@@ -34,7 +34,7 @@ def get_session_id(request):
 
 def neuropower(request):
     sid = get_session_id(request)
-    parsform = ParameterForm(request.POST or None,default="URL to nifti image")
+    parsform = ParameterForm(request.POST or None,request.FILES or None, default="URL to nifti image")
     context = {"parsform": parsform}
     if not parsform.is_valid():
         return render(request,"neuropower.html",context)
@@ -78,6 +78,7 @@ def neuropowertable(request):
     else:
         sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+        print(parsdata.maskfile)
         parsdata.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
         SPM=nib.load(parsdata.location).get_data()
         if parsdata.ZorT=='T':

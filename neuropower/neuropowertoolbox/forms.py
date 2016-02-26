@@ -8,12 +8,14 @@ from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableMode
 class ParameterForm(forms.ModelForm):
     class Meta:
         model = ParameterModel
-        fields = ['url','ZorT','Exc','Subj','Samples','alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
+        fields = ['url','maskfile','ZorT','Exc','Subj','Samples','alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
     def __init__(self,*args,**kwargs):
         self.default=kwargs.pop('default',None)
         super(ParameterForm,self).__init__(*args,**kwargs)
         self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default})
         self.fields['url'].label = "URL to nifti-file"
+        self.fields['maskfile'].label = "Upload a full brain mask or a Region-of-Interest mask.  If no mask is selected, all non-null voxels are used."
+        self.fields['maskfile'].required = False
         self.fields['ZorT'].label = "Are the data Z- or T-values?"
         self.fields['Exc'].label = "What is the screening threshold (either p-value or z-value units)?"
         self.fields['Subj'].label = "How many subjects does the group map represent?"
@@ -40,7 +42,7 @@ class ParameterForm(forms.ModelForm):
     helper.layout = Layout(
         Fieldset(
             'Data parameters',
-            'url','ZorT','Exc','Subj','Samples','alpha'
+            'url','maskfile','ZorT','Exc','Subj','Samples','alpha'
             ),
         HTML("""<p style="margin-left: 15px"><b> \n What is the smoothness of the data? </b></p>"""),
         Div(

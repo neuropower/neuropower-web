@@ -8,6 +8,7 @@ from django.contrib.sessions.models import Session
 class ParameterModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     url = models.URLField(default="")
+    maskfile = models.FileField(upload_to='masks',default="")
     location = models.CharField(max_length=300,default="")
     nvox = models.CharField(max_length=300,default="")
     ZorT_c = (("Z","Z"),("T","T"))

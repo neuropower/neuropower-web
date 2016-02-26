@@ -56,6 +56,10 @@ MIDDLEWARE_CLASSES = [
     'djangosecure.middleware.SecurityMiddleware',
 ]
 
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler"]
+
 ROOT_URLCONF = 'neuropower.urls'
 #SECURE_SSL_REDIRECT = True
 TEMPLATES = [
@@ -140,7 +144,7 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL="/media/"
-MEDIA_ROOT=os.path.join(os.path.dirname(BASE_DIR),"media")
+MEDIA_ROOT=os.path.join(BASE_DIR,"media")
 
 ## App specific settings
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
