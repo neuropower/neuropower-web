@@ -4,25 +4,25 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
 from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel,PowerModel
+import nibabel as nib
 
 class ParameterForm(forms.ModelForm):
     class Meta:
         model = ParameterModel
         fields = ['url','maskfile','ZorT','Exc','Subj','Samples','alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
     def __init__(self,*args,**kwargs):
-        self.default=kwargs.pop('default',None)
+        self.default=kwargs.pop('default')
+        self.sid=kwargs.pop('sid')
         super(ParameterForm,self).__init__(*args,**kwargs)
         self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default})
         self.fields['url'].label = "URL to nifti-file"
         self.fields['maskfile'].label = "Upload a full brain mask or a Region-of-Interest mask.  If no mask is selected, all non-null voxels are used."
-        self.fields['maskfile'].required = False
+        #self.fields['maskfile'].required = False
         self.fields['ZorT'].label = "Are the data Z- or T-values?"
         self.fields['Exc'].label = "What is the screening threshold (either p-value or z-value units)?"
         self.fields['Subj'].label = "How many subjects does the group map represent?"
         self.fields['Samples'].label = "Is this a one-sample or a two-sample test?"
         self.fields['alpha'].label = "At which alpha-level are the statistical tests carried out?"
-        self.fields['alpha'].widget = forms.NumberInput(attrs={'placeholder':0.05})
-
         self.fields['Smoothx'].label = ""
         self.fields['Smoothx'].widget = forms.TextInput(attrs={'placeholder':'x'})
         self.fields['Smoothy'].label = ""

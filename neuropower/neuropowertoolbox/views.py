@@ -6,7 +6,7 @@ from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, Po
 from django.db import models
 from django.conf import settings
 from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
-from neuropower.utils import BUM, cluster, model, neuropowermodels,peakdistribution
+from neuropower.utils import BUM, cluster, model, neuropowermodels,peakdistribution, utils
 from django.forms import model_to_dict
 import nibabel as nib
 import os
@@ -16,12 +16,8 @@ import pandas as pd
 import tempfile, shutil, os,urllib
 from .plots import plotPower
 from nilearn import masking
-
-def create_temporary_copy(path,sid):
-    temp_dir = tempfile.gettempdir()
-    temp_path = os.path.join(temp_dir, 'nifti_down_"+sid+".nii.gz')
-    urllib.urlretrieve(path, temp_path)
-    return temp_path
+from django.conf import settings
+import uuid
 
 def home(request):
     return render(request,"home.html",{})
@@ -34,21 +30,29 @@ def get_session_id(request):
 
 def neuropower(request):
     sid = get_session_id(request)
-    parsform = ParameterForm(request.POST or None,request.FILES or None, default="URL to nifti image")
+    parsform = ParameterForm(request.POST or None, request.FILES or None, default="URL to nifti image",sid=sid)
     context = {"parsform": parsform}
     if not parsform.is_valid():
         return render(request,"neuropower.html",context)
     else:
         url = parsform.cleaned_data['url']
-        location = create_temporary_copy(url,sid)
-        SPM=nib.load(location)
-        mask=masking.compute_background_mask(SPM,border_size=2, opening=True)
+        location = utils.create_temporary_copy(url,sid)
+        SPM = nib.load(location)
+        mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
         nvox = np.sum(mask.get_data())
         saveparsform = parsform.save(commit=False)
         saveparsform.SID = sid
         saveparsform.location = location
         saveparsform.nvox = nvox
         saveparsform.save()
+        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+        mask2 = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
+        newname = "mask_"+str(uuid.uuid4())+".nii"
+        os.rename(mask2,newname)
+        print(newname)
+        mask = nib.load(newname)
+        print(mask.shape)
+        check_equal = all(SPM.shape == mask.shape)
         return HttpResponseRedirect('/neuropowerviewer/')
 
 def neuropowerviewer(request):
@@ -78,7 +82,6 @@ def neuropowertable(request):
     else:
         sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        print(parsdata.maskfile)
         parsdata.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
         SPM=nib.load(parsdata.location).get_data()
         if parsdata.ZorT=='T':
