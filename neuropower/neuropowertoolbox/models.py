@@ -4,6 +4,7 @@ from picklefield.fields import PickledObjectField
 import numpy as np
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
+import nibabel
 
 class ParameterModel(models.Model):
     SID = models.CharField(max_length=300,default="")
@@ -28,6 +29,17 @@ class ParameterModel(models.Model):
     Voxz = models.DecimalField(max_digits=5,decimal_places=2)
     def __unicode__(self): # Python 3: __str__
         return self
+    # def save(self):
+    #     super(ParameterModel,self).save()
+    #     print(self.maskfile.path)
+    #     super(ParameterModel,self).save()
+    #     mask2 = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
+    #     newname = "mask_"+str(uuid.uuid4())+".nii"
+    #     os.rename(mask2,newname)
+    #     print(newname)
+    #     mask = nib.load(newname)
+    #     print(mask.shape)
+    #
 
 class PeakTableModel(models.Model):
     SID = models.CharField(max_length=300,default="")

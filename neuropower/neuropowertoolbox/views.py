@@ -30,30 +30,48 @@ def get_session_id(request):
 
 def neuropower(request):
     sid = get_session_id(request)
-    parsform = ParameterForm(request.POST or None, request.FILES or None, default="URL to nifti image",sid=sid)
-    context = {"parsform": parsform}
+    parsform = ParameterForm(
+        request.POST or None,
+        request.FILES or None,
+        default_url="URL to nifti image",
+    )
     if not parsform.is_valid():
+        context = {
+            "parsform": parsform,
+        }
         return render(request,"neuropower.html",context)
     else:
         url = parsform.cleaned_data['url']
         location = utils.create_temporary_copy(url,sid)
-        SPM = nib.load(location)
-        mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
-        nvox = np.sum(mask.get_data())
         saveparsform = parsform.save(commit=False)
         saveparsform.SID = sid
         saveparsform.location = location
-        saveparsform.nvox = nvox
         saveparsform.save()
+
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        mask2 = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
-        newname = "mask_"+str(uuid.uuid4())+".nii"
-        os.rename(mask2,newname)
-        print(newname)
-        mask = nib.load(newname)
-        print(mask.shape)
-        check_equal = all(SPM.shape == mask.shape)
-        return HttpResponseRedirect('/neuropowerviewer/')
+        SPM = nib.load(parsdata.location)
+        if parsdata.maskfile == "":
+            mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
+            nvox = np.sum(mask.get_data())
+            saveparsform.nvox = nvox
+            saveparsform.save()
+            return HttpResponseRedirect('/neuropowerviewer/')
+        else:
+            mask = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
+            newmask = "mask_"+str(uuid.uuid4())+".nii"
+            os.rename(mask,newmask)
+            mask = nib.load(newmask)
+            if all(SPM.get_data().shape != mask.get_data().shape):
+                return render(
+                    request,
+                    "neuropower.html",
+                    {"parsform":parsform}
+                )
+            else:
+                nvox = np.sum(mask.get_data())
+                saveparsform.nvox = nvox
+                saveparsform.save()
+                return HttpResponseRedirect('/neuropowerviewer/')
 
 def neuropowerviewer(request):
     sid = get_session_id(request)

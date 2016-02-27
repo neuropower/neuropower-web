@@ -11,10 +11,9 @@ class ParameterForm(forms.ModelForm):
         model = ParameterModel
         fields = ['url','maskfile','ZorT','Exc','Subj','Samples','alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
     def __init__(self,*args,**kwargs):
-        self.default=kwargs.pop('default')
-        self.sid=kwargs.pop('sid')
+        self.default_url=kwargs.pop('default_url')
         super(ParameterForm,self).__init__(*args,**kwargs)
-        self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default})
+        self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default_url})
         self.fields['url'].label = "URL to nifti-file"
         self.fields['maskfile'].label = "Upload a full brain mask or a Region-of-Interest mask.  If no mask is selected, all non-null voxels are used."
         #self.fields['maskfile'].required = False
