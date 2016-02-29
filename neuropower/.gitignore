@@ -2,3 +2,5 @@
 *.gz
 *.nii
 sqlite
+*bash*
+*keys*
