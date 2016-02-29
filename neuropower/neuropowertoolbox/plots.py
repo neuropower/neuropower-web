@@ -103,7 +103,6 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     axs.plot(newsubs,powtab.UN,color=cols['UN'],lw=2,label="Uncorrected")
     text = "None"
     if pow != 0:
-        print(pow)
         min = int(np.min([i for i,elem in enumerate(powtab[MCP]>pow,1) if elem])+sub)
         axs.plot([min,min],[0,powtab[MCP][min-sub]],color=cols[MCP])
         axs.plot([sub,min],[powtab[MCP][min-sub],powtab[MCP][min-sub]],color=cols[MCP])
