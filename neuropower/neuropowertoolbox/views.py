@@ -34,15 +34,15 @@ def neuropower(request):
         request.POST or None,
         request.FILES or None,
         default_url="URL to nifti image",
+        dim_err=False
     )
-    if not parsform.is_valid():
-        context = {
-            "parsform": parsform,
-        }
+    if not request.method=="POST" or not parsform.is_valid():
+        context = {"parsform": parsform}
         return render(request,"neuropower.html",context)
-    else:
+    else: #request.method=="POST" AND form is valid
+        mapID = str(sid)+"_"+str(uuid.uuid4())
         url = parsform.cleaned_data['url']
-        location = utils.create_temporary_copy(url,sid)
+        location = utils.create_temporary_copy(url,mapID)
         saveparsform = parsform.save(commit=False)
         saveparsform.SID = sid
         saveparsform.location = location
@@ -58,20 +58,24 @@ def neuropower(request):
             return HttpResponseRedirect('/neuropowerviewer/')
         else:
             mask = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
-            newmask = "mask_"+str(uuid.uuid4())+".nii"
+            newmask = os.path.join(settings.MEDIA_ROOT,"maps","mask_"+mapID+".nii")
             os.rename(mask,newmask)
             mask = nib.load(newmask)
-            if all(SPM.get_data().shape != mask.get_data().shape):
-                return render(
-                    request,
-                    "neuropower.html",
-                    {"parsform":parsform}
+            if SPM.get_data().shape != mask.get_data().shape:
+                parsform = ParameterForm(
+                    request.POST or None,
+                    request.FILES or None,
+                    default_url="URL to nifti image",
+                    dim_err=True
                 )
+                context = {"parsform": parsform}
+                return render(request,"neuropower.html",context)
             else:
                 nvox = np.sum(mask.get_data())
                 saveparsform.nvox = nvox
                 saveparsform.save()
                 return HttpResponseRedirect('/neuropowerviewer/')
+
 
 def neuropowerviewer(request):
     sid = get_session_id(request)

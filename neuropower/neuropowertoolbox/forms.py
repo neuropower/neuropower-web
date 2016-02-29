@@ -12,6 +12,7 @@ class ParameterForm(forms.ModelForm):
         fields = ['url','maskfile','ZorT','Exc','Subj','Samples','alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
     def __init__(self,*args,**kwargs):
         self.default_url=kwargs.pop('default_url')
+        self.dim_err=kwargs.pop('dim_err')
         super(ParameterForm,self).__init__(*args,**kwargs)
         self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default_url})
         self.fields['url'].label = "URL to nifti-file"
@@ -34,6 +35,9 @@ class ParameterForm(forms.ModelForm):
         self.fields['Voxy'].widget = forms.TextInput(attrs={'placeholder':'y'})
         self.fields['Voxz'].label = ""
         self.fields['Voxz'].widget = forms.TextInput(attrs={'placeholder':'z'})
+    def clean(self):
+        if self.dim_err:
+            raise forms.ValidationError("The selected statistical map and mask do not have the same dimensions.")
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'
