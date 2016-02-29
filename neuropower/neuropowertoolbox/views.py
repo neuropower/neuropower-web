@@ -51,8 +51,6 @@ def neuropower(request):
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         SPM = nib.load(parsdata.location)
         saveparsform.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
-        if parsdata.ZorT=='T':
-            SPM = -norm.ppf(t.cdf(-SPM.get_data(),df=float(parsdata.DoF)))
         saveparsform.ExcZ = float(parsdata.Exc) if float(parsdata.Exc)>1 else -norm.ppf(float(parsdata.Exc))
         parsdata.save()
 
@@ -111,6 +109,8 @@ def neuropowertable(request):
         sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         SPM = nib.load(parsdata.location).get_data()
+        if parsdata.ZorT=='T':
+            SPM = -norm.ppf(t.cdf(-SPM.get_data(),df=float(parsdata.DoF)))
         peaks = cluster.cluster(SPM,parsdata.ExcZ)
         pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
         pvalues = [max(10**(-6),p) for p in pvalues]
