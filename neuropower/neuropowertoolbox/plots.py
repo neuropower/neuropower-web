@@ -2,7 +2,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from neuropower.utils import BUM, cluster, model, peakdistribution
+from neuropower.utils import BUM, cluster, peakdistribution
 from neuropower.utils import neuropowermodels as npm
 from palettable.colorbrewer.qualitative import Paired_12,Set1_9
 import scipy

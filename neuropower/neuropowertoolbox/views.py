@@ -6,7 +6,7 @@ from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, Po
 from django.db import models
 from django.conf import settings
 from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
-from neuropower.utils import BUM, cluster, model, neuropowermodels,peakdistribution, utils
+from neuropower.utils import BUM, cluster, neuropowermodels,peakdistribution, utils
 from django.forms import model_to_dict
 import nibabel as nib
 import os
