@@ -110,7 +110,7 @@ def neuropowertable(request):
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         SPM = nib.load(parsdata.location).get_data()
         if parsdata.ZorT=='T':
-            SPM = -norm.ppf(t.cdf(-SPM.get_data(),df=float(parsdata.DoF)))
+            SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
         peaks = cluster.cluster(SPM,parsdata.ExcZ)
         pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
         pvalues = [max(10**(-6),p) for p in pvalues]
