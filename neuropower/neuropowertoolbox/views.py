@@ -50,6 +50,12 @@ def neuropower(request):
 
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         SPM = nib.load(parsdata.location)
+        saveparsform.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
+        if parsdata.ZorT=='T':
+            SPM = -norm.ppf(t.cdf(-SPM.get_data(),df=float(parsdata.DoF)))
+        saveparsform.ExcZ = float(parsdata.Exc) if float(parsdata.Exc)>1 else -norm.ppf(float(parsdata.Exc))
+        parsdata.save()
+
         if parsdata.maskfile == "":
             mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
             nvox = np.sum(mask.get_data())
@@ -104,13 +110,9 @@ def neuropowertable(request):
     else:
         sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        parsdata.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
-        SPM=nib.load(parsdata.location).get_data()
-        if parsdata.ZorT=='T':
-            SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-        parsdata.ExcZ = float(parsdata.Exc) if float(parsdata.Exc)>1 else -norm.ppf(float(parsdata.Exc))
+        SPM = nib.load(parsdata.location).get_data()
         peaks = cluster.cluster(SPM,parsdata.ExcZ)
-        pvalues = np.exp(-parsdata.ExcZ*(np.array(peaks.peak)-parsdata.ExcZ))
+        pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
         pvalues = [max(10**(-6),p) for p in pvalues]
         peaks['pval'] = pvalues
         peakform = PeakTableForm()
@@ -118,7 +120,6 @@ def neuropowertable(request):
         savepeakform.SID = sid
         savepeakform.data = peaks
         savepeakform.save()
-        parsdata.save()
         context = {
         "peaks":peaks.to_html(classes=["table table-striped"]),
         }
@@ -173,7 +174,7 @@ def neuropowersamplesize(request):
         newsubs = range(parsdata.Subj,71)
         for s in newsubs:
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
-            powerpred =  {k:1-neuropowermodels.altCDF(v,projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items() if v!='nan'}
+            powerpred =  {k:1-neuropowermodels.altCDF(v,projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items()}
             power_predicted.append(powerpred)
         powertable = pd.DataFrame(power_predicted)
         powertable['newsamplesize']=newsubs

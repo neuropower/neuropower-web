@@ -50,7 +50,6 @@ def plotModel(request):
     axs[0].set_title("Distribution of "+str(len(peaks))+" peak p-values \n $\pi_1$ = "+str(round(float(mixdata.pi1),2)))
     axs[0].set_xlabel("Peak p-values")
     axs[0].set_ylabel("Density")
-
     axs[1].hist(peaks.peak,lw=0,facecolor=twocol[0],normed=True,bins=np.arange(min(peaks.peak),10,0.3),label="observed distribution")
     axs[1].set_xlim([float(parsdata.ExcZ),7])
     axs[1].set_ylim([0,1])

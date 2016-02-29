@@ -9,8 +9,8 @@ import nibabel
 class ParameterModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     url = models.URLField(default="")
-    maskfile = models.FileField(upload_to='masks',default="")
     location = models.CharField(max_length=300,default="")
+    maskfile = models.FileField(upload_to='masks',default="")
     nvox = models.CharField(max_length=300,default="")
     ZorT_c = (("Z","Z"),("T","T"))
     Samples_c = ((1, ("One-sample")),(2, ("Two-sample")))

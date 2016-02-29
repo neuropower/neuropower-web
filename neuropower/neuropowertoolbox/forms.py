@@ -17,7 +17,7 @@ class ParameterForm(forms.ModelForm):
         self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default_url})
         self.fields['url'].label = "URL to nifti-file"
         self.fields['maskfile'].label = "Upload a full brain mask or a Region-of-Interest mask.  If no mask is selected, all non-null voxels are used."
-        #self.fields['maskfile'].required = False
+        self.fields['maskfile'].required = False
         self.fields['ZorT'].label = "Are the data Z- or T-values?"
         self.fields['Exc'].label = "What is the screening threshold (either p-value or z-value units)?"
         self.fields['Subj'].label = "How many subjects does the group map represent?"
