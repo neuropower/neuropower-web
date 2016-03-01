@@ -36,8 +36,29 @@ class ParameterForm(forms.ModelForm):
         self.fields['Voxz'].label = ""
         self.fields['Voxz'].widget = forms.TextInput(attrs={'placeholder':'z'})
     def clean(self):
+        cleaned_data = super(ParameterForm,self).clean()
+        url = cleaned_data.get('url')
+        maskfile = cleaned_data.get('maskfile')
+        exc = cleaned_data.get('Exc')
+        subj = cleaned_data.get("Subj")
+        alpha = cleaned_data.get("alpha")
         if self.dim_err:
             raise forms.ValidationError("The selected statistical map and mask do not have the same dimensions.")
+        if not (url.endswith('.nii.gz') or url.endswith('.nii.gz')):
+            raise forms.ValidationError("The statistical map has the wrong format: please choose a nifti-file")
+        if not maskfile == None:
+            if not (maskfile.name.endswith('.nii.gz') or maskfile.name.endswith('.nii.gz')):
+                raise forms.ValidationError("The mask has the wrong format: please choose a nifti-file")
+            if maskfile.size > 10^7:
+                raise forms.ValidationError("Maximum mask file size: 10 MB")
+        if 0.5 < exc < 2:
+            raise forms.ValidationError("For a p-value, that screening threshold is too big; for a t-value it's too small.")
+        if exc > 5:
+            raise forms.ValidationError("Your screening threshold is impossibly high.")
+        if subj < 10:
+            raise forms.ValidationError("We found that our power estimations are not valid for sample sizes smaller than 10!")
+        if alpha > 0.20:
+            raise forms.ValidationError("Are you sure about that alpha level? Your tests have a high chance of producing false positives.")
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'
