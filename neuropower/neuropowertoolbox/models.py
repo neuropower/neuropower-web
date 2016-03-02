@@ -5,12 +5,16 @@ import numpy as np
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
 import nibabel
+#import tempfile
+
+#temp_dir = tempfile.gettempdir()
 
 class ParameterModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     url = models.URLField(default="")
     location = models.CharField(max_length=300,default="")
-    maskfile = models.FileField(upload_to='masks',default="")
+    spmfile = models.FileField(upload_to='maps',default="")
+    maskfile = models.FileField(upload_to='maps',default="")
     nvox = models.CharField(max_length=300,default="")
     ZorT_c = (("Z","Z"),("T","T"))
     Samples_c = ((1, ("One-sample")),(2, ("Two-sample")))

@@ -18,6 +18,9 @@ from .plots import plotPower
 from nilearn import masking
 from django.conf import settings
 import uuid
+import tempfile
+
+temp_dir = tempfile.gettempdir()
 
 def home(request):
     return render(request,"home.html",{})
@@ -34,51 +37,73 @@ def neuropower(request):
         request.POST or None,
         request.FILES or None,
         default_url="URL to nifti image",
-        dim_err=False
+        err=""
     )
+
     if not request.method=="POST" or not parsform.is_valid():
         context = {"parsform": parsform}
         return render(request,"neuropower.html",context)
-    else: #request.method=="POST" AND form is valid
-        mapID = str(sid)+"_"+str(uuid.uuid4())
-        url = parsform.cleaned_data['url']
-        location = utils.create_temporary_copy(url,mapID)
+
+    else:
         saveparsform = parsform.save(commit=False)
         saveparsform.SID = sid
-        saveparsform.location = location
         saveparsform.save()
 
+        # handle data: copy to temporary location
+        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+        mapID = str(sid)+"_"+str(uuid.uuid4())
+        if not parsdata.url == "":
+            url = parsform.cleaned_data['url']
+            location = utils.create_temporary_copy(url,mapID,mask=False,url=True)
+        elif not parsdata.spmfile == "":
+            spmfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.spmfile))
+            location = utils.create_temporary_copy(spmfile,mapID,mask=False, url=False)
+        saveparsform.location = location
+        saveparsform.save()
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         SPM = nib.load(parsdata.location)
+
+        # check if the IQR is realistic (= check whether these are Z- or T-values)
+        IQR = np.subtract(*np.percentile(SPM.get_data(),[75,25]))
+        if IQR > 20:
+            parsform = ParameterForm(
+                request.POST or None,
+                request.FILES or None,
+                default_url="URL to nifti image",
+                err="median",
+                )
+            context = {"parsform": parsform}
+            return render(request,"neuropower.html",context)
+
+        # save other parameters
         saveparsform.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
         saveparsform.ExcZ = float(parsdata.Exc) if float(parsdata.Exc)>1 else -norm.ppf(float(parsdata.Exc))
-        parsdata.save()
 
+        # handle mask
         if parsdata.maskfile == "":
             mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
             nvox = np.sum(mask.get_data())
             saveparsform.nvox = nvox
-            saveparsform.save()
-            return HttpResponseRedirect('/neuropowerviewer/')
         else:
-            mask = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
-            newmask = os.path.join(settings.MEDIA_ROOT,"maps","mask_"+mapID+".nii")
-            os.rename(mask,newmask)
-            mask = nib.load(newmask)
+            maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
+            masklocation = utils.create_temporary_copy(maskfile,mapID,mask=True,url=False)
+            mask = nib.load(masklocation)
+
+            # return error when dimensions are different
             if SPM.get_data().shape != mask.get_data().shape:
                 parsform = ParameterForm(
                     request.POST or None,
                     request.FILES or None,
                     default_url="URL to nifti image",
-                    dim_err=True
+                    err="dim",
                 )
                 context = {"parsform": parsform}
                 return render(request,"neuropower.html",context)
-            else:
-                nvox = np.sum(mask.get_data())
-                saveparsform.nvox = nvox
-                saveparsform.save()
-                return HttpResponseRedirect('/neuropowerviewer/')
+
+        nvox = np.sum(mask.get_data())
+        saveparsform.nvox = nvox
+        saveparsform.save()
+        return HttpResponseRedirect('/neuropowerviewer/') if parsdata.spmfile == "" else HttpResponseRedirect('/neuropowertable/')
 
 
 def neuropowerviewer(request):
@@ -91,11 +116,18 @@ def neuropowerviewer(request):
     else:
         sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        context = {
-            "url":parsdata.url,
-            "viewer":"<div class='papaya' data-params='params'></div>",
-            "text":""
-        }
+        if parsdata.url == "":
+            context = {
+                "url":"",
+                "viewer":"",
+                "text":"The viewer is only available for publicly available data (specify a url in the input)."
+            }
+        else:
+            context = {
+                "url":parsdata.url,
+                "viewer":"<div class='papaya' data-params='params'></div>",
+                "text":""
+            }
         return render(request,"neuropowerviewer.html",context)
 
 def neuropowertable(request):

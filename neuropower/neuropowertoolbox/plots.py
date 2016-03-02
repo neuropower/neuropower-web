@@ -23,9 +23,9 @@ def get_session_id(request):
 def plotModel(request):
     plt.switch_backend('agg')
     sid = get_session_id(request)
-    mixdata = MixtureModel.objects.filter(SID=sid).reverse()[0]
-    parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
-    peakdata = PeakTableModel.objects.filter(SID=sid).reverse()[0]
+    mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
+    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+    peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
     peaks = peakdata.data
     twocol = Paired_12.mpl_colors
     xn = np.arange(-10,10,0.01)
@@ -66,8 +66,8 @@ def plotModel(request):
     return response
 
 def plotPower(sid,MCP='',pow=0,ss=0):
-    powerdata = PowerTableModel.objects.filter(SID=sid).reverse()[0]
-    parsdata = ParameterModel.objects.filter(SID=sid).reverse()[0]
+    powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
+    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
     powtab = powerdata.data
     powtxt = powtab.round(2)
     cols = dict(zip(['BF','BH','RFT','UN'],Set1_9.mpl_colors))
