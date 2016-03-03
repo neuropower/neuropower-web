@@ -1,24 +1,22 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
-
 {% load crispy_forms_tags %}
+
 {% block head_title %}
-  Neuropower Model | {{block.super}}
+  Tutorial | {{block.super}}
 {% endblock %}
 
 {% block navbar %}
 {%include 'navbar.html' %}
-{%include 'neuropowernavbar.html' %}
 {% endblock %}
-
 
 {% block content %}
 <div class="row">
   <br>
   <br>
-  <div class="col-xs-12">
-    <h4> {{text}} </h4>
-    <img src={% url 'plotmodel' %} width=100%/>
+  <div class="col-xs-1"></div>
+  <div class="col-xs-10">
   </div>
+  <div class="col-xs-1"></div>
 </div>
 {% endblock %}

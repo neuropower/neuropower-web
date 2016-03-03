@@ -7,6 +7,7 @@ def create_temporary_copy(file,mapID,mask=False,url=False):
     #temp_dir = tempfile.gettempdir()
     temp_dir = os.path.join(settings.MEDIA_ROOT,"maps")
     end = file[-3:]
+    print(end)
     newext = ".nii.gz" if end == ".gz" else ".nii"
     if not mask:
         newfilename = os.path.join(temp_dir,'SPM_'+mapID+newext)
@@ -14,6 +15,7 @@ def create_temporary_copy(file,mapID,mask=False,url=False):
         newfilename = os.path.join(temp_dir,"mask_"+mapID+newext)
 
     if url:
+        newfilename = os.path.join(temp_dir,'SPM_'+mapID+newext)
         urllib.urlretrieve(file, newfilename)
     else:
         os.rename(file,newfilename)

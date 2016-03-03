@@ -82,16 +82,18 @@ class ParameterForm(forms.ModelForm):
     helper.layout = Layout(
         Fieldset(
             'Data location',
-            HTML("""<h6 style="margin-left: 15px">Data location: Either paste a link to the online nifti-file <b>OR</b> upload your statistical map.</h6>"""),
+            HTML("""<h6 style="margin-left: 15px">Either paste a link to the online nifti-file <b>OR</b> upload your statistical map.</h6>"""),
             'url',
             #HTML("""<h4 style="margin-left: 15px">OR</h4>"""),
             'spmfile',
             ),
+        HTML("""<br><br>"""),
         Fieldset(
             'Mask location (optional)',
             HTML("""<h6 style="margin-left: 15px">Upload a full brain mask or a Region-of-Interest mask.  If no mask is selected, all non-null voxels are used.</h6>"""),
             'maskfile'
         ),
+        HTML("""<br><br>"""),
         Fieldset(
             'Design specifications',
             'ZorT','Exc','Subj','Samples','alpha'

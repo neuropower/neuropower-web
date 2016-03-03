@@ -22,10 +22,15 @@ from neuropowertoolbox import views, plots
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$',views.home,name='home'),
-    url(r'^neuropower/$',views.neuropower,name='neuropower'),
+    url(r'^FAQ/$',views.FAQ,name='FAQ'),
+    url(r'^tutorial/$',views.tutorial,name='tutorial'),
+    url(r'^methods/$',views.methods,name='methods'),
+    url(r'^neuropowerstart/$',views.neuropowerstart,name='neuropowerstart'),
+    url(r'^neuropowerinput/$',views.neuropowerinput,name='neuropowerinput'),
     url(r'^neuropowerviewer/$',views.neuropowerviewer,name='neuropowerviewer'),
     url(r'^neuropowertable/$',views.neuropowertable,name='neuropowertable'),
     url(r'^neuropowermodel/$',views.neuropowermodel,name='neuropowermodel'),
     url(r'^neuropowermodel/result.png$', plots.plotModel,name='plotmodel'),
     url(r'^neuropowersamplesize/$',views.neuropowersamplesize,name='neuropowersamplesize'),
+    url(r'^neuropowercrosstab/$',views.neuropowercrosstab,name='neuropowercrosstab'),
     ]

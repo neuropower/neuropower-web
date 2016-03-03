@@ -31,7 +31,19 @@ def get_session_id(request):
     sid = request.session.session_key
     return(sid)
 
-def neuropower(request):
+def neuropowerstart(request):
+    return render(request,"neuropowerstart.html",{})
+
+def FAQ(request):
+    return render(request,"FAQ.html",{})
+
+def tutorial(request):
+    return render(request,"tutorial.html",{})
+
+def methods(request):
+    return render(request,"methods.html",{})
+
+def neuropowerinput(request):
     sid = get_session_id(request)
     parsform = ParameterForm(
         request.POST or None,
@@ -42,7 +54,7 @@ def neuropower(request):
 
     if not request.method=="POST" or not parsform.is_valid():
         context = {"parsform": parsform}
-        return render(request,"neuropower.html",context)
+        return render(request,"neuropowerinput.html",context)
 
     else:
         saveparsform = parsform.save(commit=False)
@@ -73,7 +85,7 @@ def neuropower(request):
                 err="median",
                 )
             context = {"parsform": parsform}
-            return render(request,"neuropower.html",context)
+            return render(request,"neuropowerinput.html",context)
 
         # save other parameters
         saveparsform.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
@@ -98,45 +110,41 @@ def neuropower(request):
                     err="dim",
                 )
                 context = {"parsform": parsform}
-                return render(request,"neuropower.html",context)
+                return render(request,"neuropowerinput.html",context)
 
-        nvox = np.sum(mask.get_data())
-        saveparsform.nvox = nvox
+        saveparsform.nvox = np.sum(mask.get_data())
         saveparsform.save()
         return HttpResponseRedirect('/neuropowerviewer/') if parsdata.spmfile == "" else HttpResponseRedirect('/neuropowertable/')
 
 
 def neuropowerviewer(request):
     sid = get_session_id(request)
+    viewer = ""
+    url = ""
+    text = ""
     if not ParameterModel.objects.filter(SID=sid):
-        context = {
-            "text":"Please first fill out the input."
-        }
-        return render(request,"neuropowerviewer.html",context)
+        text = "Please first fill out the input."
     else:
-        sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         if parsdata.url == "":
-            context = {
-                "url":"",
-                "viewer":"",
-                "text":"The viewer is only available for publicly available data (specify a url in the input)."
-            }
+            text = "The viewer is only available for publicly available data (specify a url in the input)."
         else:
-            context = {
-                "url":parsdata.url,
-                "viewer":"<div class='papaya' data-params='params'></div>",
-                "text":""
-            }
-        return render(request,"neuropowerviewer.html",context)
+            url = parsdata.url
+            viewer = "<div class='papaya' data-params='params'></div>"
+
+    context = {
+        "url":url,
+        "viewer":viewer,
+        "text":text
+    }
+
+    return render(request,"neuropowerviewer.html",context)
 
 def neuropowertable(request):
     sid = get_session_id(request)
     if not ParameterModel.objects.filter(SID=sid):
-        context = {
-            "text":"Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
-        }
-        return render(request,"neuropowerviewer.html",context)
+        context = {"text":"No data found. Go to 'Input' and fill out the form."}
+        return render(request,"neuropowertable.html",context)
     else:
         sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
@@ -152,16 +160,14 @@ def neuropowertable(request):
         savepeakform.SID = sid
         savepeakform.data = peaks
         savepeakform.save()
-        context = {
-        "peaks":peaks.to_html(classes=["table table-striped"]),
-        }
-        return render(request,"neuropowertable.html",context)
+        context = {"peaks":peaks.to_html(classes=["table table-striped"])}
+    return render(request,"neuropowertable.html",context)
 
 def neuropowermodel(request):
     sid = get_session_id(request)
     if not ParameterModel.objects.filter(SID=sid):
-        context = {"text":"Please first fill out the input."}
-        return render(request,"neuropowerviewer.html",context)
+        context = {"text":"No data found. Go to 'Input' and fill out the form."}
+        return render(request,"neuropowermodel.html",context)
     else:
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
@@ -183,13 +189,13 @@ def neuropowersamplesize(request):
     sid = get_session_id(request)
     powerinputform = PowerForm(request.POST or None)
 
-    if not ParameterModel.objects.filter(SID=sid):
-        texttop = "Please first fill out the 'Data Location' and the 'Data Parameters' in the input."
+    if not MixtureModel.objects.filter(SID=sid):
+        texttop = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
         plothtml = ""
         textbottom = ""
 
-    if not MixtureModel.objects.filter(SID=sid):
-        texttop = "Please first go to the 'Model Fit' page to initiate and inspect the fit of the mixture model to the distribution."
+    if not ParameterModel.objects.filter(SID=sid):
+        texttop = "No data found. Go to 'Input' and fill out the form."
         plothtml = ""
         textbottom = ""
 
@@ -228,10 +234,31 @@ def neuropowersamplesize(request):
                 plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
                 plothtml = plotpower['code']
                 textbottom = plotpower['text']
-        context = {
-        "texttop":texttop,
-        "textbottom":textbottom,
-        "plothtml":plothtml,
-        "powerinputform":powerinputform
-        }
-        return render(request,"neuropowersamplesize.html",context)
+    context = {
+    "texttop":texttop,
+    "textbottom":textbottom,
+    "plothtml":plothtml,
+    "powerinputform":powerinputform
+    }
+    return render(request,"neuropowersamplesize.html",context)
+
+def neuropowercrosstab(request):
+
+    sid = get_session_id(request)
+    powerinputform = PowerForm(request.POST or None)
+
+    if not MixtureModel.objects.filter(SID=sid):
+        text = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
+        context = {"text":text}
+
+    if not ParameterModel.objects.filter(SID=sid):
+        text = "No data found. Go to 'Input' and fill out the form."
+        context = {"text":text}
+
+    else:
+        powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
+        powertable = powerdata.data[['newsamplesize','RFT','BF','BH','UN']].round(decimals=2)
+        powertable.columns=['Sample Size','Random Field Theory','Bonferroni','Benjamini-Hochberg','Uncorrected']
+        context = {"power":powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])}
+
+    return render(request,"neuropowercrosstab.html",context)

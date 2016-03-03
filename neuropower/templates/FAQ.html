@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  FAQ | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{%include 'navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <br>
+  <br>
+  <div class="col-xs-1"></div>
+  <div class="col-xs-10">
+    <h1> Frequently Asked Questions </h1>
+
+    <h4> Index </h4>
+    <ul>
+      <li> <a href="#q1">What is NeuroPower?</a></li>
+      <li> <a href="#q2">For what kind of analyses is NeuroPower?</a></li>
+      <li> <a href="#q3">Where can I find pilot data?</a></li>
+      <li> <a href="#q4">How can I cite NeuroPower?</a></li>
+      <li> <a href="#q5">Who's behind NeuroPower?</a></li>
+      <li> <a href="#q6">Where can I find the code?</a></li>
+      <li> <a href="#q7">Where can I leave feedback?</a></li>
+    </ul>
+
+      <a name = "q1"></a>
+      <h4> What is NeuroPower? </h4>
+      <p>NeuroPower is a toolbox that performs sample size calculations for fMRI experiments.</p>
+
+      <a name = "q2"></a>
+      <h4> For which kind of analyses is NeuroPower? </h4>
+      <p> At the moment, these power calculations have been validated for task-related fMRI but should be applicable to any analysis based on voxelwise inference (eg. VBM,...).  The power calculations are for specific contrasts between two conditions, either within-subjects or between-subjects. </p>
+      <p> We got a lot of requests for power analyses for connectivity analyses. You can not do this with our toolbox yet, but check back from time to time.  We are working on it! </p>
+
+      <a name = "q3"></a>
+      <h4> Where can I find pilot data? </h4>
+      <ul>
+        <li><b>Collecting a pilot dataset.</b> Yes, collecting pilot data is expensive.  Yet it is your best option for a power analysis.  </li>
+        <li><b>Open data.</b>  If you don't have the resources to collect pilot data, there's a lot of people sharing their data.  <a href="www.neurovault.org">NeuroVault</a> is a good source for statistical maps!.  Try to find an experiment with a comparable study design as yours and you have a good proxy for pilot data.</li>
+        <li><b>Previously collected data.</b> You or your colleagues might have data sitting on a computer with an experimental setup comparable to your new study.  You can use these data.  And while you're at it, why not share them online?</li>
+      </ul>
+
+      <a name = "q4"></a>
+      <h4> How can I cite NeuroPower? </h4>
+      <p> By the time the toolbox is online, we'll put the manuscript on bioRxiv.</p>
+
+      <a name = "q5"></a>
+      <h4> Who's behind NeuroPower? </h4>
+      <p> The main developer is Joke Durnez.  Many more people have contributed to the development of the toolbox.  In alphabetical order: Jasper Degryse, Beatrijs Moerkerke, Thomas Nichols and the Poldracklab at Stanford. </p>
+
+      <a name = "q6"></a>
+      <h4> Where can I find the code? </h4>
+      <p> The code for the toolbox can be found on <a href="https://github.com/jokedurnez/neuropower"> my github page</a>. </p>
+
+      <a name = "q7"></a>
+      <h4> Where can I leave feedback? </h4>
+      <p> Did you find an error or a bug? Post an issue on github or write us an <a href="mailto:joke.durnez@gmail.com">email</a>. You have an idea for an added functionality?  Please let us know ! If you're a developer yourself, you can add functions and add a pull request on github. </p>
+
+  </div>
+  <div class="col-xs-1"></div>
+</div>
+{% endblock %}

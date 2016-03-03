@@ -8,7 +8,6 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
     <title>{%block head_title %} {% endblock%} Neuropower</title>
     {% load staticfiles %}
     <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet">
@@ -31,6 +30,7 @@
       {% endblock %}
     </div>
 
+    {%include 'javascript.html' %}
   </body>
 
 

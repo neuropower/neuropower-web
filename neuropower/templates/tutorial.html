@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  Tutorial | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{%include 'navbar.html' %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-xs-12">
+    <h1> Tutorial </h1>
+    Below you find a step-by-step tutorial on how to perform a power analysis using NeuroPower.
+    <br>
+  </div>
+</div>
+<br>
+<div class="row">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Step 1: Data input</h3>
+    </div>
+    <div class="panel-body">
+      <div class="col-xs-5">
+        <a href=""><img src='{% static "documentation/StepByStep_1_input.png" %}' width="100%"/></a>
+      </div>
+      <div class="col-xs-7">
+        <p>In the first screen, under the tab <button type="button" class="btn btn-secondary btn-xs">Input</button>, you are asked to fill out a form with information on (1) where the data is located and (2) some specific details about the data.</p>
+        <ul>
+          <li><b>Data Location: </b> In this tutorial, we will be working with data from <a href="http://neurovault.org/images/437/">NeuroVault</a> which is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  We can copy the link from the <button type="button" class="btn btn-secondary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. <br> The data should be an unthresholded statistical map resulting from a voxelwise statistical analysis.</li>
+          <li><b>Mask Location: </b> Usually you have already masked your data during your analysis.  However, if you have a more strict mask, or you're performing a Region-of-Interest analysis, you can add a mask here.</li>
+          <li><b>Design specifications: </b> You are asked a number of basic parameters.  If you're using your own data, you probably know these parameters.  If you're using published data, these parameters are always given in the paper.
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Step 2: Viewer</h3>
+    </div>
+    <div class="panel-body">
+      <div class="col-xs-5">
+        <a href=""><img src='{% static "documentation/StepByStep_2_viewer.png" %}' width="100%"/></a>
+      </div>
+      <div class="col-xs-7">
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Step 3: Extract Peaks</h3>
+    </div>
+    <div class="panel-body">
+      <div class="col-xs-5">
+        <a href=""><img src='{% static "documentation/StepByStep_3_peaktable.png" %}' width="100%"/></a>
+      </div>
+      <div class="col-xs-7">
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Step 4: Fit Model</h3>
+    </div>
+    <div class="panel-body">
+      <div class="col-xs-5">
+        <a href=""><img src='{% static "documentation/StepByStep_4_modelfit.png" %}' width="100%"/></a>
+      </div>
+      <div class="col-xs-7">
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Step 5: Power Analysis</h3>
+    </div>
+    <div class="panel-body">
+      <div class="col-xs-5">
+        <a href=""><img src='{% static "documentation/StepByStep_5_powercurves.png" %}' width="100%"/></a>
+        <a href=""><img src='{% static "documentation/StepByStep_6_SampleSize.png" %}' width="100%"/></a>
+        <a href=""><img src='{% static "documentation/StepByStep_7_powercalculation.png" %}' width="100%"/></a>
+      </div>
+      <div class="col-xs-7">
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Step 6: Power Table</h3>
+    </div>
+    <div class="panel-body">
+      <div class="col-xs-5">
+        <a href=""><img src='{% static "documentation/StepByStep_8_powertable.png" %}' width="100%"/></a>
+      </div>
+      <div class="col-xs-7">
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -103,7 +103,7 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     axs.plot(newsubs,powtab.UN,color=cols['UN'],lw=2,label="Uncorrected")
     text = "None"
     if pow != 0:
-        min = int(np.min([i for i,elem in enumerate(powtab[MCP]>pow,1) if elem])+sub)
+        min = int(np.min([i for i,elem in enumerate(powtab[MCP]>pow,1) if elem])+sub-1)
         axs.plot([min,min],[0,powtab[MCP][min-sub]],color=cols[MCP])
         axs.plot([sub,min],[powtab[MCP][min-sub],powtab[MCP][min-sub]],color=cols[MCP])
         text = "To obtain a statistical power of "+str(pow)+" this study would require a sample size of "+str(min)+" subjects."
