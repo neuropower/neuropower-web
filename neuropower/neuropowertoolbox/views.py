@@ -99,10 +99,10 @@ def neuropowerinput(request):
         else:
             maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
             masklocation = utils.create_temporary_copy(maskfile,mapID,mask=True,url=False)
-            mask = nib.load(masklocation)
+            mask = nib.load(masklocation).get_data()
 
             # return error when dimensions are different
-            if SPM.get_data().shape != mask.get_data().shape:
+            if SPM.get_data().shape != mask.shape:
                 parsform = ParameterForm(
                     request.POST or None,
                     request.FILES or None,
@@ -111,8 +111,11 @@ def neuropowerinput(request):
                 )
                 context = {"parsform": parsform}
                 return render(request,"neuropowerinput.html",context)
-
-        saveparsform.nvox = np.sum(mask.get_data())
+            else:
+                SPM_masked = np.multiply(SPM.get_data(),mask)
+                SPM_nib = nib.Nifti1Image(SPM_masked,np.eye(4))
+                nib.save(SPM_nib,parsdata.location)
+        saveparsform.nvox = np.sum(mask)
         saveparsform.save()
         return HttpResponseRedirect('/neuropowerviewer/') if parsdata.spmfile == "" else HttpResponseRedirect('/neuropowertable/')
 

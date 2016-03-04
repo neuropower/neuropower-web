@@ -144,7 +144,10 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL="/media/"
-MEDIA_ROOT=os.path.join(BASE_DIR,"media")
+MEDIA_ROOT='/var/www/media/'
+MEDIAFILES_DIRS = [
+    os.path.join(BASE_DIR, "media"),
+]
 
 ## App specific settings
 CRISPY_TEMPLATE_PACK = 'bootstrap3'

@@ -15,7 +15,6 @@
 <div class="row">
   <div class="col-xs-12">
     <h1> Tutorial </h1>
-    Below you find a step-by-step tutorial on how to perform a power analysis using NeuroPower.  Please before you continue, also read the notes in the startscreen of the app about <a href="../neuropowerstart">responsible research practices</a> !
     <br>
   </div>
 </div>
@@ -28,33 +27,33 @@
     <div class="panel-body">
       <div class="col-xs-12">
         <h3> Pilot data </h3>
-        <p>This toolbox is based on pilot data.  There's different sources for pilot data.  Here are some options. </p>
+        <p>This toolbox is based on an unthresholded statistical map from pilot data. There's different sources for pilot data.  Here are some options. </p>
         <ul>
-          <li><b>Collecting a pilot dataset.</b> Yes, collecting pilot data is expensive.  Yet it is your best option for a power analysis.  </li>
-          <li><b>Open data.</b>  If you don't have the resources to collect pilot data, there's a lot of people sharing their data.  <a href="www.neurovault.org">NeuroVault</a> is a good source for statistical maps!.  Try to find an experiment with a comparable study design as yours and you have a good proxy for pilot data.</li>
-          <li><b>Previously collected data.</b> You or your colleagues might have data sitting on a computer with an experimental setup comparable to your new study.  You can use these data.  And while you're at it, why not share them online?</li>
+          <li><b>Collecting a pilot dataset.</b> Yes, collecting pilot data is expensive.  Yet it is your best option for a power analysis.</li>
+          <li><b>Open data.</b>  If you don't have the resources to collect pilot data, there's a lot of people sharing their data.  <a href="www.neurovault.org">NeuroVault</a> is a good source for statistical maps!  Try to find an experiment with a comparable study design as yours and you have a good proxy for pilot data.</li>
+          <li><b>Previously collected data.</b> You or your colleagues might have data lying around with an experimental setup comparable to your new study.  You can use these data.  And while you're at it, why not share them online?</li>
         </ul>
 
       <a name = "RRP"></a>
       <h3> Responsible research practices </h3>
         With too small sample sizes, true effects can be missed, the magnitude of statistically significant effects is exaggerated, and significant findings are not likely to replicate. As such, a power analysis is a crucial step in a powerful and reproducible neuroimaging study.  However, power analyses can be misused for <b>questionable research practices</b>.  Here's what you <b>shouldn't</b> use our toolbox for.
         <h4> No Data Peeking</h4>
-        <p> Imagine you collect 10 subjects and you perform an analysis.  You see three possibilities:</p>
+        <p> Imagine you collect 10 subjects and you perform an analysis.  You see two possibilities:</p>
         <ol>
           <li>You find the significant effects you were hypothesising:<br> Woohoo! This means I can stop my experiment, write my paper and publish my findings.</li>
-          <li>Not everything you expected is significant, but there is a trend: <br> You know that more subjects will on average result in smaller standard errors (and thus more significant results).  You decide to add a few more subjects and look at the data again.  To decide how many more subjects you'll need, you use our toolbox.</li>
-          <li>You find absolutely not the effect you hypothesised: <br> Well... Not what you hoped for, but that's how science works.  You publish your null results and you think about your next research project</li>
+          <li>Not everything you expected is significant, but there is a trend: <br> You decide to add a few more subjects and then look at the data again.  To decide how many more subjects you'll need, you use our toolbox.</li>
         </ol>
-        <p><b>THAT IS NOT A GOOD USE OF THIS TOOLBOX.</b>  This is a practice referred to as conditional stopping.  You cannot let your decision to stop or continue depend on the statistical inference.  This will inflate your type I error rate.  Tal Yarkoni wrote a detailed explanation about <a href="http://www.talyarkoni.org/blog/2010/05/06/the-capricious-nature-of-p-05-or-why-data-peeking-is-evil/">why data peeking is so bad</a>.</p>
+        <p><b>THAT IS NOT A GOOD USE OF THIS TOOLBOX.</b>  This is a practice referred to as data peeking, or conditional stopping.  You cannot let your decision to stop or continue depend on the statistical inference.  This will inflate your type I error rate.  Tal Yarkoni wrote a detailed explanation about <a href="http://www.talyarkoni.org/blog/2010/05/06/the-capricious-nature-of-p-05-or-why-data-peeking-is-evil/">why data peeking is so bad</a>.</p>
         <p>How to prevent this?</p>
         <ul>
           <li> Don't perform statistical inference on your pilot data and don't re-use your data.</li>
-          <li> Correct for the conditional stopping.  However, while this practice protects your false positive rate, it will decrease your overall power and is not recommended. </li>
+          <li> There are ways to correct for the conditional stopping.  However, while this practice protects your false positive rate, it will decrease your overall power  and therefore the reproducibility of your study.  We do not recommend this approach. </li>
         </ul>
 
         <h4> Do not re-use your pilot data</h4>
         <p>Even if you don't perform statistical inference on the pilot data, the pilot data should be <b>independent</b> from the final data.</p>
         <p> Why? Re-using data will still increase your overall type I error rate.  You can find more details in Jeanette Mumford's <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3427872/#__sec3title">guide for power calculations</a>.</p>
+        <p> We are working on a method that will allow you to re-use your data (without inference still!).  We'll present it on <a href="http://www.humanbrainmapping.org/i4a/pages/index.cfm?pageID=3662">OHBM2016</a>.</p>
       </div>
     </div>
   </div>
@@ -67,11 +66,11 @@
         <a href=""><img src='{% static "documentation/StepByStep_1_input.png" %}' width="100%"/></a>
       </div>
       <div class="col-xs-7">
-        <p>In the first screen, under the tab <button type="button" class="btn btn-secondary btn-xs">Input</button>, you are asked to fill out a form with information on (1) where the data is located and (2) some specific details about the data.</p>
+        <p>In the first screen, under the tab <button type="button" class="btn btn-secondary btn-xs">Input</button>, you specify (1) where the data is located and (2) some specific details about the data.</p>
         <ul>
-          <li><b>Data Location: </b> For this tutorial, we will be using data from <a href="http://neurovault.org/images/437/">NeuroVault</a> as an example.  The statistical map is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  Copy the link from the <button type="button" class="btn btn-primary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. <br> The data should be an unthresholded statistical map resulting from a voxelwise statistical analysis.</li>
-          <li><b>Mask Location: </b> Usually you have already masked your data during your analysis.  However, if you have a more strict mask, or you're performing a Region-of-Interest analysis, you can add a mask here.</li>
-          <li><b>Design specifications: </b> You are asked a number of basic parameters.  If you're using your own data, you probably know these parameters.  If you're using published data, these parameters are always given in the paper.<br>
+          <li><b>Data Location: </b> In this tutorial, we use data from <a href="http://neurovault.org/images/437/">NeuroVault</a> as an example.  The statistical map is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  Copy the link from the <button type="button" class="btn btn-primary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. </li>
+          <li><b>Mask Location: </b> Usually you have already masked your data during your analysis.  However, if you have a more strict mask, or if you're performing a Region-of-Interest analysis, you can add a mask here.</li>
+          <li><b>Design specifications: </b> You are asked a number of basic parameters.  If you're using your own data, you probably know these parameters.  If you're using data from a published paper, these parameters should be given in the paper.<br>
           It is important to note here that peakwise as well as clusterwise analysis use a <b>screening threshold</b>.  Therefore, you are prompted to fill out this screening threshold.  <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> uses a default screening threshold of p&lt;0.01 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="www.fmrib.ox.ac.uk/fsl">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used.)
 
         </ul>
@@ -117,25 +116,25 @@
         <h5>1. Estimate the mean and the standard deviation of the alternative distribution (right figure in the screenshot)</h5>
         <p><b>Background:</b>  We assume that the total distribution of peaks is a mixture of two different distributions:
           <ul>
-            <li>Null distribution: following Random Field Theory <a href="">(Worsley, 2007)</a>, we assume that the distribution follows an exponential distribution with mean u+1/u for screening threshold u.</li>
-            <li>Alternative distribution: we assume the peaks follow a normal distribution with parameters &#956; and &#963;.  However, because of the screening threshold u, the normal distribution is truncated at u.  This slightly changes the form but not the parameters of the distribution.</li>
+            <li>Null distribution (green line): following Random Field Theory <a href="">(Worsley, 2007)</a>, we assume that the distribution follows an exponential distribution with mean u+1/u for screening threshold u.</li>
+            <li>Alternative distribution (red line): we assume the peaks follow a normal distribution with parameters &#956; and &#963;.  However, because of the screening threshold u, the normal distribution is truncated at u.  This slightly changes the form but not the parameters of the distribution.</li>
           </ul>
-          There are three unknown parameters in this mixture distribution: &#956;, &#963; and &pi;<sub>1</sub>, where &pi;<sub>1</sub> refers to the weights between the null and the alternative distribution.  We estimate &pi;<sub>1</sub> in a separate step (see step 2), and &#956; and &#963; are estimated using maximum likelihood.
+          There are three unknown parameters in this mixture distribution: &#956;, &#963; and &pi;<sub>1</sub>. &#956; and &#963; are the parameters of the alternative distribution.  &pi;<sub>1</sub> refers to the weights between the null and the alternative distribution.  We estimate &pi;<sub>1</sub> in a separate step (see step 2), and &#956; and &#963; are estimated using maximum likelihood.
         </p>
-        <p><b>In this example:</b>  The light blue histogram shows the observed distribution of the peaks.  We see that a lot of the peaks are close to 2.3 (the screening threshold) as is expected for the null peaks.  But you can also see the alternative distribution: a normal shaped distribution with the mean around 4.1.  The estimated null distribution is shown with the green line, the estimated alternative distribution is given by the red line.  The total distribution is the blue line.  	&#948;<sub>1</sub> refers to the standardised mean of the alternative distribution and can be interpreted in units of cohen's D.  In other words, the estimated effect is large in this dataset.</p>
-        <p><b>How to interpret?</b> Our model strives to a good fit of the (estimated) blue line with the total observed distribution (light blue).  In general, this is a good match and as such we assume a good estimation of the alternative distribution.</p>
+        <p><b>In this example:</b>  The light blue histogram shows the observed distribution of the peaks.  We see that a lot of the peaks are close to 2.3 (the screening threshold) as is expected for the null peaks.  But you can also see the alternative distribution: a bell shaped distribution with the mean around 4.1.  The estimated null distribution is shown with the green line, the estimated alternative distribution is given by the red line.  The total distribution is the blue line.  	&#948;<sub>1</sub> refers to the standardised mean of the alternative distribution and can be interpreted in units of cohen's D.  In other words, the estimated effect is large in this dataset.</p>
+        <p><b>How to evaluate the fit?</b> Our model strives to find a good fit of the (estimated) blue line with the total observed distribution (light blue).  This is a decent match and as such we assume a good estimation of the alternative distribution.</p>
 
         <h5>2. Estimate &pi;<sub>1</sub> (left figure in the screenshot)</h5>
-        <p><b>Background:</b> We want to estimate which percentage of the peaks are located in brain regions that show task-related activity.  To that end, we use the method of <a href="http://www.ncbi.nlm.nih.gov/pubmed/12835267">Pound and Morris (2003)</a>.  We look at the distribution of uncorrected p-values (light blue histogram on figure).  We assume that this distribution is a mixture of two different distributions:
+        <p><b>Background:</b> We want to estimate the weights of the null and the alternative distribution.  This translates to the percentage of the peaks that are located in brain regions that show task-related activity.  To estimate &pi;<sub>1</sub>, we use the method of <a href="http://www.ncbi.nlm.nih.gov/pubmed/12835267">Pound and Morris (2003)</a>.  We look at the distribution of uncorrected p-values (light blue histogram on figure).  We assume that this distribution is a mixture of two different distributions:
             <ul>
-              <li>Null distribution: The p-values of peaks that are in non-task-activated brain regions follow a uniform distribution by definition of p-values.</li>
-              <li>Alternative distribution: We model the p-values of activated peaks as a beta-distribution.  We assume that contrary to the null distribution, the alternative distribution will be a lot higher closer to 0.  This because we assume that the p-values are small.  The beta-distribution is flexible to model values between 0 and 1.</li>
+              <li>Null distribution (green line): The p-values of peaks that are in non-task-activated brain regions follow a uniform distribution by definition of p-values.</li>
+              <li>Alternative distribution (red line): We model the p-values of activated peaks as a beta-distribution.  We assume that contrary to the null distribution, the alternative distribution will be a lot higher closer to 0.  This because we assume that the p-values from active peaks are small.  We use the beta-distribution because of its flexibility to model any shape of distributions with values between 0 and 1.</li>
             </ul>
         In this mixture model, there are two unknown parameters: &pi;<sub>1</sub> and a shape parameter for the beta-distribution.  With maximum likelihood, we choose those parameters that can describe best the distribution.<br><p>
         <p><b>In this example: </b>  We can clearly see that a lot of p-values have very small values.  This reflects the presence of activation in the data.  But how much exactly?<br>
-        Our model estimates that the proportion of the distribution that is flat is 48%.  This is presented by a green line in the figure.  It is not by accident that the height of the green line is at 0.48.<br>
-        The other 62% of the distribution is assumed to be from peaks in task-activated brain regions and have values closer to 0.  The total distribution as fitted by our model is shown by the red line.<br></p>
-        <p><b>How to interpret?</b> Our model again strives to a good fit of the (estimated) red line with the total observed distribution (light blue).  It is normal that there are some deviations.  For example in this case the green line does not fit the distribution well between 0.8 and 1.  However, in general, the red line fits well the data and therefore we assume a good estimation of &pi;<sub>1</sub>.</p>
+        Our model estimates that the proportion of the distribution that is flat is 48%.  This is presented by a green line in the figure.  The height of the green line is 0.48.<br>
+        The other 52% of the distribution is assumed to be from peaks in task-activated brain regions.  The total distribution as fitted by our model is shown by the red line.<br></p>
+        <p><b>How to evaluate the fit?</b> Our model again strives to a good fit of the (estimated) red line with the total observed distribution (light blue).  It is normal that there are some deviations.  For example in this case the green line does not fit the distribution well between 0.8 and 1.  However, in general, the red line fits well the data and therefore we assume a good estimation of &pi;<sub>1</sub>.</p>
       </div>
     </div>
   </div>
@@ -150,8 +149,8 @@
         <a href=""><img src='{% static "documentation/StepByStep_7_powercalculation.png" %}' width="100%"/></a>
       </div>
       <div class="col-xs-7">
-        <p><b>First screenshot: </b>Once the model is fitted and you don't see large errors in the model fit, it is time for the power analysis.  Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Power Calculation</button> will show you power curves.  On the x-axis is the number of subjects, the y-axis shows the estimated power for that number of subjects.  When you hover over the lines, you can see exact alues of the power for certain sample sizes.</p>
-        <p><b>Second screenshot: </b>Should you want a very precise estimate for the sample size for a given value of power, then you can fill out the form.  It is important that you choose a multiple comparison procedure (MCP) that is planned in your final study.  Both <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> and  <a href="www.fmrib.ox.ac.uk/fsl">FSL</a> use Random Field Theory (familywise error rate control), although <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> also give Benjamini-Hochberg (false discovery rate control) results in the default output.</p>
+        <p><b>First screenshot: </b>Once the model is fitted and you don't see large errors in the model fit, it is time for the power analysis.  Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Power Calculation</button> will show you power curves.  When you hover over the lines, you can see exact estimates of power for certain sample sizes.</p>
+        <p><b>Second screenshot: </b>Should you want a very precise estimate for the sample size for a given value of power, then you can fill out the form.  It is important that you choose the multiple comparison procedure (MCP) that is planned in your final study.  Both <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> and  <a href="www.fmrib.ox.ac.uk/fsl">FSL</a> use Random Field Theory (familywise error rate control), although <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> also give Benjamini-Hochberg (false discovery rate control) results in the default output.</p>
         <p> In this example, when we aim for 80% power with Benjamini-Hochberg error rate control, we'll need a sample size of 19 subjects.</p>
         <p><b>Third screenshot: </b>If you have a specific number of subjects and you want to know the power that comes with it, you can specify the sample size field in the form.</p>
         <p>In this example, a sample size of 35 subjects with Random Field Theory error rate control results in 84% power.</p>
