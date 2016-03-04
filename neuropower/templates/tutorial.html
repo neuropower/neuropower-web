@@ -15,7 +15,7 @@
 <div class="row">
   <div class="col-xs-12">
     <h1> Tutorial </h1>
-    Below you find a step-by-step tutorial on how to perform a power analysis using NeuroPower.  Please before you continue, read first the notes in the startscreen of the app about <a href="./neuropowerinput">responsible research practices</a> !
+    Below you find a step-by-step tutorial on how to perform a power analysis using NeuroPower.  Please before you continue, also read the notes in the startscreen of the app about <a href="../neuropowerstart">responsible research practices</a> !
     <br>
   </div>
 </div>
@@ -32,10 +32,10 @@
       <div class="col-xs-7">
         <p>In the first screen, under the tab <button type="button" class="btn btn-secondary btn-xs">Input</button>, you are asked to fill out a form with information on (1) where the data is located and (2) some specific details about the data.</p>
         <ul>
-          <li><b>Data Location: </b> In this tutorial, we will be working with data from <a href="http://neurovault.org/images/437/">NeuroVault</a> which is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  We can copy the link from the <button type="button" class="btn btn-primary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. <br> The data should be an unthresholded statistical map resulting from a voxelwise statistical analysis.</li>
+          <li><b>Data Location: </b> For this tutorial, we will be using data from <a href="http://neurovault.org/images/437/">NeuroVault</a> as an example.  The statistical map is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  Copy the link from the <button type="button" class="btn btn-primary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. <br> The data should be an unthresholded statistical map resulting from a voxelwise statistical analysis.</li>
           <li><b>Mask Location: </b> Usually you have already masked your data during your analysis.  However, if you have a more strict mask, or you're performing a Region-of-Interest analysis, you can add a mask here.</li>
           <li><b>Design specifications: </b> You are asked a number of basic parameters.  If you're using your own data, you probably know these parameters.  If you're using published data, these parameters are always given in the paper.<br>
-          It is important to note here that peakwise as well as clusterwise analysis use a screening threshold.  Therefore, you are prompted to fill out this screening threshold.  <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> uses a default screening threshold of p&lt;0.01 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="www.fmrib.ox.ac.uk/fsl">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used.)
+          It is important to note here that peakwise as well as clusterwise analysis use a <b>screening threshold</b>.  Therefore, you are prompted to fill out this screening threshold.  <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> uses a default screening threshold of p&lt;0.01 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="www.fmrib.ox.ac.uk/fsl">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used.)
 
         </ul>
       </div>
@@ -81,11 +81,11 @@
         <p><b>Background:</b>  We assume that the total distribution of peaks is a mixture of two different distributions:
           <ul>
             <li>Null distribution: following Random Field Theory <a href="">(Worsley, 2007)</a>, we assume that the distribution follows an exponential distribution with mean u+1/u for screening threshold u.</li>
-            <li>Alternative distribution</li> We assume the peaks follow a normal distribution with parameters &#956; and &#963;.  However, because of the screening threshold u, the normal distribution is truncated at u, which slightly changes the form but not the parameters of the distribution.
+            <li>Alternative distribution: we assume the peaks follow a normal distribution with parameters &#956; and &#963;.  However, because of the screening threshold u, the normal distribution is truncated at u.  This slightly changes the form but not the parameters of the distribution.</li>
           </ul>
-          As such there are three parameters: &#956;, &#963; and &pi;<sub>1</sub>, where &pi;<sub>1</sub> refers to the weights between the null and the alternative distribution.  We estimate &pi;<sub>1</sub> in a separate step (see step 2), and &#956; and &#963; are estimated with maximum likelihood.
+          There are three unknown parameters in this mixture distribution: &#956;, &#963; and &pi;<sub>1</sub>, where &pi;<sub>1</sub> refers to the weights between the null and the alternative distribution.  We estimate &pi;<sub>1</sub> in a separate step (see step 2), and &#956; and &#963; are estimated using maximum likelihood.
         </p>
-        <p><b>In this example:</b>  The light blue histogram shows the observed distribution of the peaks.  We see that a lot of the peaks are close to 2.3 (the screening threshold) as is expected for the null peaks.  But you can also see the alternative distribution: a higher, normal shaped distribution with the mean around 4.1.  The estimated null distribution is shown with the green line, the estimated alternative distribution is given by the red line.  The total distribution is the blue line.  	&#948;<sub>1</sub> refers to the standardised mean of the alternative distribution and can be interpreted in units of cohen's D.  In other words, the estimated effect is large in this dataset.</p>
+        <p><b>In this example:</b>  The light blue histogram shows the observed distribution of the peaks.  We see that a lot of the peaks are close to 2.3 (the screening threshold) as is expected for the null peaks.  But you can also see the alternative distribution: a normal shaped distribution with the mean around 4.1.  The estimated null distribution is shown with the green line, the estimated alternative distribution is given by the red line.  The total distribution is the blue line.  	&#948;<sub>1</sub> refers to the standardised mean of the alternative distribution and can be interpreted in units of cohen's D.  In other words, the estimated effect is large in this dataset.</p>
         <p><b>How to interpret?</b> Our model strives to a good fit of the (estimated) blue line with the total observed distribution (light blue).  In general, this is a good match and as such we assume a good estimation of the alternative distribution.</p>
 
         <h5>2. Estimate &pi;<sub>1</sub> (left figure in the screenshot)</h5>
