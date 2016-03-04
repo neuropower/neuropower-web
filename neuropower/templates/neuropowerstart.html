@@ -17,39 +17,11 @@
   <br>
   <div class="col-xs-12">
     <h2> Welcome ! </h1>
-      <p> Awesome! You want to give neuropower a try!  There's only a few important things you need to know before starting.  Please read the following information.  Afterwards, you will be ready for your power analysis using NeuroPower.</p>
+      <p> Awesome! You want to use neuropower!  If this is the first time you use this toolbox, please go over the <a href="../tutorial">Tutorial</a> explaining you some key components about the analysis.  The toolbox is a great way to improve the power and consequently reproducibility of your research.  However, please read the information about <a href="../tutorial/#q7">responsible research practices</a> to make sure you are doing it right.</p>
       <h3> Overview of the different steps </h3>
       <br>
       <img src='{% static "documentation/steps.png" %}' width="100%"/>
       <br><br>
-      <h3> Pilot data </h3>
-      <p>This toolbox is based on pilot data.  There's different sources for pilot data.  Here are some options. </p>
-      <ul>
-        <li><b>Collecting a pilot dataset.</b> Yes, collecting pilot data is expensive.  Yet it is your best option for a power analysis.  </li>
-        <li><b>Open data.</b>  If you don't have the resources to collect pilot data, there's a lot of people sharing their data.  <a href="www.neurovault.org">NeuroVault</a> is a good source for statistical maps!.  Try to find an experiment with a comparable study design as yours and you have a good proxy for pilot data.</li>
-        <li><b>Previously collected data.</b> You or your colleagues might have data sitting on a computer with an experimental setup comparable to your new study.  You can use these data.  And while you're at it, why not share them online?</li>
-      </ul>
-
-      <h3> Responsible research practices </h3>
-      With too small sample sizes, true effects can be missed, the magnitude of statistically significant effects is exaggerated, and significant findings are not likely to replicate. As such, a power analysis is a crucial step in a powerful and reproducible neuroimaging study.  However, power analyses can be misused for <b>questionable research practices</b>.  Here's what you <b>shouldn't</b> use our toolbox for.
-      <h4> No Data Peeking</h4>
-      <p> Imagine you collect 10 subjects and you perform an analysis.  You see three possibilities:</p>
-      <ol>
-        <li>You find the significant effects you were hypothesising:<br> Woohoo! This means I can stop my experiment, write my paper and publish my findings.</li>
-        <li>Not everything you expected is significant, but there is a trend: <br> You know that more subjects will on average result in smaller standard errors (and thus more significant results).  You decide to add a few more subjects and look at the data again.  To decide how many more subjects you'll need, you use our toolbox.</li>
-        <li>You find absolutely not the effect you hypothesised: <br> Well... Not what you hoped for, but that's how science works.  You publish your null results and you think about your next research project</li>
-      </ol>
-      <p><b>THAT IS NOT A GOOD USE OF THIS TOOLBOX.</b>  This is a practice referred to as conditional stopping.  You cannot let your decision to stop or continue depend on the statistical inference.  This will inflate your type I error rate.  Tal Yarkoni wrote a detailed explanation about <a href="http://www.talyarkoni.org/blog/2010/05/06/the-capricious-nature-of-p-05-or-why-data-peeking-is-evil/">why data peeking is so bad</a>.</p>
-      <p>How to prevent this?</p>
-      <ul>
-        <li> Don't perform statistical inference on your pilot data and don't re-use your data.</li>
-        <li> Correct for the conditional stopping.  However, while this practice protects your false positive rate, it will decrease your overall power and is not recommended. </li>
-      </ul>
-
-      <h4> Do not re-use your pilot data</h4>
-      <p>Even if you don't perform statistical inference on the pilot data, the pilot data should be <b>independent</b> from the final data.</p>
-      <p> Why? Re-using data will still increase your overall type I error rate.  You can find more details in Jeanette Mumford's <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3427872/#__sec3title">guide for power calculations</a>.</p>
-
   </div>
 </div>
 {% endblock %}
