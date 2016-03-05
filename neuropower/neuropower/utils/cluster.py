@@ -62,6 +62,7 @@ def cluster(spm,exc):
 						z.append(o-1)
 						val.append(spm_ext[m,n,o])
 					del surroundings
+	del spm_ext
 	# initate table
 	labels=['x','y','z','peak']
 	d = {'x':x,
