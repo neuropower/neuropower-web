@@ -25,6 +25,7 @@ def cluster(spm,exc):
 	for m in range(1,shape[0]+1):
 		for n in range(1,shape[1]+1):
 			for o in range(1,shape[2]+1):
+				print(o)
 				if spm_ext[m,n,o]>exc:
 					surroundings=[spm_ext[m-1,n-1,o-1],
 					spm_ext[m-1,n-1,o],
