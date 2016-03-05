@@ -22,6 +22,7 @@ def cluster(spm,exc):
 	labels=['x','y','z','peak']
 	peaks = pd.DataFrame(columns=labels)
 	# check for each voxel whether it's a peak, if it is, add to table
+	print(shape[0])
 	for m in range(1,shape[0]+1):
 		print(m)
 		for n in range(1,shape[1]+1):

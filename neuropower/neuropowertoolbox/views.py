@@ -154,9 +154,7 @@ def neuropowertable(request):
         SPM = nib.load(parsdata.location).get_data()
         if parsdata.ZorT=='T':
             SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-        print("noproblem?")
         peaks = cluster.cluster(SPM,parsdata.ExcZ)
-        print("problem?")
         pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
         pvalues = [max(10**(-6),p) for p in pvalues]
         peaks['pval'] = pvalues
