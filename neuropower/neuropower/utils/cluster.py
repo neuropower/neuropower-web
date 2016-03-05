@@ -16,14 +16,15 @@ def cluster(spm,exc):
 	spm_ext = np.zeros((spm_newdim))
 	spm_ext.fill(-100)
 	spm_ext[1:(spm.shape[0]+1),1:(spm.shape[1]+1),1:(spm.shape[2]+1)] = spm
+	shape = spm.shape
 	spm = None
 	# initate table
 	labels=['x','y','z','peak']
 	peaks = pd.DataFrame(columns=labels)
 	# check for each voxel whether it's a peak, if it is, add to table
-	for m in range(1,spm.shape[0]+1):
-		for n in range(1,spm.shape[1]+1):
-			for o in range(1,spm.shape[2]+1):
+	for m in range(1,shape[0]+1):
+		for n in range(1,shape[1]+1):
+			for o in range(1,shape[2]+1):
 				if spm_ext[m,n,o]>exc:
 					surroundings=[spm_ext[m-1,n-1,o-1],
 					spm_ext[m-1,n-1,o],
