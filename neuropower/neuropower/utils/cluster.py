@@ -18,9 +18,11 @@ def cluster(spm,exc):
 	spm_ext[1:(spm.shape[0]+1),1:(spm.shape[1]+1),1:(spm.shape[2]+1)] = spm
 	shape = spm.shape
 	spm = None
-	# initate table
-	labels=['x','y','z','peak']
-	peaks = pd.DataFrame(columns=labels)
+	# initiate variables
+	x = []
+	y = []
+	z = []
+	val = []
 	# check for each voxel whether it's a peak, if it is, add to table
 	print(shape[0])
 	for m in range(1,shape[0]+1):
@@ -55,9 +57,18 @@ def cluster(spm,exc):
 					spm_ext[m+1,n+1,o],
 					spm_ext[m+1,n+1,o+1]]
 					if spm_ext[m,n,o] > np.max(surroundings):
-						res =pd.DataFrame(data=[[m-1,n-1,o-1,spm_ext[m,n,o]]],columns=labels)
-						peaks=peaks.append(res)
-						del res
+						x.append(m-1)
+						y.append(n-1)
+						z.append(o-1)
+						val.append(spm_ext[m,n,o])
 					del surroundings
+	# initate table
+	labels=['x','y','z','peak']
+	d = {'x':x,
+		'y':y,
+		'z':z,
+		'peak':val}
+	peaks = pd.DataFrame(data=d)
+
 	peaks = peaks.set_index([range(len(peaks))])
 	return peaks
