@@ -115,7 +115,7 @@ def neuropowerinput(request):
                 SPM_masked = np.multiply(SPM.get_data(),mask)
                 SPM_nib = nib.Nifti1Image(SPM_masked,np.eye(4))
                 nib.save(SPM_nib,parsdata.location)
-        saveparsform.nvox = np.sum(mask)
+                saveparsform.nvox = np.sum(mask)
         saveparsform.save()
         return HttpResponseRedirect('/neuropowerviewer/') if parsdata.spmfile == "" else HttpResponseRedirect('/neuropowertable/')
 
