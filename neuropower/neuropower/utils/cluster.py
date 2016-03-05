@@ -57,6 +57,6 @@ def cluster(spm,exc):
 					if spm_ext[m,n,o] > np.max(surroundings):
 						res =pd.DataFrame(data=[[m-1,n-1,o-1,spm_ext[m,n,o]]],columns=labels)
 						peaks=peaks.append(res)
-				del surroundings
+					del surroundings
 	peaks = peaks.set_index([range(len(peaks))])
 	return peaks
