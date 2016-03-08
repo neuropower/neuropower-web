@@ -19,7 +19,7 @@ class ParameterModel(models.Model):
     ZorT_c = (("Z","Z"),("T","T"))
     Samples_c = ((1, ("One-sample")),(2, ("Two-sample")))
     ZorT = models.CharField(max_length=10,choices=ZorT_c)
-    Exc = models.DecimalField(max_digits=5,decimal_places=5)
+    Exc = models.DecimalField(max_digits=10,decimal_places=20)
     ExcZ = models.DecimalField(max_digits=5,decimal_places=2,default='NaN')
     DoF = models.DecimalField(max_digits=5,decimal_places=2,default='NaN')
     Subj = models.IntegerField()
