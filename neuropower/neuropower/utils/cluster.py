@@ -24,11 +24,11 @@ def cluster(spm,exc):
 	z = []
 	val = []
 	# check for each voxel whether it's a peak, if it is, add to table
-	for m in xrange(1,shape[0]+1):
-		for n in xrange(1,shape[1]+1):
-			for o in xrange(1,shape[2]+1):
+	for m in range(1,shape[0]+1):
+		for n in range(1,shape[1]+1):
+			for o in range(1,shape[2]+1):
 				if spm_ext[m,n,o]>exc:
-					surroundings = [spm_ext[m-1,n-1,o-1],
+					surroundings=[spm_ext[m-1,n-1,o-1],
 					spm_ext[m-1,n-1,o],
 					spm_ext[m-1,n-1,o+1],
 					spm_ext[m-1,n,o-1],
