@@ -15,55 +15,52 @@ def cluster(spm,exc):
 	spm_newdim = tuple(map(lambda x: x+2,spm.shape))
 	spm_ext = np.zeros((spm_newdim))
 	spm_ext.fill(-100)
-	spm_ext[1:(spm.shape[0]+1),1:(spm.shape[1]+1),1:(spm.shape[2]+1)] = np.around(spm,decimals=3)
+	spm_ext[1:(spm.shape[0]+1),1:(spm.shape[1]+1),1:(spm.shape[2]+1)] = spm
 	shape = spm.shape
-	del spm
+	spm = None
 	# initiate variables
 	x = []
 	y = []
 	z = []
 	val = []
 	# check for each voxel whether it's a peak, if it is, add to table
-	for m in xrange(1,shape[0]+1):
+	for m in range(1,shape[0]+1):
 		print(m)
-		for n in xrange(1,shape[1]+1):
-			for o in xrange(1,shape[2]+1):
-				if spm_ext[m,n,o]<exc:
-					continue
-				spmval = spm[m,n,o]
-				surroundings = [spm_ext[m-1,n-1,o-1],
-				spm_ext[m-1,n-1,o],
-				spm_ext[m-1,n-1,o+1],
-				spm_ext[m-1,n,o-1],
-				spm_ext[m-1,n,o],
-				spm_ext[m-1,n,o+1],
-				spm_ext[m-1,n+1,o-1],
-				spm_ext[m-1,n+1,o],
-				spm_ext[m-1,n+1,o+1],
-				spm_ext[m,n-1,o-1],
-				spm_ext[m,n-1,o],
-				spm_ext[m,n-1,o+1],
-				spm_ext[m,n,o-1],
-				spm_ext[m,n,o+1],
-				spm_ext[m,n+1,o-1],
-				spm_ext[m,n+1,o],
-				spm_ext[m,n+1,o+1],
-				spm_ext[m+1,n-1,o-1],
-				spm_ext[m+1,n-1,o],
-				spm_ext[m+1,n-1,o+1],
-				spm_ext[m+1,n,o-1],
-				spm_ext[m+1,n,o],
-				spm_ext[m+1,n,o+1],
-				spm_ext[m+1,n+1,o-1],
-				spm_ext[m+1,n+1,o],
-				spm_ext[m+1,n+1,o+1]]
-				spmax = np.max(surroundings)
-				if spmval > spmax:
-					x.append(m-1)
-					y.append(n-1)
-					z.append(o-1)
-					val.append(spmval)
-				del surroundings
+		for n in range(1,shape[1]+1):
+			for o in range(1,shape[2]+1):
+				if spm_ext[m,n,o]>exc:
+					surroundings = [spm_ext[m-1,n-1,o-1],
+					spm_ext[m-1,n-1,o],
+					spm_ext[m-1,n-1,o+1],
+					spm_ext[m-1,n,o-1],
+					spm_ext[m-1,n,o],
+					spm_ext[m-1,n,o+1],
+					spm_ext[m-1,n+1,o-1],
+					spm_ext[m-1,n+1,o],
+					spm_ext[m-1,n+1,o+1],
+					spm_ext[m,n-1,o-1],
+					spm_ext[m,n-1,o],
+					spm_ext[m,n-1,o+1],
+					spm_ext[m,n,o-1],
+					spm_ext[m,n,o+1],
+					spm_ext[m,n+1,o-1],
+					spm_ext[m,n+1,o],
+					spm_ext[m,n+1,o+1],
+					spm_ext[m+1,n-1,o-1],
+					spm_ext[m+1,n-1,o],
+					spm_ext[m+1,n-1,o+1],
+					spm_ext[m+1,n,o-1],
+					spm_ext[m+1,n,o],
+					spm_ext[m+1,n,o+1],
+					spm_ext[m+1,n+1,o-1],
+					spm_ext[m+1,n+1,o],
+					spm_ext[m+1,n+1,o+1]]
+					if spm_ext[m,n,o] > np.max(surroundings):
+						x.append(m-1)
+						y.append(n-1)
+						z.append(o-1)
+						val.append(spm_ext[m,n,o])
+					del surroundings
 	del spm_ext
 	# initate table
 	labels=['x','y','z','peak']
