@@ -17,7 +17,7 @@ def cluster(spm,exc):
 	spm_ext.fill(-100)
 	spm_ext[1:(spm.shape[0]+1),1:(spm.shape[1]+1),1:(spm.shape[2]+1)] = np.around(spm,decimals=3)
 	shape = spm.shape
-	spm = None
+	del spm
 	# initiate variables
 	x = []
 	y = []
