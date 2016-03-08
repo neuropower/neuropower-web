@@ -15,7 +15,7 @@ def cluster(spm,exc):
 	spm_newdim = tuple(map(lambda x: x+2,spm.shape))
 	spm_ext = np.zeros((spm_newdim))
 	spm_ext.fill(-100)
-	spm_ext[1:(spm.shape[0]+1),1:(spm.shape[1]+1),1:(spm.shape[2]+1)] = spm
+	spm_ext[1:(spm.shape[0]+1),1:(spm.shape[1]+1),1:(spm.shape[2]+1)] = np.around(spm,decimals=3)
 	shape = spm.shape
 	spm = None
 	# initiate variables
