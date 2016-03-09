@@ -157,6 +157,8 @@ class PowerForm(forms.ModelForm):
         super(forms.ModelForm,self).clean()
         reqPow = self.cleaned_data['reqPow']
         reqSS = self.cleaned_data['reqSS']
+        if reqPow > 1:
+            raise exceptions.ValidationError("Power cannot exceed 1.")
         if reqPow != '' and reqSS:
             raise exceptions.ValidationError("Please fill out only either the power or the sample size, not both.")
         if reqPow == '':
