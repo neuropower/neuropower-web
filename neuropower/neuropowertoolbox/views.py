@@ -59,11 +59,16 @@ def neuropowerinput(request):
     else:
         saveparsform = parsform.save(commit=False)
         saveparsform.SID = sid
+        mapID = str(sid)+"_"+str(uuid.uuid4())
+        saveparsform.mapID = mapID
+        peaktable = os.path.join(settings.MEDIA_ROOT,"peaktables","peaks_"+mapID+".csv")
+        saveparsform.peaktable = peaktable
         saveparsform.save()
 
         # handle data: copy to temporary location
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         mapID = str(sid)+"_"+str(uuid.uuid4())
+        saveparsform.mapID = mapID
         if not parsdata.url == "":
             url = parsform.cleaned_data['url']
             location = utils.create_temporary_copy(url,mapID,mask=False,url=True)
@@ -154,7 +159,8 @@ def neuropowertable(request):
         SPM = nib.load(parsdata.location).get_data()
         if parsdata.ZorT=='T':
             SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-        peaks = cluster.cluster(SPM,parsdata.ExcZ)
+        cluster.cluster(SPM,parsdata.ExcZ,parsdata.peaktable)
+        peaks = pd.read_csv(parsdata.peaktable,sep="\t")
         pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
         pvalues = [max(10**(-6),p) for p in pvalues]
         peaks['pval'] = pvalues
@@ -164,6 +170,7 @@ def neuropowertable(request):
         savepeakform.data = peaks
         savepeakform.save()
         context = {"peaks":peaks.to_html(classes=["table table-striped"])}
+        #context = {}
     return render(request,"neuropowertable.html",context)
 
 def neuropowermodel(request):

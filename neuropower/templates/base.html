@@ -12,6 +12,7 @@
     {% load staticfiles %}
     <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet">
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sticky-footer-navbar.css' %}" rel="stylesheet">
     {%block head %}{% endblock %}
   </head>
 
@@ -30,12 +31,12 @@
       {% endblock %}
     </div>
 
-    <div id="footer">
+    <footer class="footer">
        <div class="container">
          {% block footer %}
          {% endblock %}
        </div>
-     </div>
+     </footer>
 
 
     {%include 'javascript.html' %}
