@@ -1,4 +1,4 @@
-import tempfile
+#import tempfile
 import os
 import urllib
 from django.conf import settings

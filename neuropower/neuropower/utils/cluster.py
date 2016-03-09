@@ -27,7 +27,6 @@ def cluster(spm,exc,file):
 
 		# check for each voxel whether it's a peak, if it is, add to table
 		for m in xrange(1,shape[0]+1):
-			print(m)
 			for n in xrange(1,shape[1]+1):
 				for o in xrange(1,shape[2]+1):
 					surroundings = None
@@ -66,5 +65,5 @@ def cluster(spm,exc,file):
 						if val>maxval:
 							res = [m-1,n-1,o-1,val]
 							writer.writerow(res)
-	
+
 	return None

@@ -98,14 +98,14 @@ class ParameterForm(forms.ModelForm):
             'Design specifications',
             'ZorT','Exc','Subj','Samples','alpha'
             ),
-        HTML("""<p style="margin-left: 15px"><b> \n What is the smoothness of the data? </b></p>"""),
+        HTML("""<p style="margin-left: 15px"><b> \n What is the smoothness of the data in mm? </b></p>"""),
         Div(
            Div(Field('Smoothx'), css_class='col-xs-4'),
             Div(Field('Smoothy'), css_class='col-xs-4'),
             Div(Field('Smoothz'), css_class='col-xs-4'),
             css_class='row-xs-12'
         ),
-        HTML("""<p style="margin-left: 15px"><b> \n What is the voxel size? </b></p>"""),
+        HTML("""<p style="margin-left: 15px"><b> \n What is the voxel size in mm? </b></p>"""),
         Div(
            Div(Field('Voxx'), css_class='col-xs-4'),
            Div(Field('Voxy'), css_class='col-xs-4'),

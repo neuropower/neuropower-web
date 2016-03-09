@@ -1,12 +1,13 @@
 from django.http import HttpResponse, HttpResponseRedirect
-import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.use('Agg')
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from neuropower.utils import BUM, cluster, peakdistribution
 from neuropower.utils import neuropowermodels as npm
 from palettable.colorbrewer.qualitative import Paired_12,Set1_9
 import scipy
-import matplotlib as mpl
+import matplotlib.pyplot as plt
 from .models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
 import jinja2
 import mpld3
@@ -73,6 +74,7 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     cols = dict(zip(['BF','BH','RFT','UN'],Set1_9.mpl_colors))
     sub = int(parsdata.Subj)
     newsubs = powtab.newsamplesize
+    amax = int(50)
 
     css = """
     table{border-collapse: collapse}
@@ -103,10 +105,14 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     axs.plot(newsubs,powtab.UN,color=cols['UN'],lw=2,label="Uncorrected")
     text = "None"
     if pow != 0:
-        min = int(np.min([i for i,elem in enumerate(powtab[MCP]>pow,1) if elem])+sub-1)
-        axs.plot([min,min],[0,powtab[MCP][min-sub]],color=cols[MCP])
-        axs.plot([sub,min],[powtab[MCP][min-sub],powtab[MCP][min-sub]],color=cols[MCP])
-        text = "To obtain a statistical power of "+str(pow)+" this study would require a sample size of "+str(min)+" subjects."
+        if all(powtab[MCP]<pow):
+            text = "To obtain a statistical power of "+str(pow)+" this study would require a sample size larger than 300 subjects."
+        else:
+            min = int(np.min([i for i,elem in enumerate(powtab[MCP]>pow,1) if elem])+sub-1)
+            axs.plot([min,min],[0,powtab[MCP][min-sub]],color=cols[MCP])
+            axs.plot([sub,min],[powtab[MCP][min-sub],powtab[MCP][min-sub]],color=cols[MCP])
+            text = "To obtain a statistical power of "+str(pow)+" this study would require a sample size of "+str(min)+" subjects."
+            amax = max(min,amax)
     if ss != 0:
         ss_pow = powtab[MCP][ss-sub]
         axs.plot([ss,ss],[0,ss_pow],color=cols[MCP],linestyle="--")
@@ -115,8 +121,9 @@ def plotPower(sid,MCP='',pow=0,ss=0):
         axs.set_xticks(xticks+[ss])
         axs.set_yticks(list(np.arange(0,1.1,0.1)))
         text = "A sample size of "+str(ss)+" subjects with "+MCP+" control comes with a power of "+str(np.round(ss_pow,decimals=2))+"."
+        amax = max(ss,amax)
     axs.set_ylim([0,1])
-    axs.set_xlim([sub,71])
+    axs.set_xlim([sub,amax])
     axs.set_title("Power curves")
     axs.set_xlabel("Subjects")
     axs.set_ylabel("Average power")

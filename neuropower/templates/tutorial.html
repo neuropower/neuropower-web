@@ -53,6 +53,8 @@
         <p>Even if you don't perform statistical inference on the pilot data, the pilot data should be <b>independent</b> from the final data.</p>
         <p> Why? Re-using data will still increase your overall type I error rate.  You can find more details in Jeanette Mumford's <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3427872/#__sec3title">guide for power calculations</a>.</p>
         <p> We are working on a method that will allow you to re-use your data (without inference still!).  We'll present it on <a href="http://www.humanbrainmapping.org/i4a/pages/index.cfm?pageID=3662">OHBM2016</a>.</p>
+      <h3>Conditional power</h3>
+      <p> It is important to note here that peakwise as well as clusterwise analysis use a <b>screening threshold</b>.  This means that only voxels above this threshold are considered for significance testing.  <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> uses a default screening threshold of p&lt;0.01 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="www.fmrib.ox.ac.uk/fsl">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used).  It is important to know that our measure of power is <b>conditional</b>, which means that our measure of power computes <p>the average chance of detecting an active peak for all peaks above the screening threshold</b>.  All activity below the screening threshold is ignored.  As a consequence, the power estimate cannot be reported independent of the screening threshold. </p>
       </div>
     </div>
   </div>
@@ -70,7 +72,7 @@
           <li><b>Data Location: </b> In this tutorial, we use data from <a href="http://neurovault.org/images/437/">NeuroVault</a> as an example.  The statistical map is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  Copy the link from the <button type="button" class="btn btn-primary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. </li>
           <li><b>Mask Location: </b> Usually you have already masked your data during your analysis.  However, if you have a more strict mask, or if you're performing a Region-of-Interest analysis, you can add a mask here.</li>
           <li><b>Design specifications: </b> You are asked a number of basic parameters.  If you're using your own data, you probably know these parameters.  If you're using data from a published paper, these parameters should be given in the paper.<br>
-          It is important to note here that peakwise as well as clusterwise analysis use a <b>screening threshold</b>.  Therefore, you are prompted to fill out this screening threshold.  <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> uses a default screening threshold of p&lt;0.01 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="www.fmrib.ox.ac.uk/fsl">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used.)
+
 
         </ul>
       </div>
@@ -151,8 +153,8 @@
         <p><b>First screenshot: </b>Once the model is fitted and you don't see large errors in the model fit, it is time for the power analysis.  Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Power Calculation</button> will show you power curves.  When you hover over the lines, you can see exact estimates of power for certain sample sizes.</p>
         <p><b>Second screenshot: </b>Should you want a very precise estimate for the sample size for a given value of power, then you can fill out the form.  It is important that you choose the multiple comparison procedure (MCP) that is planned in your final study.  Both <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> and  <a href="www.fmrib.ox.ac.uk/fsl">FSL</a> use Random Field Theory (familywise error rate control), although <a href="www.fil.ion.ucl.ac.uk/spm">SPM</a> also give Benjamini-Hochberg (false discovery rate control) results in the default output.</p>
         <p> In this example, when we aim for 80% power with Benjamini-Hochberg error rate control, we'll need a sample size of 19 subjects.</p>
-        <p><b>Third screenshot: </b>If you have a specific number of subjects and you want to know the power that comes with it, you can specify the sample size field in the form.</p>
-        <p>In this example, a sample size of 35 subjects with Random Field Theory error rate control results in 84% power.</p>
+        <p><b>Third screenshot: </b>If you have a specific number of subjects and you want to know the power that comes with it, you can specify the sample size field in the form.  In this example, a sample size of 35 subjects with Random Field Theory error rate control results in 84% power.</p>
+        <p>If the resulting sample size is larger than 50 (the standard limit of the x-axis), the x-axis will adjust to this limit</p>
       </div>
     </div>
   </div>

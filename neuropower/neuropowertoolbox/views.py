@@ -199,13 +199,13 @@ def neuropowersamplesize(request):
     sid = get_session_id(request)
     powerinputform = PowerForm(request.POST or None)
 
-    if not MixtureModel.objects.filter(SID=sid):
-        texttop = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
+    if not ParameterModel.objects.filter(SID=sid):
+        texttop = "No data found. Go to 'Input' and fill out the form."
         plothtml = ""
         textbottom = ""
 
-    if not ParameterModel.objects.filter(SID=sid):
-        texttop = "No data found. Go to 'Input' and fill out the form."
+    elif not MixtureModel.objects.filter(SID=sid):
+        texttop = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
         plothtml = ""
         textbottom = ""
 
@@ -219,7 +219,7 @@ def neuropowersamplesize(request):
         thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=8,nvox=float(parsdata.nvox),alpha=0.05,exc=float(parsdata.ExcZ))
         effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
         power_predicted = []
-        newsubs = range(parsdata.Subj,71)
+        newsubs = range(parsdata.Subj,301)
         for s in newsubs:
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
             powerpred =  {k:1-neuropowermodels.altCDF(v,projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items()}

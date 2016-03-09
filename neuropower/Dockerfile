@@ -8,6 +8,7 @@ RUN conda install scipy==0.17.0 pandas==0.17.1 numpy==1.10.4 psycopg2 mpld3==0.2
 RUN conda uninstall pyparsing wheel jinja2 sklearn
 
 RUN pip install -r requirements.txt
+RUN apt-get update
 RUN apt-get install -y build-essential
 RUN apt-get install -y libglib2.0-0
 RUN apt-get install -y libfreetype6-dev libxft-dev
