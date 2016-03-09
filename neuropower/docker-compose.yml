@@ -14,6 +14,7 @@ uwsgi:
 nginx:
   restart: always
   image: nginx
+  mem_limit: 60m
   ports:
     - "80:80"
   volumes:
