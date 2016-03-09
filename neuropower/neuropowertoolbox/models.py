@@ -11,6 +11,8 @@ import nibabel
 
 class ParameterModel(models.Model):
     SID = models.CharField(max_length=300,default="")
+    mapID = models.CharField(max_length=300,default="")
+    peaktable = models.CharField(max_length=300,default="")
     url = models.URLField(default="")
     location = models.CharField(max_length=300,default="")
     spmfile = models.FileField(upload_to='maps',default="")
@@ -36,7 +38,8 @@ class ParameterModel(models.Model):
 
 class PeakTableModel(models.Model):
     SID = models.CharField(max_length=300,default="")
-    data = PickledObjectField()
+    peaktable = models.CharField(max_length=300,default="")
+    data = PickledObjectField(default="")
     def __unicode__(self): # Python 3: __str__
         return self
 
@@ -51,7 +54,7 @@ class MixtureModel(models.Model):
 
 class PowerTableModel(models.Model):
     SID = models.CharField(max_length=300,default="")
-    data = PickledObjectField()
+    data = PickledObjectField(default="")
     def __unicode__(self): # Python 3: __str__
         return self
 
