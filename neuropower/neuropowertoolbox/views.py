@@ -19,6 +19,7 @@ from nilearn import masking
 from django.conf import settings
 import uuid
 import tempfile
+import urllib, json
 
 temp_dir = tempfile.gettempdir()
 
@@ -44,7 +45,7 @@ def tutorial(request):
 def methods(request):
     return render(request,"methods.html",{})
 
-def neuropowerinput(request):
+def neuropowerinput(request,neurovaultID=None):
     sid = get_session_id(request)
     parsform = ParameterForm(
         request.POST or None,
@@ -52,6 +53,13 @@ def neuropowerinput(request):
         default_url="URL to nifti image",
         err=""
     )
+
+    neurovaultID = request.GET.get('neurovault','')
+    if neurovaultID:
+        APIurl = "http://neurovault.org/api/images/"+neurovaultID+"/?format=json"
+        print(APIurl)
+        #APIdata = json.loads(APIurl.read())
+        #print(APIdata)
 
     if not request.method=="POST" or not parsform.is_valid():
         context = {"parsform": parsform}

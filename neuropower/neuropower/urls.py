@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^methods/$',views.methods,name='methods'),
     url(r'^neuropowerstart/$',views.neuropowerstart,name='neuropowerstart'),
     url(r'^neuropowerinput/$',views.neuropowerinput,name='neuropowerinput'),
+    url(r'^neuropowerinput/(?P<neurovaultID>\w+)/$',views.neuropowerinput,name='neuropowerinput'),
     url(r'^neuropowerviewer/$',views.neuropowerviewer,name='neuropowerviewer'),
     url(r'^neuropowertable/$',views.neuropowertable,name='neuropowertable'),
     url(r'^neuropowermodel/$',views.neuropowermodel,name='neuropowermodel'),
