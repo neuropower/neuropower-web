@@ -32,6 +32,7 @@ def get_session_id(request):
     return(sid)
 
 def neuropowerstart(request):
+    print(settings.BASE_DIR)
     return render(request,"neuropowerstart.html",{})
 
 def FAQ(request):
@@ -138,12 +139,14 @@ def neuropowerviewer(request):
             text = "The viewer is only available for publicly available data (specify a url in the input)."
         else:
             url = parsdata.url
+            thr = parsdata.Exc
             viewer = "<div class='papaya' data-params='params'></div>"
 
     context = {
         "url":url,
         "viewer":viewer,
-        "text":text
+        "text":text,
+        "thr":thr
     }
 
     return render(request,"neuropowerviewer.html",context)

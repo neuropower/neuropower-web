@@ -22,7 +22,7 @@ class ParameterForm(forms.ModelForm):
         #self.fields['maskfile'].label = "Upload a full brain mask or a Region-of-Interest mask."
         self.fields['maskfile'].required = False
         self.fields['ZorT'].label = "Are the data Z- or T-values?"
-        self.fields['Exc'].label = "What is the screening threshold (either p-value or z-value units)?"
+        self.fields['Exc'].label = "What is the screening threshold, also known as the clusterforming threshold or the excursion threshold (either p-value or z-value units)?"
         self.fields['Subj'].label = "How many subjects does the group map represent?"
         self.fields['Samples'].label = "Is this a one-sample or a two-sample test?"
         self.fields['alpha'].label = "At which alpha-level are the statistical tests carried out?"
