@@ -42,7 +42,13 @@ INSTALLED_APPS = [
     'crispy_forms',
     'djangosecure',
     'sslserver',
+    "djcelery",
+    "kombu.transport.django",
 ]
+
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = "django://"
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -148,5 +154,4 @@ MEDIA_ROOT=os.path.join(BASE_DIR,"media")
 
 ## App specific settings
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
-
 FILE_UPLOAD_TEMP_DIR = os.path.join(BASE_DIR,"tmp")

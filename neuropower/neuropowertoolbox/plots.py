@@ -29,7 +29,7 @@ def plotModel(request):
     peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
     peaks = peakdata.data
     twocol = Paired_12.mpl_colors
-    xn = np.arange(-10,10,0.01)
+    xn = np.arange(-10,30,0.01)
     nul = [1-float(mixdata.pi1)]*npm.nulPDF(xn,exc=float(parsdata.ExcZ),method="RFT")
     alt = float(mixdata.pi1)*npm.altPDF(xn,mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
     mix = npm.mixprobdens(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=2,method="RFT")
@@ -51,8 +51,8 @@ def plotModel(request):
     axs[0].set_title("Distribution of "+str(len(peaks))+" peak p-values \n $\pi_1$ = "+str(round(float(mixdata.pi1),2)))
     axs[0].set_xlabel("Peak p-values")
     axs[0].set_ylabel("Density")
-    axs[1].hist(peaks.peak,lw=0,facecolor=twocol[0],normed=True,bins=np.arange(min(peaks.peak),10,0.3),label="observed distribution")
-    axs[1].set_xlim([float(parsdata.ExcZ),7])
+    axs[1].hist(peaks.peak,lw=0,facecolor=twocol[0],normed=True,bins=np.arange(min(peaks.peak),30,0.3),label="observed distribution")
+    axs[1].set_xlim([float(parsdata.ExcZ),np.max(peaks.peak)])
     axs[1].set_ylim([0,1])
     axs[1].plot(xn,nul,color=twocol[3],lw=2,label="null distribution")
     axs[1].plot(xn,alt,color=twocol[5],lw=2, label="alternative distribution")

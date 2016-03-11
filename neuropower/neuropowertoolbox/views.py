@@ -164,15 +164,18 @@ def neuropowertable(request):
             SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
         cluster.cluster(SPM,parsdata.ExcZ,parsdata.peaktable)
         peaks = pd.read_csv(parsdata.peaktable,sep="\t")
-        pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
-        pvalues = [max(10**(-6),p) for p in pvalues]
-        peaks['pval'] = pvalues
-        peakform = PeakTableForm()
-        savepeakform = peakform.save(commit=False)
-        savepeakform.SID = sid
-        savepeakform.data = peaks
-        savepeakform.save()
-        context = {"peaks":peaks.to_html(classes=["table table-striped"])}
+        if len(peaks)<30:
+                context={"text":"There are too few peaks for a good estimation.  Either the ROI is too small or the screening threshold is too high."}
+        else:
+            pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
+            pvalues = [max(10**(-6),p) for p in pvalues]
+            peaks['pval'] = pvalues
+            peakform = PeakTableForm()
+            savepeakform = peakform.save(commit=False)
+            savepeakform.SID = sid
+            savepeakform.data = peaks
+            savepeakform.save()
+            context = {"peaks":peaks.to_html(classes=["table table-striped"])}
         #context = {}
     return render(request,"neuropowertable.html",context)
 
