@@ -19,8 +19,8 @@ from nilearn import masking
 from django.conf import settings
 import uuid
 import tempfile
-import urllib, json
-
+import json
+import urllib2
 temp_dir = tempfile.gettempdir()
 
 def home(request):
@@ -56,10 +56,29 @@ def neuropowerinput(request,neurovaultID=None):
 
     neurovaultID = request.GET.get('neurovault','')
     if neurovaultID:
-        APIurl = "http://neurovault.org/api/images/"+neurovaultID+"/?format=json"
-        print(APIurl)
-        #APIdata = json.loads(APIurl.read())
-        #print(APIdata)
+        neurovaultIMurl = "http://neurovault.org/api/images/"+neurovaultID+"/?format=json"
+        neurovaultIMopen = urllib2.urlopen(neurovaultIMurl).read()
+        neurovaultIMdata = json.loads(neurovaultIMopen)
+        neurovaultCOLcode = neurovaultIMdata['collection'].split("/")[-1]
+        neurovaultCOLurl = "http://neurovault.org/api/collections/"+str(neurovaultCOLcode)+"/?format=json"
+        neurovaultCOLopen = urllib2.urlopen(neurovaultCOLurl).read()
+        neurovaultCOLdata = json.loads(neurovaultCOLopen)
+        neurovaultCOLres = neurovaultCOLdata['results'][0]
+
+        parsform = ParameterForm(
+            request.POST or None,
+            request.FILES or None,
+            default_url="",
+            err="",
+            initial={
+                "url":neurovaultIMdata["file"],
+                "ZorT":"T" if neurovaultIMdata["map_type"]=="T map" else "Z",
+                "Subj":neurovaultCOLres["number_of_subjects"],
+            },
+            )
+        context = {"parsform":parsform}
+        #fields = ['url','spmfile','maskfile','ZorT','Exc','Subj','Samples','alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
+        return render(request,"neuropowerinput.html",context)
 
     if not request.method=="POST" or not parsform.is_valid():
         context = {"parsform": parsform}
