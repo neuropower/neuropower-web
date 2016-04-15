@@ -8,29 +8,31 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <title>
-      {%block head_title %}
-      {% endblock%} Neuropower
+      {% block head_title %}
+      {% endblock %} Neuropower
     </title>
     {% load staticfiles %}
     <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet">
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
-    <link href="{% static 'css/sticky-footer-navbar.css' %}" rel="stylesheet">
+    
+    <!-- Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300ita‌​lic,400italic,500,500italic,700,700italic,900italic,900' rel='stylesheet' type='text/css'>
     {%block head %}
     {% endblock %}
   </head>
 
   <body>
+    <div class="container navigation-container">
     {% block navbar %}
-    {%include 'main/navbar.html' %}
+    {% include 'main/navbar.html' %}
     {% endblock %}
-
     {% block jumbotron %}
     {% endblock %}
-
-    <div class="container">
-      {% block content%}
-      {% endblock %}
+        <div id="content">
+        {% block content%}
+        {% endblock %}
+        </div>
     </div>
 
     {% block footer %}
