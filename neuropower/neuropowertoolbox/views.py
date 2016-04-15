@@ -24,7 +24,7 @@ import urllib2
 temp_dir = tempfile.gettempdir()
 
 def home(request):
-    return render(request,"home.html",{})
+    return render(request,"main/home.html",{})
 
 def get_session_id(request):
     if not request.session.exists(request.session.session_key):
@@ -34,16 +34,16 @@ def get_session_id(request):
 
 def neuropowerstart(request):
     print(settings.BASE_DIR)
-    return render(request,"neuropowerstart.html",{})
+    return render(request,"neuropower/neuropowerstart.html",{})
 
 def FAQ(request):
-    return render(request,"FAQ.html",{})
+    return render(request,"main/FAQ.html",{})
 
 def tutorial(request):
-    return render(request,"tutorial.html",{})
+    return render(request,"main/tutorial.html",{})
 
 def methods(request):
-    return render(request,"methods.html",{})
+    return render(request,"main/methods.html",{})
 
 def neuropowerinput(request,neurovaultID=None):
     sid = get_session_id(request)
@@ -78,11 +78,11 @@ def neuropowerinput(request,neurovaultID=None):
             )
         context = {"parsform":parsform}
         #fields = ['url','spmfile','maskfile','ZorT','Exc','Subj','Samples','alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
-        return render(request,"neuropowerinput.html",context)
+        return render(request,"neuropower/neuropowerinput.html",context)
 
     if not request.method=="POST" or not parsform.is_valid():
         context = {"parsform": parsform}
-        return render(request,"neuropowerinput.html",context)
+        return render(request,"neuropower/neuropowerinput.html",context)
 
     else:
         saveparsform = parsform.save(commit=False)
@@ -118,7 +118,7 @@ def neuropowerinput(request,neurovaultID=None):
                 err="median",
                 )
             context = {"parsform": parsform}
-            return render(request,"neuropowerinput.html",context)
+            return render(request,"neuropower/neuropowerinput.html",context)
 
         # save other parameters
         saveparsform.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
@@ -143,7 +143,7 @@ def neuropowerinput(request,neurovaultID=None):
                     err="dim",
                 )
                 context = {"parsform": parsform}
-                return render(request,"neuropowerinput.html",context)
+                return render(request,"neuropower/neuropowerinput.html",context)
             else:
                 SPM_masked = np.multiply(SPM.get_data(),mask)
                 SPM_nib = nib.Nifti1Image(SPM_masked,np.eye(4))
@@ -182,7 +182,7 @@ def neuropowertable(request):
     sid = get_session_id(request)
     if not ParameterModel.objects.filter(SID=sid):
         context = {"text":"No data found. Go to 'Input' and fill out the form."}
-        return render(request,"neuropowertable.html",context)
+        return render(request,"neuropower/neuropowertable.html",context)
     else:
         sid = request.session.session_key
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
@@ -204,13 +204,13 @@ def neuropowertable(request):
             savepeakform.save()
             context = {"peaks":peaks.to_html(classes=["table table-striped"])}
         #context = {}
-    return render(request,"neuropowertable.html",context)
+    return render(request,"neuropower/neuropowertable.html",context)
 
 def neuropowermodel(request):
     sid = get_session_id(request)
     if not ParameterModel.objects.filter(SID=sid):
         context = {"text":"No data found. Go to 'Input' and fill out the form."}
-        return render(request,"neuropowermodel.html",context)
+        return render(request,"neuropower/neuropowermodel.html",context)
     else:
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
@@ -225,7 +225,7 @@ def neuropowermodel(request):
         savemixtureform.mu = modelfit['mu']
         savemixtureform.sigma = modelfit['sigma']
         savemixtureform.save()
-        return render(request,"neuropowermodel.html",{})
+        return render(request,"neuropower/neuropowermodel.html",{})
 
 def neuropowersamplesize(request):
 
@@ -283,7 +283,7 @@ def neuropowersamplesize(request):
     "plothtml":plothtml,
     "powerinputform":powerinputform
     }
-    return render(request,"neuropowersamplesize.html",context)
+    return render(request,"neuropower/neuropowersamplesize.html",context)
 
 def neuropowercrosstab(request):
 
@@ -304,4 +304,4 @@ def neuropowercrosstab(request):
         powertable.columns=['Sample Size','Random Field Theory','Bonferroni','Benjamini-Hochberg','Uncorrected']
         context = {"power":powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])}
 
-    return render(request,"neuropowercrosstab.html",context)
+    return render(request,"neuropower/neuropowercrosstab.html",context)

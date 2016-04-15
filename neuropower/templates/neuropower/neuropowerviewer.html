@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'main/base.html' %}
 {% load staticfiles %}
 
 {% block head %}
@@ -23,8 +23,8 @@ params[filename] = {"min":2};
 {% endblock %}
 
 {% block navbar %}
-{%include 'navbar.html' %}
-{%include 'neuropowernavbar.html' %}
+{%include 'main/navbar.html' %}
+{%include 'neuropower/neuropowernavbar.html' %}
 {% endblock %}
 
 {% load crispy_forms_tags %}

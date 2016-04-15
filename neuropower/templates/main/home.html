@@ -1,13 +1,13 @@
-{% extends 'base.html' %}
+{% extends 'main/base.html' %}
 {% load staticfiles %}
 
 {% block head_title %}
   Welcome | {{block.super}}
 {% endblock %}
 
-{%block jumbotron%}
+{% block jumbotron %}
 <div class="jumbotron">
-  <div class="container">
+  <div class="container welcome">
     <div class="row">
       <div class="col-xs-8">
         <h2>Welcome</h2>
