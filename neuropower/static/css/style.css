@@ -90,56 +90,14 @@ body {
 
 #progressbar {
   padding-top:25px;
-  padding-left:100px;
+  padding-left:50px;
   text-align: center !important;
   margin-bottom: 30px !important;
-  overflow: hidden !important;
-  /*CSS counters to number the steps*/
-  counter-reset: step !important;
 }
 
 #progressbar li {
-  list-style-type: none !important;
   text-transform: uppercase;
   width: 12% !important;
   float: left !important;
   position: relative !important;
-}
-
-#progressbar li:before {
-  content: counter(step) !important;
-  counter-increment: step !important;
-  width: 30px !important;
-  line-height: 30px !important;
-  display: block !important;
-  font-size: 10px !important;
-  color: #999 !important;
-  background: #CCC !important;
-  border-radius: 3px !important;
-  margin: 0 auto 5px auto !important;
-  z-index:3;
-}
-
-/*progressbar connectors*/
-#progressbar li:after {
-  content: '' !important;
-  width: 80% !important;
-  height: 2px !important;
-  margin-left: 15px;
-  background: #CCC !important;
-  position: absolute !important;
-  left: -50% !important;
-  top: 9px !important;
-  z-index:2 !important; 
-}
-
-#progressbar li:first-child:after {
-  /*connector not needed before the first step*/
-  content: none !important; 
-}
-
-/*The number of the step and the connector before it = green*/
-#progressbar li.active:before,  #progressbar li.active:after{
-  background: #337AB7 !important;
-  color: #CCC !important;
 }

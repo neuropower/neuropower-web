@@ -8,15 +8,18 @@ $(document).ready(function() {
   $(".dropdown-toggle").dropdown();  
   // Is defined for neuropower step pages
   {% if steps %}
-       $("#{{ steps.active.class }}").addClass("active");
        $("#{{ steps.active.class }}").css("background-color","{{ steps.active.color }}");
+       $("#{{ steps.active.class }}").css("border-color","{{ steps.active.color }}");
 
       // Disable steps that shouldn't yet be visitable
-      {% for step,params in steps %}
+      {% for step,params in steps.items %}
+          console.log("{{params.class}}")
+          console.log("{{params.enabled}}")
+
           {% if params.enabled == "no" %}
-              $("#{{ params.class }}").prop("disabled",true);   
+              $("#{{ params.class }}").addClass("disabled");   
           {% else %}
-              $("#{{ params.class }}").prop("disabled",false);   
+              $("#{{ params.class }}").removeClass("disabled");   
           {% endif %}
       {% endfor %}
   {% endif %}
