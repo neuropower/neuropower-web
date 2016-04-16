@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from neuropowertoolbox.forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
 from neuropowertoolbox.models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
 from neuropower.utils import BUM, cluster, neuropowermodels,peakdistribution, utils
-from neuropowertoolbox.utils import get_url, get_neuropower_steps
+from neuropowertoolbox.utils import get_url, get_neuropower_steps, get_session_id
 from django.http import HttpResponse, HttpResponseRedirect
 from neuropowertoolbox.plots import plotPower
 from django.forms import model_to_dict
@@ -29,12 +29,6 @@ temp_dir = tempfile.gettempdir()
 
 def home(request):
     return render(request,"main/home.html",{})
-
-def get_session_id(request):
-    if not request.session.exists(request.session.session_key):
-        request.session.create()
-    sid = request.session.session_key
-    return(sid)
 
 def FAQ(request):
     return render(request,"main/FAQ.html",{})

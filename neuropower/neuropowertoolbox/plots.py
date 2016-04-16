@@ -1,24 +1,19 @@
-from django.http import HttpResponse, HttpResponseRedirect
-import matplotlib as mpl
-mpl.use('Agg')
-import numpy as np
+from neuropowertoolbox.models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from neuropower.utils import BUM, cluster, peakdistribution
-from neuropower.utils import neuropowermodels as npm
 from palettable.colorbrewer.qualitative import Paired_12,Set1_9
-import scipy
+from neuropower.utils import BUM, cluster, peakdistribution
+from django.http import HttpResponse, HttpResponseRedirect
+from neuropower.utils import neuropowermodels as npm
+from neuropowertoolbox.utils import get_session_id
 import matplotlib.pyplot as plt
-from .models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
-import jinja2
-import mpld3
 from mpld3 import plugins
+import matplotlib as mpl
 import pandas as pd
-
-def get_session_id(request):
-    if not request.session.exists(request.session.session_key):
-        request.session.create()
-    sid = request.session.session_key
-    return(sid)
+import numpy as np
+mpl.use('Agg')
+import jinja2
+import scipy
+import mpld3
 
 
 def plotModel(request):
