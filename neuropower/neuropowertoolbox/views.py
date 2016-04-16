@@ -281,17 +281,12 @@ def neuropowersamplesize(request):
 
     if not ParameterModel.objects.filter(SID=sid):
         texttop = "No data found. Go to 'Input' and fill out the form."
-        plothtml = ""
-        textbottom = ""
 
     elif not MixtureModel.objects.filter(SID=sid):
         texttop = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
-        plothtml = ""
-        textbottom = ""
 
     else:
         texttop = "Hover over the lines to see detailed power predictions"
-        textbottom = ""
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
         mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
@@ -323,13 +318,11 @@ def neuropowersamplesize(request):
                 ss = powerinputdata.reqSS
                 plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
                 plothtml = plotpower['code']
-                textbottom = plotpower['text']
+                context["textbottom"] = plotpower['text']
     
-    context = {"texttop":texttop,
-               "textbottom":textbottom,
-               "plothtml":plothtml,
-               "powerinputform":powerinputform,
-               "steps":steps}
+    context["texttop"] = texttop
+    context["plothtml"] = plothtml
+    context["powerinputform"] = powerinputform
 
     return render(request,template,context)
 

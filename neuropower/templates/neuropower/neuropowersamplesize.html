@@ -12,6 +12,7 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="row">
   <div class="col-sm-4">
     <form method='POST' action='.'>
@@ -20,12 +21,16 @@
     </form>
   </div>
   <div class="col-sm-8">
-    <h4> {{texttop}} </h4>
+    <h4>{{ texttop }}</h4>
     <br>
     <br>
-  {{plothtml | safe}}
-  <h4> {{textbottom}} </h4>
+  {{ plothtml | safe }}
   </div>
-
 </div>
+
+<!-- Message to user about power-->
+{% if textbottom %}
+<div class="alert alert-info alert-dismissible" role="alert">{{ textbottom }}</div>
+{% endif %}
+
 {% endblock %}
