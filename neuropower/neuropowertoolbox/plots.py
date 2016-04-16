@@ -114,7 +114,7 @@ def plotPower(sid,MCP='',pow=0,ss=0):
             text = "To obtain a statistical power of "+str(pow)+" this study would require a sample size of "+str(min)+" subjects."
             amax = max(min,amax)
     if ss != 0:
-        ss_pow = powtab[MCP][ss-sub]
+        ss_pow = powtab[MCP][ss]
         axs.plot([ss,ss],[0,ss_pow],color=cols[MCP],linestyle="--")
         axs.plot([sub,ss],[ss_pow,ss_pow],color=cols[MCP],linestyle="--")
         xticks = [x for x in list(np.arange((np.ceil(sub/10.))*10,100,10)) if not x == np.round(ss/10.)*10]

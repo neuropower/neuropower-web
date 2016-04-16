@@ -143,7 +143,7 @@ class PowerTableForm(forms.ModelForm):
 class PowerForm(forms.ModelForm):
     SID = forms.CharField(required=False)
     reqPow = forms.DecimalField(required=False,label = "Power")
-    reqSS = forms.DecimalField(required=False,label = "Sample size")
+    reqSS = forms.IntegerField(required=False,label = "Sample size")
     class Meta:
         model = PowerModel
         fields = '__all__'
@@ -167,9 +167,9 @@ class PowerForm(forms.ModelForm):
         reqSS = self.cleaned_data['reqSS']
         if reqPow > 1:
             raise exceptions.ValidationError("Power cannot exceed 1.")
-        if reqPow != '' and reqSS:
+        if reqPow and reqSS:
             raise exceptions.ValidationError("Please fill out only either the power or the sample size, not both.")
-        if reqPow == '':
+        if not reqPow:
             self.cleaned_data['reqPow'] = 0
         if not reqSS:
             self.cleaned_data['reqSS'] = 0

@@ -314,7 +314,7 @@ def neuropowersamplesize(request):
                 savepowerinputform.SID = sid
                 savepowerinputform.save()
                 powerinputdata = PowerModel.objects.filter(SID=sid)[::-1][0]
-                pow = powerinputdata.reqPow
+                pow = float(powerinputdata.reqPow)
                 ss = powerinputdata.reqSS
                 plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
                 plothtml = plotpower['code']
