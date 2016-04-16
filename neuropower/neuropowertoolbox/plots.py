@@ -52,7 +52,9 @@ def plotModel(request):
     axs[1].plot(xn,nul,color=twocol[3],lw=2,label="null distribution")
     axs[1].plot(xn,alt,color=twocol[5],lw=2, label="alternative distribution")
     axs[1].plot(xn,mix,color=twocol[1],lw=2,label="total distribution")
-    axs[1].set_title("Distribution of peak heights \n $\delta_1$ = "+str(round(float(mixdata.mu)/np.sqrt(parsdata.Subj),2)))
+
+    peak_heights_string = str(round(float(mixdata.mu)/np.sqrt(parsdata.Subj),2))
+    axs[1].set_title("Distribution of peak heights \n $\delta_1$ = %s" %(peak_heights_string))
     axs[1].set_xlabel("Peak heights (z-values)")
     axs[1].set_ylabel("Density")
     axs[1].legend(loc="upper right",frameon=False)
@@ -106,7 +108,7 @@ def plotPower(sid,MCP='',pow=0,ss=0):
             min = int(np.min([i for i,elem in enumerate(powtab[MCP]>pow,1) if elem])+sub-1)
             axs.plot([min,min],[0,powtab[MCP][min-sub]],color=cols[MCP])
             axs.plot([sub,min],[powtab[MCP][min-sub],powtab[MCP][min-sub]],color=cols[MCP])
-            text = "To obtain a statistical power of "+str(pow)+" this study would require a sample size of "+str(min)+" subjects."
+            text = "To obtain a statistical power of %s this study would require a sample size of %s subjects." %(pow,min)
             amax = max(min,amax)
     if ss != 0:
         ss_pow = powtab[MCP][ss]
@@ -115,7 +117,7 @@ def plotPower(sid,MCP='',pow=0,ss=0):
         xticks = [x for x in list(np.arange((np.ceil(sub/10.))*10,100,10)) if not x == np.round(ss/10.)*10]
         axs.set_xticks(xticks+[ss])
         axs.set_yticks(list(np.arange(0,1.1,0.1)))
-        text = "A sample size of "+str(ss)+" subjects with "+MCP+" control comes with a power of "+str(np.round(ss_pow,decimals=2))+"."
+        text = "A sample size of %s subjects with %s control comes with a power of %s." %(ss,MCP,str(np.round(ss_pow,decimals=2)))
         amax = max(ss,amax)
     axs.set_ylim([0,1])
     axs.set_xlim([sub,amax])

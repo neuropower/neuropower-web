@@ -147,3 +147,9 @@ body {
   float: left !important;
   position: relative !important;
 }
+
+/* FAQ */
+
+.question {
+  margin-top:30px;
+}

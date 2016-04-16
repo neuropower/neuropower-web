@@ -15,24 +15,23 @@
 <div class="row">
   <br>
   <div class="col-md-12">
-    <form id="parsform" method='POST' action='submit_form' enctype="multipart/form-data">
+    <form id="parsform" method='POST' action='.' enctype="multipart/form-data">
       {% csrf_token %}
       {% crispy parsform %}
     </form>
   </div>
 </div>
-
-{% include "main/loader.html" %}
+{% endblock %}
 
 <!-- function to submit form-->
 {% block scripts %}
-$('#submit_form').click(function(event) {
+<script>
+$('#submit-id-submit').click(function(event) {
     event.preventDefault();
     $("#fade").show();
     $("#loader").show();
     $("#parsform").submit();
 });
+</script>
 {% endblock %}
 
-
-{% endblock %}
