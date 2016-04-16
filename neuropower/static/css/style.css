@@ -115,11 +115,7 @@ body {
   padding-left:50px;
   text-align: center !important;
   margin-bottom: 30px !important;
-}
-
-#progressbar li {
   text-transform: uppercase;
-  width: 12% !important;
   float: left !important;
   position: relative !important;
 }
