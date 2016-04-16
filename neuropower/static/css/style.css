@@ -53,6 +53,28 @@ body {
 }
 
 
+/* Overview (start) */
+
+.step-info {
+  border-radius: 10px;
+  min-height: 280px;
+  margin:5px;
+  width: 15% !important;
+  text-align: center;
+}
+
+
+.step-info h2, h3, h4 {
+  color: white;
+  text-transform: uppercase;
+  padding-top: 10px;
+}
+
+.step-info p {
+  color: white;
+  line-height: 14px; 
+}
+
 /* Content */
 
 #content {
