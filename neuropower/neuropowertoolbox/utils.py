@@ -22,9 +22,9 @@ def get_neuropower_steps(template_page,session_id=None):
         pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
     # Need to ask @jokedurnez about this flow
-    if not not MixtureModel.objects.filter(SID=session_id):
-        pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
-        pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+    #if not not MixtureModel.objects.filter(SID=session_id):
+    #    pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
+    #    pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
 
     # Set the active page

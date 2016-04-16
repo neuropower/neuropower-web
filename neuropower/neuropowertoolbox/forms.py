@@ -142,7 +142,7 @@ class PowerTableForm(forms.ModelForm):
 
 class PowerForm(forms.ModelForm):
     SID = forms.CharField(required=False)
-    reqPow = forms.CharField(required=False,label = "Power")
+    reqPow = forms.DecimalField(required=False,label = "Power")
     reqSS = forms.DecimalField(required=False,label = "Sample size")
     class Meta:
         model = PowerModel
