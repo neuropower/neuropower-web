@@ -64,7 +64,7 @@ body {
 }
 
 
-h3.step-info {
+.step-info h4 {
   color: white;
   text-transform: uppercase;
   padding-top: 10px;
