@@ -23,6 +23,8 @@ import json
 import urllib2
 temp_dir = tempfile.gettempdir()
 
+### MAIN TEMPLATE PAGES ################################################
+
 def home(request):
     return render(request,"main/home.html",{})
 
@@ -31,10 +33,6 @@ def get_session_id(request):
         request.session.create()
     sid = request.session.session_key
     return(sid)
-
-def neuropowerstart(request):
-    print(settings.BASE_DIR)
-    return render(request,"neuropower/neuropowerstart.html",{})
 
 def FAQ(request):
     return render(request,"main/FAQ.html",{})
@@ -45,7 +43,17 @@ def tutorial(request):
 def methods(request):
     return render(request,"main/methods.html",{})
 
+
+### NEUROPOWER TEMPLATE PAGES ##########################################
+
+def neuropowerstart(request):
+    '''step 1: start'''
+    context = {"active_page":"overview"}
+    return render(request,"neuropower/neuropowerstart.html",context)
+
+
 def neuropowerinput(request,neurovaultID=None):
+    '''step 1: input'''
     sid = get_session_id(request)
     parsform = ParameterForm(
         request.POST or None,
@@ -55,12 +63,14 @@ def neuropowerinput(request,neurovaultID=None):
     )
 
     neurovaultID = request.GET.get('neurovault','')
+    context = {"active_page":"start"}
+
     if neurovaultID:
-        neurovaultIMurl = "http://neurovault.org/api/images/"+neurovaultID+"/?format=json"
+        neurovaultIMurl = "http://neurovault.org/api/images/%s/?format=json" %(neurovaultID)
         neurovaultIMopen = urllib2.urlopen(neurovaultIMurl).read()
         neurovaultIMdata = json.loads(neurovaultIMopen)
         neurovaultCOLcode = neurovaultIMdata['collection'].split("/")[-1]
-        neurovaultCOLurl = "http://neurovault.org/api/collections/"+str(neurovaultCOLcode)+"/?format=json"
+        neurovaultCOLurl = "http://neurovault.org/api/collections/%s/?format=json" %str(neurovaultCOLcode)
         neurovaultCOLopen = urllib2.urlopen(neurovaultCOLurl).read()
         neurovaultCOLdata = json.loads(neurovaultCOLopen)
         neurovaultCOLres = neurovaultCOLdata['results'][0]
@@ -76,18 +86,19 @@ def neuropowerinput(request,neurovaultID=None):
                 "Subj":neurovaultCOLres["number_of_subjects"],
             },
             )
-        context = {"parsform":parsform}
+        context["parsform"] = parsform
+
         #fields = ['url','spmfile','maskfile','ZorT','Exc','Subj','Samples','alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
         return render(request,"neuropower/neuropowerinput.html",context)
 
     if not request.method=="POST" or not parsform.is_valid():
-        context = {"parsform": parsform}
+        context["parsform"] = parsform 
         return render(request,"neuropower/neuropowerinput.html",context)
 
     else:
         saveparsform = parsform.save(commit=False)
         saveparsform.SID = sid
-        mapID = str(sid)+"_"+str(uuid.uuid4())
+        mapID = "%s_%s" %(str(sid),str(uuid.uuid4()))
         saveparsform.mapID = mapID
         peaktable = os.path.join(settings.MEDIA_ROOT,"peaktables","peaks_"+mapID+".csv")
         saveparsform.peaktable = peaktable
@@ -95,7 +106,7 @@ def neuropowerinput(request,neurovaultID=None):
 
         # handle data: copy to temporary location
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        mapID = str(sid)+"_"+str(uuid.uuid4())
+        mapID = "%s_%s" %(str(sid),str(uuid.uuid4()))
         saveparsform.mapID = mapID
         if not parsdata.url == "":
             url = parsform.cleaned_data['url']
@@ -117,7 +128,7 @@ def neuropowerinput(request,neurovaultID=None):
                 default_url="URL to nifti image",
                 err="median",
                 )
-            context = {"parsform": parsform}
+            context["parsform"] = parsform
             return render(request,"neuropower/neuropowerinput.html",context)
 
         # save other parameters
@@ -142,7 +153,7 @@ def neuropowerinput(request,neurovaultID=None):
                     default_url="URL to nifti image",
                     err="dim",
                 )
-                context = {"parsform": parsform}
+                context["parsform"] = parsform
                 return render(request,"neuropower/neuropowerinput.html",context)
             else:
                 SPM_masked = np.multiply(SPM.get_data(),mask)
@@ -158,6 +169,7 @@ def neuropowerviewer(request):
     viewer = ""
     url = ""
     text = ""
+    thr = ""
     if not ParameterModel.objects.filter(SID=sid):
         text = "Please first fill out the input."
     else:
@@ -169,19 +181,19 @@ def neuropowerviewer(request):
             thr = parsdata.Exc
             viewer = "<div class='papaya' data-params='params'></div>"
 
-    context = {
-        "url":url,
-        "viewer":viewer,
-        "text":text,
-        "thr":thr
-    }
+    context = {"url":url,
+               "viewer":viewer,
+               "text":text,
+               "thr":thr,
+               "active_page":"viewer"}
 
-    return render(request,"neuropowerviewer.html",context)
+    return render(request,"neuropower/neuropowerviewer.html",context)
 
 def neuropowertable(request):
     sid = get_session_id(request)
     if not ParameterModel.objects.filter(SID=sid):
-        context = {"text":"No data found. Go to 'Input' and fill out the form."}
+        context = {"text":"No data found. Go to 'Input' and fill out the form.",
+                   "active_page":"peak-table"}
         return render(request,"neuropower/neuropowertable.html",context)
     else:
         sid = request.session.session_key
@@ -202,14 +214,17 @@ def neuropowertable(request):
             savepeakform.SID = sid
             savepeakform.data = peaks
             savepeakform.save()
-            context = {"peaks":peaks.to_html(classes=["table table-striped"])}
-        #context = {}
+            context = {"peaks":peaks.to_html(classes=["table table-striped"]),
+                       "active_page":"power-table"}
+    
     return render(request,"neuropower/neuropowertable.html",context)
 
 def neuropowermodel(request):
     sid = get_session_id(request)
+    context = {"active_page":"fit"}
     if not ParameterModel.objects.filter(SID=sid):
-        context = {"text":"No data found. Go to 'Input' and fill out the form."}
+        context["text"] = "No data found. Go to 'Input' and fill out the form."
+                   
         return render(request,"neuropower/neuropowermodel.html",context)
     else:
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
@@ -225,7 +240,7 @@ def neuropowermodel(request):
         savemixtureform.mu = modelfit['mu']
         savemixtureform.sigma = modelfit['sigma']
         savemixtureform.save()
-        return render(request,"neuropower/neuropowermodel.html",{})
+        return render(request,"neuropower/neuropowermodel.html",context)
 
 def neuropowersamplesize(request):
 
@@ -277,31 +292,32 @@ def neuropowersamplesize(request):
                 plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
                 plothtml = plotpower['code']
                 textbottom = plotpower['text']
-    context = {
-    "texttop":texttop,
-    "textbottom":textbottom,
-    "plothtml":plothtml,
-    "powerinputform":powerinputform
-    }
+    
+    context = {"texttop":texttop,
+               "textbottom":textbottom,
+               "plothtml":plothtml,
+               "powerinputform":powerinputform,
+               "active_page":"power-calculation"}
+
     return render(request,"neuropower/neuropowersamplesize.html",context)
 
 def neuropowercrosstab(request):
 
     sid = get_session_id(request)
     powerinputform = PowerForm(request.POST or None)
+    context = {"active_page":"power-table"}
 
     if not MixtureModel.objects.filter(SID=sid):
-        text = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
-        context = {"text":text}
+        context["text"] = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
+        
 
     if not ParameterModel.objects.filter(SID=sid):
-        text = "No data found. Go to 'Input' and fill out the form."
-        context = {"text":text}
-
+        context["text"] = "No data found. Go to 'Input' and fill out the form."
+        
     else:
         powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
         powertable = powerdata.data[['newsamplesize','RFT','BF','BH','UN']].round(decimals=2)
         powertable.columns=['Sample Size','Random Field Theory','Bonferroni','Benjamini-Hochberg','Uncorrected']
-        context = {"power":powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])}
+        context["power"] = powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])
 
     return render(request,"neuropower/neuropowercrosstab.html",context)
