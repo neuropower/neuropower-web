@@ -4,12 +4,21 @@
 <script src="{% static 'js/viewport-bug-workaround.js' %}"></script>
 
 <script>
-$(document).ready(function () {
-  $('.dropdown-toggle').dropdown();
-  
+$(document).ready(function() {
+  $(".dropdown-toggle").dropdown();  
   // Is defined for neuropower step pages
-  {% if active_page %}
-   $("#{{ active_page }}").addClass("active");
+  {% if steps %}
+       $("#{{ steps.active.class }}").addClass("active");
+       $("#{{ steps.active.class }}").css("background-color","{{ steps.active.color }}");
+
+      // Disable steps that shouldn't yet be visitable
+      {% for step,params in steps %}
+          {% if params.enabled == "no" %}
+              $("#{{ params.class }}").prop("disabled",true);   
+          {% else %}
+              $("#{{ params.class }}").prop("disabled",false);   
+          {% endif %}
+      {% endfor %}
   {% endif %}
 });
-</script>﻿
+</script>
