@@ -47,11 +47,6 @@ body {
 
 }
 
-.form-inline {
-  margin:0px!important;
-  padding:0px!important;
-}
-
 
 /* Overview (start) */
 
@@ -73,6 +68,39 @@ body {
 .step-info p {
   color: white;
   line-height: 14px; 
+}
+
+
+/* Input */
+
+.form-inline {
+  margin:0px!important;
+  padding:0px!important;
+}
+
+#loader {
+  margin-top: 175px; 
+  left:2%; 
+  top:15%;
+  z-index:1002;
+  position:absolute;
+  width:100%;
+  height:100%;
+  display: none;
+}
+
+#fade {
+  display: none;
+  position:absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  z-index: 1001;
+    -moz-opacity: 0.9;
+    opacity: 0.9;
+    filter: alpha(opacity=90);
 }
 
 /* Content */

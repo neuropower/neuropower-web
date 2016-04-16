@@ -14,7 +14,10 @@
     {% load staticfiles %}
     <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet">
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
-    
+
+    <!--Loader-->
+    <link href="{% static 'css/loader.css' %}" rel="stylesheet">    
+
     <!-- Fonts -->
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300ita‌​lic,400italic,500,500italic,700,700italic,900italic,900' rel='stylesheet' type='text/css'>
@@ -38,8 +41,7 @@
         </div>
     </div>
     {% include 'main/javascript.html' %}
-
-
+    {% include "main/loader.html" %}
     {% block footer %}
     {% endblock %}
   </body>

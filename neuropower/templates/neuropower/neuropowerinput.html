@@ -7,21 +7,32 @@
 {% endblock %}
 
 {% block navbar %}
-{%include 'main/navbar.html' %}
-{%include 'neuropower/neuropowernavbar.html' %}
+{% include 'main/navbar.html' %}
+{% include 'neuropower/neuropowernavbar.html' %}
 {% endblock %}
 
 {% block content %}
 <div class="row">
   <br>
-  <div class="col-xs-2"></div>
-  <div class="col-xs-8">
-    <form method='POST' action='.' enctype="multipart/form-data">
+  <div class="col-md-12">
+    <form id="parsform" method='POST' action='submit_form' enctype="multipart/form-data">
       {% csrf_token %}
       {% crispy parsform %}
     </form>
   </div>
-
-  <div class="col-xs-2"></div>
 </div>
+
+{% include "main/loader.html" %}
+
+<!-- function to submit form-->
+{% block scripts %}
+$('#submit_form').click(function(event) {
+    event.preventDefault();
+    $("#fade").show();
+    $("#loader").show();
+    $("#parsform").submit();
+});
+{% endblock %}
+
+
 {% endblock %}

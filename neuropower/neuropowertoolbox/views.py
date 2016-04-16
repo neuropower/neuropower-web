@@ -164,9 +164,9 @@ def neuropowerinput(request,neurovault_id=None):
         form.save()
         
         if parsdata.spmfile == "":
-            return HttpResponseRedirect('neuropowerviewer')
+            return HttpResponseRedirect('/neuropowerviewer/')
         else:
-            return HttpResponseRedirect('neuropowertable')
+            return HttpResponseRedirect('/neuropowertable/')
 
 
 def neuropowerviewer(request):

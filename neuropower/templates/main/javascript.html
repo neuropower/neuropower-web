@@ -13,15 +13,26 @@ $(document).ready(function() {
 
       // Disable steps that shouldn't yet be visitable
       {% for step,params in steps.items %}
-          console.log("{{params.class}}")
-          console.log("{{params.enabled}}")
 
           {% if params.enabled == "no" %}
               $("#{{ params.class }}").addClass("disabled");   
           {% else %}
               $("#{{ params.class }}").removeClass("disabled");   
           {% endif %}
+
       {% endfor %}
   {% endif %}
+
+  // Peak table takes a while to show
+  $('#peak-table').click(function() {
+     $("#fade").show();
+     $("#loader").show();
+     document.location = "{% url 'neuropowertable' %}"
+  });
+
+  // Add other scripts when document ready
+  {% block scripts %}
+  {% endblock %}
+
 });
 </script>
