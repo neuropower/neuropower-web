@@ -214,15 +214,15 @@
         <p> In this example, when we aim for 80% power with Benjamini-Hochberg error rate control, we'll need a sample size of 19 subjects.</p>
       </div><br>
       <div class="col-md-12">
-        <a href=""><img src='{% static "documentation/StepByStep_6_SampleSize.png" %}' width="100%"/></a>
+        <a href="{% static "documentation/5_power_calculation.png" %}"><img src='{% static "documentation/5_power_calculation.png" %}' width="90%"/></a>
       </div>
 
       <div class="col-md-12">
-        <p>If you have a specific number of subjects and you want to know the power that comes with it, you can specify the sample size field in the form.  In this example, a sample size of 35 subjects with Random Field Theory error rate control results in 84% power.</p>
+        <p>If you have a specific number of subjects and you want to know the power that comes with it, you can specify the sample size field in the form.  In this example, a sample size of 35 subjects with Random Field Theory error rate control results in 96% power.</p>
         <p>If the resulting sample size is larger than 50 (the standard limit of the x-axis), the x-axis will adjust to this limit</p>
       </div><br>
       <div class="col-md-12">
-        <a href=""><img src='{% static "documentation/StepByStep_7_powercalculation.png" %}' width="100%"/></a>
+        <a href="{% static "documentation/5_sample_size.png" %}"><img src='{% static "documentation/5_sample_size.png" %}' width="90%"/></a>
       </div>
 
        <!-- Next and previous buttons -->
@@ -236,13 +236,14 @@
   <div class="panel panel-default hidden" id="step6-content">
     <div class="panel-body">
       <div class="col-md-12">
-        <a href=""><img src='{% static "documentation/StepByStep_8_powertable.png" %}' width="100%"/></a>
-      </div>
-      <div class="col-md-12">
         <p> Finally, this table is the data that is used for the power curves.  You see a overview of all possible sample sizes for the different MCP's and which power these have.</p>
       </div>
-    </div>
-
+      <div class="col-md-12">
+        <a href="{% static "documentation/6_power_table.png" %}"><img src='{% static "documentation/6_power_table.png" %}' width="100%"/></a>
+      </div>
+      <div class="col-md-12">
+      </div>
+    </div><br><br>
        <!-- Next and previous buttons -->
        <a class="btn btn-primary btn-lg step-button" text="Power Analysis" id="previous5" style="float:right">Previous: Power Analysis</a>
 
