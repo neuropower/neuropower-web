@@ -31,14 +31,17 @@
 
   <!-- Title Box -->
   <div class="col-md-8" style="padding-bottom:30px">
-    <h1 style="align-text:center;padding-top:150px; float:right" id="step_title">Getting Started</h1>
+    <h1 style="align-text:center;padding-top:140px; float:right" id="step_title">Getting Started</h1>
   </div>
-
-
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <a class="btn btn-primary btn" style="border-radius:30px;float:right;position:relative; top:-20px" id="save_pdf"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a>
+        <div id="editor"></div>
+    </div>
 </div>
 
-
-<div class="row">
+<div class="row" id="pdf-content">
 
   <div class="panel panel-default" id="step0-content">
     <div class="panel-body">
@@ -174,7 +177,7 @@
 
         <hr>
         <h3>2. Estimate &pi;<sub>1</sub></h3>
-        <p><b>Background:</b> We want to estimate the weights of the null and the alternative distribution.  This translates to the percentage of the peaks that are located in brain regions that show task-related activity.  To estimate &pi;<sub>1</sub>, we use the method of <a href="http://www.ncbi.nlm.nih.gov/pubmed/12835267" target="_blank">Pound and Morris (2003)</a>.  We look at the distribution of uncorrected p-values (light blue histogram on figure).  We assume that this distribution is a mixture of two different distributions:
+        <p><b>Background:</b> We want to estimate the weights of the null and the alternative distribution.  This translates to the percentage of the peaks that are located in brain regions that show task-related activity. To estimate &pi;<sub>1</sub>, we use the method of <a href="http://www.ncbi.nlm.nih.gov/pubmed/12835267" target="_blank">Pound and Morris (2003)</a>.  We look at the distribution of uncorrected p-values (light blue histogram on figure).  We assume that this distribution is a mixture of two different distributions:
             <ul>
               <li>Null distribution (green line): The p-values of peaks that are in non-task-activated brain regions follow a uniform distribution by definition of p-values.</li>
               <li>Alternative distribution (red line): We model the p-values of activated peaks as a beta-distribution.  We assume that contrary to the null distribution, the alternative distribution will be a lot higher closer to 0.  This because we assume that the p-values from active peaks are small.  We use the beta-distribution because of its flexibility to model any shape of distributions with values between 0 and 1.</li>
@@ -252,6 +255,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{% static 'js/jspdf.min.js' %}"></script>
 <script>
 $(document).ready(function(){
 
@@ -280,6 +284,38 @@ $(document).ready(function(){
        $("body").scrollTop(0)
     })
 
+    // Save docs to pdf on click
+    $("#save_pdf").click(function(){
+
+        var doc = new jsPDF();
+
+      // We'll make our own renderer to skip this editor
+      var specialElementHandlers = {
+	'#editor': function(element, renderer){
+		return true;
+	}
+      };
+ 
+        // Remove images - are not rendering properly
+        var html = $('#pdf-content').html()
+            .replace(/<img[^>]*>/g,"")
+            .replace(/<button[^>]*>/g,"")
+            .replace(/<hr>/g,"")
+            .replace(/&pi;/g,"pi")      // not currenly working
+            .replace(/&#956;/g,"mu")    // not currenly working
+            .replace(/&#963;/g,"sigma") // not currenly working
+
+        doc.fromHTML(html, 15, 15, {
+	   'width': 170, 
+	   'elementHandlers': specialElementHandlers
+        },
+
+        // Callback function to save
+        function(dispose) {
+           doc.save('neuropower-docs.pdf');
+         });
+
+    });
 
 });
 </script>
