@@ -287,7 +287,11 @@ $(document).ready(function(){
     // Save docs to pdf on click
     $("#save_pdf").click(function(){
 
-        var doc = new jsPDF();
+      $("body").scrollTop(0)
+      $("#fade").show();
+      $("#loader").show();
+
+      var doc = new jsPDF();
 
       // We'll make our own renderer to skip this editor
       var specialElementHandlers = {
@@ -313,6 +317,8 @@ $(document).ready(function(){
         // Callback function to save
         function(dispose) {
            doc.save('neuropower-docs.pdf');
+           $("#fade").hide();
+           $("#loader").hide();
          });
 
     });

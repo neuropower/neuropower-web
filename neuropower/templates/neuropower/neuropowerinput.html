@@ -30,6 +30,7 @@
 <script>
 $('#submit-id-submit').click(function(event) {
     event.preventDefault();
+    $("body").scrollTop(0)
     $("#fade").show();
     $("#loader").show();
     $("#parsform").submit();
