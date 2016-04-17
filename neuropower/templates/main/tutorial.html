@@ -13,31 +13,37 @@
 {% block content %}
 
 <div class="row">
-  <div class="col-md-12" style="padding-bottom:30px">
+
+  <!-- Navigation for user -->
+  <div class="col-md-4" style="padding-bottom:30px">
     <h1>Tutorial</h1>
 
     <ul>
-      <li> <a href="#step0">Important notes before you start</a></li>
-      <li> <a href="#step1">Data input</a></li>
-      <li> <a href="#step2">Viewer</a></li>
-      <li> <a href="#step3">Extract Peaks</a></li>
-      <li> <a href="#step4">Fit Model</a></li>
-      <li> <a href="#step5">Power Analysis</a></li>
-      <li> <a href="#step6">Power table</a></li>
+      <li><a class="step-link" id="#step0">Important notes before you start</a></li>
+      <li><a class="step-link" id="#step1">Data input</a></li>
+      <li><a class="step-link" id="#step2">Viewer</a></li>
+      <li><a class="step-link" id="#step3">Extract Peaks</a></li>
+      <li><a class="step-link" id="#step4">Fit Model</a></li>
+      <li><a class="step-link" id="#step5">Power Analysis</a></li>
+      <li><a class="step-link" id="#step6">Power table</a></li>
     </ul>
-
   </div>
+
+  <!-- Title Box -->
+  <div class="col-md-8" style="padding-bottom:30px">
+    <h1 style="align-text:center;padding-top:150px; float:right" id="step_title">Important notes before you start</h1>
+  </div>
+
+
 </div>
+
+
 <div class="row">
 
-  <a name="step0"></a>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Step 0: Important notes before you start.</h3>
-    </div>
+  <div class="panel panel-default" id="step0-content">
     <div class="panel-body">
       <div class="col-md-12">
-        <h3> Pilot data </h3>
+        <h3> Pilot data</h3>
         <p>This toolbox is based on an unthresholded statistical map from pilot data. There's different sources for pilot data.  Here are some options. </p>
         <ul>
           <li><b>Collecting a pilot dataset.</b> Yes, collecting pilot data is expensive.  Yet it is your best option for a power analysis.</li>
@@ -45,60 +51,76 @@
           <li><b>Previously collected data.</b> You or your colleagues might have data lying around with an experimental setup comparable to your new study.  You can use these data.  And while you're at it, why not share them online?</li>
         </ul>
 
+      <hr>
       <a name="RRP"></a>
-      <h3> Responsible research practices </h3>
-        With too small sample sizes, true effects can be missed, the magnitude of statistically significant effects is exaggerated, and significant findings are not likely to replicate. As such, a power analysis is a crucial step in a powerful and reproducible neuroimaging study.  However, power analyses can be misused for <b>questionable research practices</b>.  Here's what you <b>shouldn't</b> use our toolbox for.
-        <h4> No Data Peeking</h4>
+      <h3>Responsible research practices </h3>
+        With too small sample sizes, true effects can be missed, the magnitude of statistically significant effects is exaggerated, and significant findings are not likely to replicate. As such, a power analysis is a crucial step in a powerful and reproducible neuroimaging study.  However, power analyses can be misused for <b>questionable research practices</b>.  Here's what you <b>shouldn't</b> use our toolbox for.<br><br>
+        <h4>No Data Peeking</h4>
         <p> Imagine you collect 10 subjects and you perform an analysis.  You see two possibilities:</p>
         <ol>
           <li>You find the significant effects you were hypothesising:<br> Woohoo! This means I can stop my experiment, write my paper and publish my findings.</li>
           <li>Not everything you expected is significant, but there is a trend: <br> You decide to add a few more subjects and then look at the data again.  To decide how many more subjects you'll need, you use our toolbox.</li>
-        </ol>
-        <p><b>THAT IS NOT A GOOD USE OF THIS TOOLBOX.</b>  This is a practice referred to as data peeking, or conditional stopping.  You cannot let your decision to stop or continue depend on the statistical inference.  This will inflate your type I error rate.  Tal Yarkoni wrote a detailed explanation about <a href="http://www.talyarkoni.org/blog/2010/05/06/the-capricious-nature-of-p-05-or-why-data-peeking-is-evil/" target="_blank">why data peeking is so bad</a>.</p>
+        </ol><br>
+        <p><strong>THAT IS NOT A GOOD USE OF THIS TOOLBOX.</strong>  This is a practice referred to as data peeking, or conditional stopping.  You cannot let your decision to stop or continue depend on the statistical inference.  This will inflate your type I error rate.  Tal Yarkoni wrote a detailed explanation about <a href="http://www.talyarkoni.org/blog/2010/05/06/the-capricious-nature-of-p-05-or-why-data-peeking-is-evil/" target="_blank">why data peeking is so bad</a>.</p>
         <p>How to prevent this?</p>
         <ul>
           <li> Don't perform statistical inference on your pilot data and don't re-use your data.</li>
           <li> There are ways to correct for the conditional stopping.  However, while this practice protects your false positive rate, it will decrease your overall power  and therefore the reproducibility of your study.  We do not recommend this approach. </li>
-        </ul>
+        </ul><br>
 
         <h4> Do not re-use your pilot data</h4>
-        <p>Even if you don't perform statistical inference on the pilot data, the pilot data should be <b>independent</b> from the final data.</p>
-        <p> Why? Re-using data will still increase your overall type I error rate.  You can find more details in Jeanette Mumford's <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3427872/#__sec3title" target="_blank">guide for power calculations</a>.</p>
-        <p> We are working on a method that will allow you to re-use your data (without inference still!).  We'll present it on <a href="http://www.humanbrainmapping.org/i4a/pages/index.cfm?pageID=3662" target="_blank">OHBM2016</a>.</p>
+        <p>Even if you don't perform statistical inference on the pilot data, the pilot data should be <b>independent</b> from the final data. Why? Re-using data will still increase your overall type I error rate.  You can find more details in Jeanette Mumford's <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3427872/#__sec3title" target="_blank">guide for power calculations</a>. We are working on a method that will allow you to re-use your data (without inference still!).  We'll present it on <a href="http://www.humanbrainmapping.org/i4a/pages/index.cfm?pageID=3662" target="_blank">OHBM2016</a>.</p>
+
+      <hr>
       <h3>Conditional power</h3>
-      <p> It is important to note here that peakwise as well as clusterwise analysis use a <b>screening threshold</b> (also known as the clusterforming threshold or the excursion threshold).  This means that only voxels above this threshold are considered for significance testing.  <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> uses a default screening threshold of p&lt;0.001 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="www.fmrib.ox.ac.uk/fsl" target="_blank">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used).  It is important to know that our measure of power is <b>conditional</b>, which means that our measure of power computes <b>the average chance of detecting an active peak for all peaks above the screening threshold</b>.  All activity below the screening threshold is ignored.  As a consequence, the power estimate cannot be reported independent of the screening threshold. </p>
+      <p> It is important to note here that peakwise as well as clusterwise analysis use a <b>screening threshold</b> (also known as the clusterforming threshold or the excursion threshold).  This means that only voxels above this threshold are considered for significance testing.  <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> uses a default screening threshold of p&lt;0.001 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="www.fmrib.ox.ac.uk/fsl" target="_blank">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used).  It is important to know that our measure of power is <b>conditional</b>, which means that our measure of power computes <b>the average chance of detecting an active peak for all peaks above the screening threshold</b>.  All activity below the screening threshold is ignored.  As a consequence, the power estimate cannot be reported independent of the screening threshold. </p><br><br>
+
+       <a class="btn btn-primary btn-lg step-button" style="float:right" id="next1">Next: Data Input</a>
       </div>
     </div>
   </div>
 
-  <a name="step1"></a>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Step 1: Data input</h3>
-    </div>
+  <div class="panel panel-default hidden" id="step1-content">
     <div class="panel-body">
       <div class="col-md-12">
-        <p>In the first screen, under the tab <button type="button" class="btn btn-secondary btn-xs">Input</button>, you specify (1) where the data is located and (2) some specific details about the data.</p>
+        <h3>Details about your data</h3>
+        <p>In the first screen, under the tab <button type="button" class="btn btn-secondary btn-xs">Input</button>, you specify the following:</p>
         <ul>
-          <li><b>Data Location: </b> In this tutorial, we use data from <a href="http://neurovault.org/images/437/" target="_blank">NeuroVault</a> as an example.  The statistical map is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/" target="_blank">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  Copy the link from the <button type="button" class="btn btn-primary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. </li>
+          <li><b>Data Location:</b> In this tutorial, we use data from <a href="http://neurovault.org/images/437/" target="_blank">NeuroVault</a> as an example.  The statistical map is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/" target="_blank">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  Copy the link from the <button type="button" class="btn btn-primary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. </li>
+          </div>
+
+      <div class="col-md-12">
+          <a href="{% static "documentation/1_data_location.png" %}" target="_blank"><img src='{% static "documentation/1_data_location.png" %}' width="100%"/></a>
+      <hr>
+      </div>
+
+      <div class="col-md-12">
           <li><b>Mask Location: </b> Usually you have already masked your data during your analysis.  However, if you have a more strict mask, or if you're performing a Region-of-Interest analysis, you can add a mask here.</li>
+      </div>
+
+      <div class="col-md-12">
+          <a href="{% static "documentation/1_mask_location.png" %}" target="_blank"><img src='{% static "documentation/1_mask_location.png" %}' width="100%"/></a>
+      </div>
+
+      <div class="col-md-12">
+      <hr>
+
           <li><b>Design specifications: </b> You are asked a number of basic parameters.  If you're using your own data, you probably know these parameters.  If you're using data from a published paper, these parameters should be given in the paper.<br>
         </ul>
       </div>
 
       <div class="col-md-12">
-          <a href="{% static "documentation/StepByStep_1_input.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_1_input.png" %}' width="50%"/></a>
+          <a href="{% static "documentation/1_design_params.png" %}" target="_blank"><img src='{% static "documentation/1_design_params.png" %}' width="100%"/></a>
       </div>
 
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-lg step-button" id="previous0">Previous: Getting Started</a>
+       <a class="btn btn-primary btn-lg step-button" id="next2" style="float:right">Next: Viewer</a>
     </div>
   </div>
 
 
-  <a name="step2"></a>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Step 2: Viewer</h3>
-    </div>
+  <div class="panel panel-default hidden" id="step2-content">
     <div class="panel-body">
       <div class="col-md-12">
         <p>If you have loaded your data through a public link (not uploaded), then you can see in the tab <button type="button" class="btn btn-secondary btn-xs">Viewer</button> a preview of your map using <a href="https://github.com/rii-mango/Papaya" target="_blank">Papaya viewer</a>.</p>
@@ -107,15 +129,14 @@
         <a href="{% static "documentation/StepByStep_2_viewer.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_2_viewer.png" %}' width="100%"/></a>
       </div>
 
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-lg step-button" id="previous1" style="float:right">Previous: Data Input</a>
+       <a class="btn btn-primary btn-lg step-button" id="next3" style="float:right">Next: Extract Peaks</a>
 
     </div>
   </div>
 
-  <a name="step3"></a>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Step 3: Extract Peaks</h3>
-    </div>
+  <div class="panel panel-default hidden" id="step3-content">
     <div class="panel-body">
       <div class="col-md-12">
         Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Peak Table</button> invokes the extraction of the local maxima in the statistical map.  This step, while not of particular interest to the user, is crucial for the power calculations.  Depending on the size of the dataset, this step might take a while.  Once all peaks are extracted, a table is shown with the coordinates, the values and the p-values for each peak.
@@ -123,14 +144,16 @@
       <div class="col-md-12">
         <a href='{% static "documentation/StepByStep_3_peaktable.png" %}' target="_blank"><img src='{% static "documentation/StepByStep_3_peaktable.png" %}' width="100%"/></a>
       </div>
+
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-lg step-button" id="previous2">Previous: Viewer</a>
+       <a class="btn btn-primary btn-lg step-button" id="next4" style="float:right">Next: Fit Model</a>
+
+
     </div>
   </div>
 
-  <a name="step4"></a>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Step 4: Fit Model</h3>
-    </div>
+  <div class="panel panel-default hidden" id="step4-content">
     <div class="panel-body">
 
       <div class="col-md-12">
@@ -162,15 +185,15 @@
         <a href="{% static "documentation/StepByStep_4_modelfit.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_4_modelfit.png" %}' width="100%"/></a>
       </div>
 
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-lg step-button" id="previous3">Previous: Extract peaks</a>
+       <a class="btn btn-primary btn-lg step-button" id="next5" style="float:right">Next: Power Analysis</a>
+
 
     </div>
   </div>
 
-  <a name="step5"></a>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Step 5: Power Analysis</h3>
-    </div>
+  <div class="panel panel-default hidden" id="step5-content">
     <div class="panel-body">
 
       <div class="col-md-12">
@@ -197,15 +220,15 @@
         <a href=""><img src='{% static "documentation/StepByStep_7_powercalculation.png" %}' width="100%"/></a>
       </div>
 
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-lg step-button" id="previous4">Previous: Fit Model</a>
+       <a class="btn btn-primary btn-lg step-button" id="next6" style="float:right">Next: Power Table</a>
+
 
     </div>
   </div>
 
-  <a name="step6"></a>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Step 6: Power Table</h3>
-    </div>
+  <div class="panel panel-default hidden" id="step6-content">
     <div class="panel-body">
       <div class="col-md-12">
         <a href=""><img src='{% static "documentation/StepByStep_8_powertable.png" %}' width="100%"/></a>
@@ -214,6 +237,39 @@
         <p> Finally, this table is the data that is used for the power curves.  You see a overview of all possible sample sizes for the different MCP's and which power these have.</p>
       </div>
     </div>
+
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-lg step-button" id="previous5" style="float:right">Previous: Power Analysis</a>
+
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function(){
+
+   // Take the viewer to the current step, hide all others
+    $(".step-link").click(function(){
+       $("#step_title").text($(this).text())
+       var step_id = $(this).attr("id")
+       $(".panel").addClass("hidden");
+       $(step_id + "-content").removeClass("hidden");
+    })
+
+   //Clicking button at bottom of panel moves to next step
+    $(".step-button").click(function(){
+       var button_id = $(this).attr("id")
+       
+       // Get rid of previous or next to leave the id to go to
+       button_id = button_id.replace("previous","")
+       button_id = button_id.replace("next","")
+       
+       $(".panel").addClass("hidden");
+       $("#step" + button_id + "-content").removeClass("hidden");
+    })
+
+
+});
+</script>
 {% endblock %}
