@@ -19,7 +19,7 @@
     <h1>Tutorial</h1>
 
     <ul>
-      <li><a class="step-link" id="#step0">Important notes before you start</a></li>
+      <li><a class="step-link" id="#step0">Getting Started</a></li>
       <li><a class="step-link" id="#step1">Data input</a></li>
       <li><a class="step-link" id="#step2">Viewer</a></li>
       <li><a class="step-link" id="#step3">Extract Peaks</a></li>
@@ -31,7 +31,7 @@
 
   <!-- Title Box -->
   <div class="col-md-8" style="padding-bottom:30px">
-    <h1 style="align-text:center;padding-top:150px; float:right" id="step_title">Important notes before you start</h1>
+    <h1 style="align-text:center;padding-top:150px; float:right" id="step_title">Getting Started</h1>
   </div>
 
 
@@ -47,7 +47,7 @@
         <p>This toolbox is based on an unthresholded statistical map from pilot data. There's different sources for pilot data.  Here are some options. </p>
         <ul>
           <li><b>Collecting a pilot dataset.</b> Yes, collecting pilot data is expensive.  Yet it is your best option for a power analysis.</li>
-          <li><b>Open data.</b>  If you don't have the resources to collect pilot data, there's a lot of people sharing their data.  <a href="www.neurovault.org" target="_blank">NeuroVault</a> is a good source for statistical maps!  Try to find an experiment with a comparable study design as yours and you have a good proxy for pilot data.</li>
+          <li><b>Open data.</b>  If you don't have the resources to collect pilot data, there's a lot of people sharing their data.  <a href="http://www.neurovault.org" target="_blank">NeuroVault</a> is a good source for statistical maps!  Try to find an experiment with a comparable study design as yours and you have a good proxy for pilot data.</li>
           <li><b>Previously collected data.</b> You or your colleagues might have data lying around with an experimental setup comparable to your new study.  You can use these data.  And while you're at it, why not share them online?</li>
         </ul>
 
@@ -73,9 +73,9 @@
 
       <hr>
       <h3>Conditional power</h3>
-      <p> It is important to note here that peakwise as well as clusterwise analysis use a <b>screening threshold</b> (also known as the clusterforming threshold or the excursion threshold).  This means that only voxels above this threshold are considered for significance testing.  <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> uses a default screening threshold of p&lt;0.001 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="www.fmrib.ox.ac.uk/fsl" target="_blank">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used).  It is important to know that our measure of power is <b>conditional</b>, which means that our measure of power computes <b>the average chance of detecting an active peak for all peaks above the screening threshold</b>.  All activity below the screening threshold is ignored.  As a consequence, the power estimate cannot be reported independent of the screening threshold. </p><br><br>
+      <p> It is important to note here that peakwise as well as clusterwise analysis use a <b>screening threshold</b> (also known as the clusterforming threshold or the excursion threshold).  This means that only voxels above this threshold are considered for significance testing.  <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> uses a default screening threshold of p&lt;0.001 (only voxels with p-values smaller than 0.001 are retained for further analysis).  <a href="http://www.fmrib.ox.ac.uk/fsl" target="_blank">FSL</a> uses a default screening threshold of Z&gt;2.3 (only voxels with z-values higher than 2.3 are used).  It is important to know that our measure of power is <b>conditional</b>, which means that our measure of power computes <b>the average chance of detecting an active peak for all peaks above the screening threshold</b>.  All activity below the screening threshold is ignored.  As a consequence, the power estimate cannot be reported independent of the screening threshold. </p><br><br>
 
-       <a class="btn btn-primary btn-lg step-button" style="float:right" id="next1">Next: Data Input</a>
+       <a class="btn btn-primary btn-lg step-button" text="Data Input" style="float:right" id="next1">Next: Data Input</a>
       </div>
     </div>
   </div>
@@ -114,8 +114,8 @@
       </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" id="previous0">Previous: Getting Started</a>
-       <a class="btn btn-primary btn-lg step-button" id="next2" style="float:right">Next: Viewer</a>
+       <a class="btn btn-primary btn-lg step-button" text="Getting Started" id="previous0">Previous: Getting Started</a>
+       <a class="btn btn-primary btn-lg step-button" text="Viewer" id="next2" style="float:right">Next: Viewer</a>
     </div>
   </div>
 
@@ -126,12 +126,12 @@
         <p>If you have loaded your data through a public link (not uploaded), then you can see in the tab <button type="button" class="btn btn-secondary btn-xs">Viewer</button> a preview of your map using <a href="https://github.com/rii-mango/Papaya" target="_blank">Papaya viewer</a>.</p>
       </div>
       <div class="col-md-12">
-        <a href="{% static "documentation/StepByStep_2_viewer.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_2_viewer.png" %}' width="100%"/></a>
+        <a href="{% static "documentation/2_viewer.png" %}" target="_blank"><img src='{% static "documentation/2_viewer.png" %}' width="80%"/></a>
       </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" id="previous1" style="float:right">Previous: Data Input</a>
-       <a class="btn btn-primary btn-lg step-button" id="next3" style="float:right">Next: Extract Peaks</a>
+       <a class="btn btn-primary btn-lg step-button" text="Data Input" id="previous1">Previous: Data Input</a>
+       <a class="btn btn-primary btn-lg step-button" text="Extract Peaks" id="next3" style="float:right">Next: Extract Peaks</a>
 
     </div>
   </div>
@@ -142,12 +142,12 @@
         Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Peak Table</button> invokes the extraction of the local maxima in the statistical map.  This step, while not of particular interest to the user, is crucial for the power calculations.  Depending on the size of the dataset, this step might take a while.  Once all peaks are extracted, a table is shown with the coordinates, the values and the p-values for each peak.
       </div><br>
       <div class="col-md-12">
-        <a href='{% static "documentation/StepByStep_3_peaktable.png" %}' target="_blank"><img src='{% static "documentation/StepByStep_3_peaktable.png" %}' width="100%"/></a>
+        <a href='{% static "documentation/3_peak_table.png" %}' target="_blank"><img src='{% static "documentation/3_peak_table.png" %}' width="90%"/></a>
       </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" id="previous2">Previous: Viewer</a>
-       <a class="btn btn-primary btn-lg step-button" id="next4" style="float:right">Next: Fit Model</a>
+       <a class="btn btn-primary btn-lg step-button" text="Viewer" id="previous2">Previous: Viewer</a>
+       <a class="btn btn-primary btn-lg step-button" text="Fit Model" id="next4" style="float:right">Next: Fit Model</a>
 
 
     </div>
@@ -155,10 +155,10 @@
 
   <div class="panel panel-default hidden" id="step4-content">
     <div class="panel-body">
-
+ 
       <div class="col-md-12">
         The tab <button type="button" class="btn btn-secondary btn-xs">Model Fit</button>  will show you the result of the fit of the model.  What we are aiming for is finding the alternative distribution of peaks.  How to do this?
-        <h5>1. Estimate the mean and the standard deviation of the alternative distribution (right figure in the screenshot)</h5>
+        <h3>1. Estimate the mean and the standard deviation of the alternative distribution</h3>
         <p><b>Background:</b>  We assume that the total distribution of peaks is a mixture of two different distributions:
           <ul>
             <li>Null distribution (green line): following Random Field Theory <a href="">(Worsley, 2007)</a>, we assume that the distribution follows an exponential distribution with mean u+1/u for screening threshold u.</li>
@@ -168,8 +168,12 @@
         </p>
         <p><b>In this example:</b>  The light blue histogram shows the observed distribution of the peaks.  We see that a lot of the peaks are close to 2.3 (the screening threshold) as is expected for the null peaks.  But you can also see the alternative distribution: a bell shaped distribution with the mean around 4.1.  The estimated null distribution is shown with the green line, the estimated alternative distribution is given by the red line.  The total distribution is the blue line.  	&#948;<sub>1</sub> refers to the standardised mean of the alternative distribution and can be interpreted in units of cohen's D.  In other words, the estimated effect is large in this dataset.</p>
         <p><b>How to evaluate the fit?</b> Our model strives to find a good fit of the (estimated) blue line with the total observed distribution (light blue).  This is a decent match and as such we assume a good estimation of the alternative distribution.</p>
+      <div class="col-md-12">
+        <a href="{% static "documentation/4_right.png" %}" target="_blank"><img src='{% static "documentation/4_right.png" %}' width="50%"/></a>
+      </div>
 
-        <h5>2. Estimate &pi;<sub>1</sub> (left figure in the screenshot)</h5>
+        <hr>
+        <h3>2. Estimate &pi;<sub>1</sub></h3>
         <p><b>Background:</b> We want to estimate the weights of the null and the alternative distribution.  This translates to the percentage of the peaks that are located in brain regions that show task-related activity.  To estimate &pi;<sub>1</sub>, we use the method of <a href="http://www.ncbi.nlm.nih.gov/pubmed/12835267" target="_blank">Pound and Morris (2003)</a>.  We look at the distribution of uncorrected p-values (light blue histogram on figure).  We assume that this distribution is a mixture of two different distributions:
             <ul>
               <li>Null distribution (green line): The p-values of peaks that are in non-task-activated brain regions follow a uniform distribution by definition of p-values.</li>
@@ -181,13 +185,14 @@
         The other 52% of the distribution is assumed to be from peaks in task-activated brain regions.  The total distribution as fitted by our model is shown by the red line.<br></p>
         <p><b>How to evaluate the fit?</b> Our model again strives to a good fit of the (estimated) red line with the total observed distribution (light blue).  It is normal that there are some deviations.  For example in this case the green line does not fit the distribution well between 0.8 and 1.  However, in general, the red line fits well the data and therefore we assume a good estimation of &pi;<sub>1</sub>.</p>
       </div>
+
       <div class="col-md-12">
-        <a href="{% static "documentation/StepByStep_4_modelfit.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_4_modelfit.png" %}' width="100%"/></a>
+        <a href="{% static "documentation/4_left.png" %}" target="_blank"><img src='{% static "documentation/4_left.png" %}' width="50%"/></a>
       </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" id="previous3">Previous: Extract peaks</a>
-       <a class="btn btn-primary btn-lg step-button" id="next5" style="float:right">Next: Power Analysis</a>
+       <a class="btn btn-primary btn-lg step-button" text="Extract Peaks" id="previous3">Previous: Extract Peaks</a>
+       <a class="btn btn-primary btn-lg step-button" text="Power Analysis" id="next5" style="float:right">Next: Power Analysis</a>
 
 
     </div>
@@ -201,11 +206,11 @@
       </div><br>
 
       <div class="col-md-12">
-        <a href="{% static "documentation/StepByStep_5_powercurves.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_5_powercurves.png" %}' width="100%"/></a>
+        <a href="{% static "documentation/5_power_prediction.png" %}" target="_blank"><img src='{% static "documentation/5_power_prediction.png" %}' width="90%"/></a>
       </div>
 
       <div class="col-md-12">
-        <p>Should you want a very precise estimate for the sample size for a given value of power, then you can fill out the form.  It is important that you choose the multiple comparison procedure (MCP) that is planned in your final study.  Both <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> and  <a href="www.fmrib.ox.ac.uk/fsl" target="_blank">FSL</a> use Random Field Theory (familywise error rate control), although <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> also give Benjamini-Hochberg (false discovery rate control) results in the default output.</p>
+        <p>Should you want a very precise estimate for the sample size for a given value of power, then you can fill out the form.  It is important that you choose the multiple comparison procedure (MCP) that is planned in your final study.  Both <a href="http://www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> and  <a href="http://www.fmrib.ox.ac.uk/fsl" target="_blank">FSL</a> use Random Field Theory (familywise error rate control), although <a href="http://www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> also give Benjamini-Hochberg (false discovery rate control) results in the default output.</p>
         <p> In this example, when we aim for 80% power with Benjamini-Hochberg error rate control, we'll need a sample size of 19 subjects.</p>
       </div><br>
       <div class="col-md-12">
@@ -221,8 +226,8 @@
       </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" id="previous4">Previous: Fit Model</a>
-       <a class="btn btn-primary btn-lg step-button" id="next6" style="float:right">Next: Power Table</a>
+       <a class="btn btn-primary btn-lg step-button" text="Fit Model" id="previous4">Previous: Fit Model</a>
+       <a class="btn btn-primary btn-lg step-button" text="Power Table" id="next6" style="float:right">Next: Power Table</a>
 
 
     </div>
@@ -239,7 +244,7 @@
     </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" id="previous5" style="float:right">Previous: Power Analysis</a>
+       <a class="btn btn-primary btn-lg step-button" text="Power Analysis" id="previous5" style="float:right">Previous: Power Analysis</a>
 
   </div>
 </div>
@@ -255,7 +260,9 @@ $(document).ready(function(){
        var step_id = $(this).attr("id")
        $(".panel").addClass("hidden");
        $(step_id + "-content").removeClass("hidden");
-    })
+    
+       $("body").scrollTop(0)
+   })
 
    //Clicking button at bottom of panel moves to next step
     $(".step-button").click(function(){
@@ -264,9 +271,12 @@ $(document).ready(function(){
        // Get rid of previous or next to leave the id to go to
        button_id = button_id.replace("previous","")
        button_id = button_id.replace("next","")
+       $("#step_title").text($(this).attr("text"))
        
        $(".panel").addClass("hidden");
        $("#step" + button_id + "-content").removeClass("hidden");
+
+       $("body").scrollTop(0)
     })
 
 

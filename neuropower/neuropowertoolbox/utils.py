@@ -51,4 +51,3 @@ def get_session_id(request):
         request.session.create()
     sid = request.session.session_key
     return(sid)
-

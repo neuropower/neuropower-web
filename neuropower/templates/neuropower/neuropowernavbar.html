@@ -7,5 +7,12 @@
         <a class="btn btn-default" id="fit" href="{% url 'neuropowermodel' %}">Model Fit</a>
         <a class="btn btn-default" id="power-calculation" href="{% url 'neuropowersamplesize' %}">Power Calculation</li></a>
         <a class="btn btn-default" id="power-table" href="{% url 'neuropowercrosstab' %}">Power Table</a>
+
+        <!-- If viewer has just ended session, disable button -->
+        {% if message %}
+        <a class="btn btn-danger disabled" href="{% url 'end_session' %}">RESET</a>
+        {% else %}
+        <a class="btn btn-danger" href="{% url 'end_session' %}">RESET</a>
+        {% endif %}
     </div>
 </div>

@@ -13,7 +13,9 @@
 
 {% block content %}
 <div class="row">
-  <br>
+  {% if message %}
+  <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
+  {% endif %}
   <div class="col-md-12">
     <form id="parsform" method='POST' action='.' enctype="multipart/form-data">
       {% csrf_token %}

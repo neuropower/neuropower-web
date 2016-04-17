@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^FAQ/$',views.FAQ,name='FAQ'),
     url(r'^tutorial/$',views.tutorial,name='tutorial'),
     url(r'^methods/$',views.methods,name='methods'),
+    url(r'^end/$',views.end_session,name='end_session'),
     url(r'^neuropowerstart/$',views.neuropowerstart,name='neuropowerstart'),
     url(r'^neuropowerinput/$',views.neuropowerinput,name='neuropowerinput'),
     url(r'^neuropowerinput/(?P<neurovault_id>\w+)/$',views.neuropowerinput,name='neuropowerinput'),

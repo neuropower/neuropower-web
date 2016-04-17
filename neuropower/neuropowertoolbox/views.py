@@ -39,21 +39,33 @@ def tutorial(request):
 def methods(request):
     return render(request,"main/methods.html",{})
 
+### SESSION CONTROL
+
+def end_session(request):
+    '''ends a session so the user can start a new one.'''
+    try:
+        sid = request.session.session_key
+        del request.session[sid]
+    except KeyError:
+        pass
+    return neuropowerinput(request,end_session=True)
 
 ### NEUROPOWER TEMPLATE PAGES ##########################################
 
 def neuropowerstart(request):
     '''step 1: start'''
 
+   
     # Get the template/step status
     template = "neuropower/neuropowerstart.html"
     steps = get_neuropower_steps(template)
 
     context = {"steps":steps}
+
     return render(request,template,context)
 
 
-def neuropowerinput(request,neurovault_id=None):
+def neuropowerinput(request,neurovault_id=None,end_session=False):
     '''step 2: input'''
 
     # Create the session id for the user
@@ -70,6 +82,10 @@ def neuropowerinput(request,neurovault_id=None):
 
     neurovault_id = request.GET.get('neurovault','')
     context = {"steps":steps}
+
+    # If the user has ended their session, give message
+    if end_session == True:
+        context["message"] = "Session has been successfully reset."
 
     if neurovault_id:
         neurovault_image = get_url("http://neurovault.org/api/images/%s/?format=json" %(neurovault_id))
