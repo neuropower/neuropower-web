@@ -26,6 +26,9 @@
     <br>
   {{ plothtml | safe }}
   </div>
+  <div class="col-md-12">
+    <a class="btn btn-primary btn" onclick="save_svg()" style="float:right;margin-right:100px">save svg</a>
+  </div>
 </div>
 
 <!-- Message to user about power-->
@@ -34,3 +37,19 @@
 {% endif %}
 
 {% endblock %}
+
+{% block scripts %}
+<script>
+function save_svg(evt) {
+    var svg = document.getElementsByTagName("svg");
+    var serializer = new XMLSerializer();
+    var svg_blob = new Blob([serializer.serializeToString(svg[0])],
+                            {'type': "image/svg+xml"});
+    var link = document.createElement("a");
+    link.download = "neuropower.svg";
+    link.href = URL.createObjectURL(svg_blob);
+    link.click();
+}
+</script>
+{% endblock %}
+
