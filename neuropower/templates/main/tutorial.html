@@ -77,19 +77,19 @@
       <h3 class="panel-title">Step 1: Data input</h3>
     </div>
     <div class="panel-body">
-      <div class="col-md-5">
-          <img src='{% static "documentation/StepByStep_1_input.png" %}' width="100%"/>
-      </div>
-      <div class="col-md-7">
+      <div class="col-md-12">
         <p>In the first screen, under the tab <button type="button" class="btn btn-secondary btn-xs">Input</button>, you specify (1) where the data is located and (2) some specific details about the data.</p>
         <ul>
           <li><b>Data Location: </b> In this tutorial, we use data from <a href="http://neurovault.org/images/437/" target="_blank">NeuroVault</a> as an example.  The statistical map is a contrast between reading plain and reversed text.  The data is from <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4033195/" target="_blank">a paper by Jimura, Cazalis, Stover and Poldrack (2014)</a>.  Copy the link from the <button type="button" class="btn btn-primary btn-xs">Download</button> button in NeuroVault and paste it in the <button type="button" class="btn btn-secondary btn-xs">URL</button> field in the form. <br> If you want to use your own dataset, you can browse and upload a dataset. </li>
           <li><b>Mask Location: </b> Usually you have already masked your data during your analysis.  However, if you have a more strict mask, or if you're performing a Region-of-Interest analysis, you can add a mask here.</li>
           <li><b>Design specifications: </b> You are asked a number of basic parameters.  If you're using your own data, you probably know these parameters.  If you're using data from a published paper, these parameters should be given in the paper.<br>
-
-
         </ul>
       </div>
+
+      <div class="col-md-12">
+          <a href="{% static "documentation/StepByStep_1_input.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_1_input.png" %}' width="50%"/></a>
+      </div>
+
     </div>
   </div>
 
@@ -100,12 +100,14 @@
       <h3 class="panel-title">Step 2: Viewer</h3>
     </div>
     <div class="panel-body">
-      <div class="col-md-5">
-        <img src='{% static "documentation/StepByStep_2_viewer.png" %}' width="100%"/>
-      </div>
-      <div class="col-md-7">
+      <div class="col-md-12">
         <p>If you have loaded your data through a public link (not uploaded), then you can see in the tab <button type="button" class="btn btn-secondary btn-xs">Viewer</button> a preview of your map using <a href="https://github.com/rii-mango/Papaya" target="_blank">Papaya viewer</a>.</p>
       </div>
+      <div class="col-md-12">
+        <a href="{% static "documentation/StepByStep_2_viewer.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_2_viewer.png" %}' width="100%"/></a>
+      </div>
+
+
     </div>
   </div>
 
@@ -115,15 +117,14 @@
       <h3 class="panel-title">Step 3: Extract Peaks</h3>
     </div>
     <div class="panel-body">
-      <div class="col-md-5">
-        <a href=""><img src='{% static "documentation/StepByStep_3_peaktable.png" %}' width="100%"/></a>
-      </div>
-      <div class="col-md-7">
+      <div class="col-md-12">
         Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Peak Table</button> invokes the extraction of the local maxima in the statistical map.  This step, while not of particular interest to the user, is crucial for the power calculations.  Depending on the size of the dataset, this step might take a while.  Once all peaks are extracted, a table is shown with the coordinates, the values and the p-values for each peak.
+      </div><br>
+      <div class="col-md-12">
+        <a href='{% static "documentation/StepByStep_3_peaktable.png" %}' target="_blank"><img src='{% static "documentation/StepByStep_3_peaktable.png" %}' width="100%"/></a>
       </div>
     </div>
   </div>
-
 
   <a name="step4"></a>
   <div class="panel panel-default">
@@ -131,10 +132,8 @@
       <h3 class="panel-title">Step 4: Fit Model</h3>
     </div>
     <div class="panel-body">
-      <div class="col-xs-5">
-        <a href=""><img src='{% static "documentation/StepByStep_4_modelfit.png" %}' width="100%"/></a>
-      </div>
-      <div class="col-md-7">
+
+      <div class="col-md-12">
         The tab <button type="button" class="btn btn-secondary btn-xs">Model Fit</button>  will show you the result of the fit of the model.  What we are aiming for is finding the alternative distribution of peaks.  How to do this?
         <h5>1. Estimate the mean and the standard deviation of the alternative distribution (right figure in the screenshot)</h5>
         <p><b>Background:</b>  We assume that the total distribution of peaks is a mixture of two different distributions:
@@ -159,6 +158,11 @@
         The other 52% of the distribution is assumed to be from peaks in task-activated brain regions.  The total distribution as fitted by our model is shown by the red line.<br></p>
         <p><b>How to evaluate the fit?</b> Our model again strives to a good fit of the (estimated) red line with the total observed distribution (light blue).  It is normal that there are some deviations.  For example in this case the green line does not fit the distribution well between 0.8 and 1.  However, in general, the red line fits well the data and therefore we assume a good estimation of &pi;<sub>1</sub>.</p>
       </div>
+      <div class="col-md-12">
+        <a href="{% static "documentation/StepByStep_4_modelfit.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_4_modelfit.png" %}' width="100%"/></a>
+      </div>
+
+
     </div>
   </div>
 
@@ -168,18 +172,32 @@
       <h3 class="panel-title">Step 5: Power Analysis</h3>
     </div>
     <div class="panel-body">
-      <div class="col-md-5">
-        <a href=""><img src='{% static "documentation/StepByStep_5_powercurves.png" %}' width="100%"/></a>
+
+      <div class="col-md-12">
+        <p>Once the model is fitted and you don't see large errors in the model fit, it is time for the power analysis.  Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Power Calculation</button> will show you power curves.  When you hover over the lines, you can see exact estimates of power for certain sample sizes.</p>
+      </div><br>
+
+      <div class="col-md-12">
+        <a href="{% static "documentation/StepByStep_5_powercurves.png" %}" target="_blank"><img src='{% static "documentation/StepByStep_5_powercurves.png" %}' width="100%"/></a>
+      </div>
+
+      <div class="col-md-12">
+        <p>Should you want a very precise estimate for the sample size for a given value of power, then you can fill out the form.  It is important that you choose the multiple comparison procedure (MCP) that is planned in your final study.  Both <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> and  <a href="www.fmrib.ox.ac.uk/fsl" target="_blank">FSL</a> use Random Field Theory (familywise error rate control), although <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> also give Benjamini-Hochberg (false discovery rate control) results in the default output.</p>
+        <p> In this example, when we aim for 80% power with Benjamini-Hochberg error rate control, we'll need a sample size of 19 subjects.</p>
+      </div><br>
+      <div class="col-md-12">
         <a href=""><img src='{% static "documentation/StepByStep_6_SampleSize.png" %}' width="100%"/></a>
+      </div>
+
+      <div class="col-md-12">
+        <p>If you have a specific number of subjects and you want to know the power that comes with it, you can specify the sample size field in the form.  In this example, a sample size of 35 subjects with Random Field Theory error rate control results in 84% power.</p>
+        <p>If the resulting sample size is larger than 50 (the standard limit of the x-axis), the x-axis will adjust to this limit</p>
+      </div><br>
+      <div class="col-md-12">
         <a href=""><img src='{% static "documentation/StepByStep_7_powercalculation.png" %}' width="100%"/></a>
       </div>
-      <div class="col-md-7">
-        <p><b>First screenshot: </b>Once the model is fitted and you don't see large errors in the model fit, it is time for the power analysis.  Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Power Calculation</button> will show you power curves.  When you hover over the lines, you can see exact estimates of power for certain sample sizes.</p>
-        <p><b>Second screenshot: </b>Should you want a very precise estimate for the sample size for a given value of power, then you can fill out the form.  It is important that you choose the multiple comparison procedure (MCP) that is planned in your final study.  Both <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> and  <a href="www.fmrib.ox.ac.uk/fsl" target="_blank">FSL</a> use Random Field Theory (familywise error rate control), although <a href="www.fil.ion.ucl.ac.uk/spm" target="_blank">SPM</a> also give Benjamini-Hochberg (false discovery rate control) results in the default output.</p>
-        <p> In this example, when we aim for 80% power with Benjamini-Hochberg error rate control, we'll need a sample size of 19 subjects.</p>
-        <p><b>Third screenshot: </b>If you have a specific number of subjects and you want to know the power that comes with it, you can specify the sample size field in the form.  In this example, a sample size of 35 subjects with Random Field Theory error rate control results in 84% power.</p>
-        <p>If the resulting sample size is larger than 50 (the standard limit of the x-axis), the x-axis will adjust to this limit</p>
-      </div>
+
+
     </div>
   </div>
 
@@ -189,10 +207,10 @@
       <h3 class="panel-title">Step 6: Power Table</h3>
     </div>
     <div class="panel-body">
-      <div class="col-md-5">
+      <div class="col-md-12">
         <a href=""><img src='{% static "documentation/StepByStep_8_powertable.png" %}' width="100%"/></a>
       </div>
-      <div class="col-md-7">
+      <div class="col-md-12">
         <p> Finally, this table is the data that is used for the power curves.  You see a overview of all possible sample sizes for the different MCP's and which power these have.</p>
       </div>
     </div>
