@@ -1,0 +1,23 @@
+{% extends 'main/base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  Tutorial | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{% include 'main/navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <br>
+  <br>
+  <div class="col-xs-1"></div>
+  <div class="col-xs-10">
+    <p> By the time the application is shared, I hope the manuscript of the technical paper will be (at least) on bioRchiv.  This will be a pdf-viewer with the paper.</p>
+  </div>
+  <div class="col-xs-1"></div>
+</div>
+{% endblock %}

@@ -16,8 +16,6 @@ Including another URLconf
 from django.conf.urls import url,include
 from django.contrib import admin
 from neuropowertoolbox import views, plots
-#from django.contrib.staticfiles.urls import staticfiles.urlpatterns
-#urlpatterns += staticfile_urlpatterns()
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -25,13 +23,13 @@ urlpatterns = [
     url(r'^FAQ/$',views.FAQ,name='FAQ'),
     url(r'^tutorial/$',views.tutorial,name='tutorial'),
     url(r'^methods/$',views.methods,name='methods'),
+    url(r'^end/$',views.end_session,name='end_session'),
     url(r'^neuropowerstart/$',views.neuropowerstart,name='neuropowerstart'),
     url(r'^neuropowerinput/$',views.neuropowerinput,name='neuropowerinput'),
-    url(r'^neuropowerinput/(?P<neurovaultID>\w+)/$',views.neuropowerinput,name='neuropowerinput'),
+    url(r'^neuropowerinput/(?P<neurovault_id>\w+)/$',views.neuropowerinput,name='neuropowerinput'),
     url(r'^neuropowerviewer/$',views.neuropowerviewer,name='neuropowerviewer'),
     url(r'^neuropowertable/$',views.neuropowertable,name='neuropowertable'),
     url(r'^neuropowermodel/$',views.neuropowermodel,name='neuropowermodel'),
     url(r'^neuropowermodel/result.png$', plots.plotModel,name='plotmodel'),
     url(r'^neuropowersamplesize/$',views.neuropowersamplesize,name='neuropowersamplesize'),
-    url(r'^neuropowercrosstab/$',views.neuropowercrosstab,name='neuropowercrosstab'),
-    ]
+    url(r'^neuropowercrosstab/$',views.neuropowercrosstab,name='neuropowercrosstab')]

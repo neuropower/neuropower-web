@@ -1,0 +1,65 @@
+{% extends 'main/base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  NeuroPower | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{% include 'main/navbar.html' %}
+{% include 'neuropower/neuropowernavbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-xs-12">
+    <h2> Welcome ! </h1>
+      <p> If this is the first time you use this toolbox, please go over the <a href="../tutorial">tutorial</a> explaining you some key components about the analysis.  The toolbox is a great way to improve the power and consequently reproducibility of your research.  However, please read the information about <a href="../tutorial/#RRP">responsible research practices</a> to make sure you are doing it right.</p>
+      <h3 style="color:black"> Overview of the different steps </h3>
+  </div>
+  
+
+  <!-- Information about steps, colored by step -->
+  <div class="row">
+
+      <!-- Pilot Data -->
+      <div class="col-md-2 step-info" style="background-color:#EF4036;margin-left:3%">
+        <h4>Pilot Data</h4>
+        <p><strong><span style="color:black">Before using this toolbox</span></strong> for power calculations, you need a pilot dataset. There are some important rules about what you can and cannot do with these data. Read the instructions carefully to make sure you don't harm the false positive rate of your study.</p>
+      </div>
+
+      <!-- Specify the data -->
+      <div class="col-md-2 step-info" style="background-color:#F7941E">
+      <h4>1. Specify the data</h4>
+      <p>In the tab <strong><span style="color:black">input</span></strong> you'll need to specify some parameters about the data and the experiment conducted. You can either upload data or link to an existing dataset.</p>
+      </div>
+
+      <!-- Look at the data -->
+      <div class="col-md-2 step-info" style="background-color:#F0CE00">
+      <h4>2. Look at the data</h4>
+      <p>In the tab <strong><span style="color:black">viewer</span></strong> you'll be able to see your dataset (if you have linked to your data). This allows you to confirm that we've obtained the right data.</p>
+      </div>
+
+      <!-- Extract Peaks -->
+      <div class="col-md-2 step-info" style="background-color:#D7DF21">
+      <h4>3. Extract Peaks</h4>
+      <p>Our power calculations are based on the local maxima in the data. When you go to the <strong><span style="color:black">peak table</span></strong> tab, the toolbox will extract the local maxima of your map and show you a table. Please allow a minute or two for this step to complete.</p>
+      </div>
+
+      <!-- Compute Model -->
+      <div class="col-md-2 step-info" style="background-color:#0BA14B">
+      <h4>4. Compute Model</h4>
+      <p>The key step of this toolbox is the estimation of the alternative distribution. In the tab <strong><span style="color:black">model fit</span></strong>, you can visually inspect the fit of the model.</p>
+      </div>
+
+      <!-- Power Analysis -->
+      <div class="col-md-2 step-info" style="background-color:#25AAE1">
+      <h4>5. Power Analysis</h4>
+      <p>In the tab <strong><span style="color:black">power analysis</span></strong> you can see the power curves for your data, and you can specify your sample size and desired power. In the tab <strong><span style="color:black">power table</span></strong> you'll then find a table with sample sizes and power.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

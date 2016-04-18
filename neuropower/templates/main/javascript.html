@@ -1,0 +1,34 @@
+{% load staticfiles %}
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/viewport-bug-workaround.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+  $(".dropdown-toggle").dropdown();  
+  // Is defined for neuropower step pages
+  {% if steps %}
+       $("#{{ steps.active.class }}").css("background-color","{{ steps.active.color }}");
+       $("#{{ steps.active.class }}").css("border-color","{{ steps.active.color }}");
+
+      // Disable steps that shouldn't yet be visitable
+      {% for step,params in steps.items %}
+
+          {% if params.enabled == "no" %}
+              $("#{{ params.class }}").addClass("disabled");   
+          {% else %}
+              $("#{{ params.class }}").removeClass("disabled");   
+          {% endif %}
+
+      {% endfor %}
+  {% endif %}
+
+  // Peak table takes a while to show
+  $('#peak-table').click(function() {
+     $("#fade").show();
+     $("#loader").show();
+     document.location = "{% url 'neuropowertable' %}"
+  });
+
+});
+</script>

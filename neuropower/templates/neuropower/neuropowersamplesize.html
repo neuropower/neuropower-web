@@ -1,0 +1,55 @@
+{% extends 'main/base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  NeuroPower | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{%include 'main/navbar.html' %}
+{%include 'neuropower/neuropowernavbar.html' %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-sm-4">
+    <form method='POST' action='.'>
+      {% csrf_token %}
+      {% crispy powerinputform %}
+    </form>
+  </div>
+  <div class="col-sm-8">
+    <h4>{{ texttop }}</h4>
+    <br>
+    <br>
+  {{ plothtml | safe }}
+  </div>
+  <div class="col-md-12">
+    <a class="btn btn-primary btn" onclick="save_svg()" style="float:right;margin-right:100px">save svg</a>
+  </div>
+</div>
+
+<!-- Message to user about power-->
+{% if textbottom %}
+<div class="alert alert-info alert-dismissible" role="alert">{{ textbottom }}</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function save_svg(evt) {
+    var svg = document.getElementsByTagName("svg");
+    var serializer = new XMLSerializer();
+    var svg_blob = new Blob([serializer.serializeToString(svg[0])],
+                            {'type': "image/svg+xml"});
+    var link = document.createElement("a");
+    link.download = "neuropower.svg";
+    link.href = URL.createObjectURL(svg_blob);
+    link.click();
+}
+</script>
+{% endblock %}
+
