@@ -12,7 +12,7 @@ RUN apt-get update
 RUN apt-get install -y build-essential
 RUN apt-get install -y libglib2.0-0
 RUN apt-get install -y libfreetype6-dev libxft-dev
-RUN pip install -U matplotlib
+RUN pip --no-cache-dir install -U matplotlib
 RUN pip install -U uwsgi
 RUN pip install -U Jinja2
 RUN pip install -U sklearn
