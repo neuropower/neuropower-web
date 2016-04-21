@@ -30,6 +30,7 @@ mpld3==0.2
 nibabel==2.0.2
 nilearn==0.2.2
 numpy==1.10.4
+opbeat==3.3
 palettable==2.1.1
 pandas==0.17.1
 pathspec==0.3.3
