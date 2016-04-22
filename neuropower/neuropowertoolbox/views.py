@@ -50,12 +50,12 @@ def end_session(request):
         pass
     return neuropowerinput(request,end_session=True)
 
-### NEUROPOWER TEMPLATE PAGES ##########################################
+### NEUROPOWER TEMPLATE PAGES 
 
 def neuropowerstart(request):
     '''step 1: start'''
 
-   
+
     # Get the template/step status
     template = "neuropower/neuropowerstart.html"
     steps = get_neuropower_steps(template)
@@ -107,7 +107,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         return render(request,template,context)
 
     if not request.method=="POST" or not parsform.is_valid():
-        context["parsform"] = parsform 
+        context["parsform"] = parsform
         return render(request,template,context)
 
     else:
@@ -172,7 +172,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
                 nib.save(SPM_nib,parsdata.location)
                 form.nvox = np.sum(mask)
         form.save()
-        
+
         if parsdata.spmfile == "":
             return HttpResponseRedirect('/neuropowerviewer/')
         else:
@@ -240,9 +240,9 @@ def neuropowertable(request):
             form = peakform.save(commit=False)
             form.SID = sid
             form.data = peaks
-            form.save()            
+            form.save()
             context["peaks"] = peaks.to_html(classes=["table table-striped"])
-    
+
     return render(request,template,context)
 
 def neuropowermodel(request):
@@ -255,7 +255,7 @@ def neuropowermodel(request):
 
     if not ParameterModel.objects.filter(SID=sid):
         # We should not be able to get to this step
-        context["text"] = "No data found. Go to 'Input' and fill out the form."                   
+        context["text"] = "No data found. Go to 'Input' and fill out the form."
         return render(request,template,context)
     else:
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
@@ -329,7 +329,7 @@ def neuropowersamplesize(request):
                 plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
                 plothtml = plotpower['code']
                 context["textbottom"] = plotpower['text']
-    
+
     context["texttop"] = texttop
     context["plothtml"] = plothtml
     context["powerinputform"] = powerinputform
@@ -348,11 +348,11 @@ def neuropowercrosstab(request):
 
     if not MixtureModel.objects.filter(SID=sid):
         context["text"] = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
-        
+
 
     if not ParameterModel.objects.filter(SID=sid):
         context["text"] = "No data found. Go to 'Input' and fill out the form."
-        
+
     else:
         powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
         powertable = powerdata.data[['newsamplesize','RFT','BF','BH','UN']].round(decimals=2)
