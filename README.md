@@ -1,5 +1,5 @@
 # neuropower
 
-sample size calculations for fMRI
+This repository contains the code for the web interface for neuropower.
 
 ![neuropower](img/neuropower.png)
