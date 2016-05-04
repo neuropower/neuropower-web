@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import url,include
 from django.contrib import admin
 from neuropowertoolbox import views, plots
+import django.views.defaults
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -32,4 +33,6 @@ urlpatterns = [
     url(r'^neuropowermodel/$',views.neuropowermodel,name='neuropowermodel'),
     url(r'^neuropowermodel/result.png$', plots.plotModel,name='plotmodel'),
     url(r'^neuropowersamplesize/$',views.neuropowersamplesize,name='neuropowersamplesize'),
-    url(r'^neuropowercrosstab/$',views.neuropowercrosstab,name='neuropowercrosstab')]
+    url(r'^neuropowercrosstab/$',views.neuropowercrosstab,name='neuropowercrosstab'),
+    url(r'^404/$', django.views.defaults.page_not_found, )
+    ]
