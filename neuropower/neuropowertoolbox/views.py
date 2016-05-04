@@ -50,7 +50,7 @@ def end_session(request):
         pass
     return neuropowerinput(request,end_session=True)
 
-### NEUROPOWER TEMPLATE PAGES 
+### NEUROPOWER TEMPLATE PAGES
 
 def neuropowerstart(request):
     '''step 1: start'''
@@ -98,7 +98,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
                                  err = "",
                                  initial = {"url":neurovault_image["file"],
                                             "ZorT":"T" if neurovault_image["map_type"] =="T map" else "Z",
-                                            "Subj":neurovault_collection["number_of_subjects"]})
+                                            "Subj":neurovault_image["number_of_subjects"]})
         context["parsform"] = parsform
 
         # fields = ['url','spmfile','maskfile','ZorT','Exc','Subj','Samples',
