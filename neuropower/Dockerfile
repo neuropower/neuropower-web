@@ -1,5 +1,48 @@
-FROM continuumio/miniconda
-ENV PYTHONUNBUFFERED 1
+FROM oesteban/crn_base
+
+# System packages
+RUN apt-get update && apt-get install -y curl
+
+# Install FSL
+RUN curl -sSL http://neuro.debian.net/lists/vivid.de-m.full | tee /etc/apt/sources.list.d/neurodebian.sources.list && \
+    curl -sSL http://neuro.debian.net/lists/vivid.us-tn.full >> /etc/apt/sources.list.d/neurodebian.sources.list && \
+    apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9 && \
+    apt-get update && \
+    apt-get install -y fsl-5.0-core fsl-core && \
+    echo 'source /etc/fsl/fsl.sh' >> /root/.bashrc
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get install -y gfortran \
+                       liblapack-dev \
+                       libblas-dev \
+                       libatlas-dev \
+                       libatlas-base-dev \
+                       libblas3 \
+                       libblas-common \
+                       libopenblas-dev \
+                       libxml2-dev \
+                       libxslt1-dev \
+                       libfreetype6-dev \
+                       libpng12-dev \
+                       libqhull-dev \
+                       libxft-dev \
+                       libjpeg-dev \
+                       libyaml-dev
+
+# Clear apt cache to reduce image size
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /root
+
+# Install miniconda
+RUN curl -sSLO https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh && \
+    /bin/bash Miniconda-latest-Linux-x86_64.sh -b -p /usr/local/miniconda2 && \
+    rm Miniconda-latest-Linux-x86_64.sh && \
+    echo '#!/bin/bash' >> /etc/profile.d/anaconda.sh && \
+    echo 'export PATH=/usr/local/miniconda2/bin:$PATH' >> /etc/profile.d/anaconda.sh
+
+ENV PATH /usr/local/miniconda2/bin:$PATH
 
 RUN mkdir /code
 WORKDIR /code
