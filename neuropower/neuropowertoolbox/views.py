@@ -57,8 +57,9 @@ def neuropowerstart(request):
 
 
     # Get the template/step status
+    sid = get_session_id(request)
     template = "neuropower/neuropowerstart.html"
-    steps = get_neuropower_steps(template)
+    steps = get_neuropower_steps(template,sid)
 
     context = {"steps":steps}
 
