@@ -10,7 +10,7 @@ class ParameterForm(forms.ModelForm):
     class Meta:
         model = ParameterModel
         fields = ['url','spmfile','maskfile','ZorT','Exc','Subj','Samples',
-                  'alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
+                  'alpha','SmoothEst','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
 
     def __init__(self,*args,**kwargs):
         self.default_url = kwargs.pop('default_url')
@@ -28,18 +28,27 @@ class ParameterForm(forms.ModelForm):
         self.fields['Subj'].label = "How many subjects does the group map represent?"
         self.fields['Samples'].label = "Is this a one-sample or a two-sample test?"
         self.fields['alpha'].label = "At which alpha-level are the statistical tests carried out?"
+        self.fields['SmoothEst'].label = "Do you want to manually specify the smoothness or estimate from the data?"
+        self.fields['SmoothEst'].widget = forms.RadioSelect()
+
         self.fields['Smoothx'].label = ""
         self.fields['Smoothx'].widget = forms.TextInput(attrs={'placeholder':'x'})
+        self.fields['Smoothx'].required = False
         self.fields['Smoothy'].label = ""
         self.fields['Smoothy'].widget = forms.TextInput(attrs={'placeholder':'y'})
+        self.fields['Smoothy'].required = False
         self.fields['Smoothz'].label = ""
         self.fields['Smoothz'].widget = forms.TextInput(attrs={'placeholder':'z'})
+        self.fields['Smoothz'].required = False
         self.fields['Voxx'].label = ""
         self.fields['Voxx'].widget = forms.TextInput(attrs={'placeholder':'x'})
+        self.fields['Voxx'].required = False
         self.fields['Voxy'].label = ""
         self.fields['Voxy'].widget = forms.TextInput(attrs={'placeholder':'y'})
+        self.fields['Voxy'].required = False
         self.fields['Voxz'].label = ""
         self.fields['Voxz'].widget = forms.TextInput(attrs={'placeholder':'z'})
+        self.fields['Voxz'].required = False
 
     def clean(self):
         cleaned_data = super(ParameterForm,self).clean()
@@ -49,7 +58,13 @@ class ParameterForm(forms.ModelForm):
         exc = cleaned_data.get('Exc')
         subj = cleaned_data.get("Subj")
         alpha = cleaned_data.get("alpha")
+        smoothest = cleaned_data.get("SmoothEst")
 
+        if smoothest == 2:
+            for field_name in ['Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']:
+                if field_name in self.errors:
+                    del self.errors[field_name]
+        
         if self.err == "dim":
             raise forms.ValidationError("The selected statistical map and mask do not have the same dimensions.")
 
@@ -94,20 +109,26 @@ class ParameterForm(forms.ModelForm):
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'
     helper.label_class = 'col-lg-12'
-    helper.layout = Layout(Fieldset('Data location',
-                           HTML("""<h6 style="margin-left: 15px">Either paste a link to the online nifti-file <b>OR</b> upload your statistical map.</h6>"""),
-                           'url',
-                           #HTML("""<h4 style="margin-left: 15px">OR</h4>"""),
-                           'spmfile'),
-                           HTML("""<br><br>"""),
-                           Fieldset('Mask location (optional)',
-                           HTML("""<h6 style="margin-left: 15px">Upload a full brain mask or a Region-of-Interest mask.  If no mask is selected, all non-null voxels are used.</h6>"""),
-                           'maskfile'),
-                           HTML("""<br><br>"""),
-                           Fieldset('Design specifications',
-                                    'ZorT','Exc','Subj','Samples','alpha'),
-                           HTML("""<p style="margin-left: 15px"><b> \n What is the smoothness of the data in mm? </b></p>"""),
-            Div(
+    helper.layout = Layout(
+        Fieldset(
+            'Data location',
+            HTML("""<h6 style="margin-left: 15px">Either paste a link to the online nifti-file <b>OR</b> upload your statistical map.</h6>"""),
+            'url',
+            'spmfile'
+            ),
+        HTML("""<br><br>"""),
+        Fieldset(
+            'Mask location (optional)',
+            HTML("""<h6 style="margin-left: 15px">Upload a full brain mask or a Region-of-Interest mask.  If no mask is selected, all non-null voxels are used.</h6>"""),
+            'maskfile'
+            ),
+        HTML("""<br><br>"""),
+        Fieldset(
+            'Design specifications',
+            'ZorT','Exc','Subj','Samples','alpha','SmoothEst'
+            ),
+       HTML("""<p style="margin-left: 15px"><b> \n What is the smoothness of the data in mm? </b></p>"""),
+       Div(
             Div(Field('Smoothx'), css_class='col-xs-4'),
             Div(Field('Smoothy'), css_class='col-xs-4'),
             Div(Field('Smoothz'), css_class='col-xs-4'),

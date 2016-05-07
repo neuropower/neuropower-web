@@ -27,12 +27,14 @@ class ParameterModel(models.Model):
     Subj = models.IntegerField()
     alpha = models.DecimalField(max_digits=5,decimal_places=4,default=0.05)
     Samples = models.IntegerField(choices=Samples_c)
-    Smoothx = models.DecimalField(max_digits=5,decimal_places=2)
-    Smoothy = models.DecimalField(max_digits=5,decimal_places=2)
-    Smoothz = models.DecimalField(max_digits=5,decimal_places=2)
-    Voxx = models.DecimalField(max_digits=5,decimal_places=2)
-    Voxy = models.DecimalField(max_digits=5,decimal_places=2)
-    Voxz = models.DecimalField(max_digits=5,decimal_places=2)
+    SmoothEst_c = ((1,"Manual"),(2,"Estimate"))
+    SmoothEst = models.IntegerField(choices=SmoothEst_c,default=1)
+    Smoothx = models.DecimalField(max_digits=5,decimal_places=2,null=True)
+    Smoothy = models.DecimalField(max_digits=5,decimal_places=2,null=True)
+    Smoothz = models.DecimalField(max_digits=5,decimal_places=2,null=True)
+    Voxx = models.DecimalField(max_digits=5,decimal_places=2,null=True)
+    Voxy = models.DecimalField(max_digits=5,decimal_places=2,null=True)
+    Voxz = models.DecimalField(max_digits=5,decimal_places=2,null=True)
     def __unicode__(self): # Python 3: __str__
         return self
 
