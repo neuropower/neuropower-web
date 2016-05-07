@@ -1,5 +1,6 @@
 #import tempfile
 import os
+os.environ['http_proxy']=''
 import urllib
 from django.conf import settings
 
