@@ -30,9 +30,6 @@ RUN apt-get update && \
                        libjpeg-dev \
                        libyaml-dev
 
-# Clear apt cache to reduce image size
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 WORKDIR /root
 
 # Install miniconda
@@ -59,5 +56,8 @@ RUN pip --no-cache-dir install -U matplotlib
 RUN pip install -U uwsgi
 RUN pip install -U Jinja2
 RUN pip install -U sklearn
+
+# Clear apt cache to reduce image size
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 3031
