@@ -1,3 +1,6 @@
+import matplotlib as mpl
+mpl.use('Agg')
+
 from neuropowertoolbox.models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from palettable.colorbrewer.qualitative import Paired_12,Set1_9
@@ -5,16 +8,13 @@ from neuropower.utils import BUM, cluster, peakdistribution
 from django.http import HttpResponse, HttpResponseRedirect
 from neuropower.utils import neuropowermodels as npm
 from neuropowertoolbox.utils import get_session_id
-import matplotlib.pyplot as plt
 from mpld3 import plugins
-import matplotlib as mpl
 import pandas as pd
 import numpy as np
-mpl.use('Agg')
+import matplotlib.pyplot as plt
 import jinja2
 import scipy
 import mpld3
-
 
 def plotModel(request):
     plt.switch_backend('agg')
