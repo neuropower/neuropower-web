@@ -16,6 +16,7 @@ class ParameterModel(models.Model):
     url = models.URLField(default="")
     location = models.CharField(max_length=300,default="")
     spmfile = models.FileField(upload_to='maps',default="")
+    masklocation = models.CharField(max_length=300,default="")
     maskfile = models.FileField(upload_to='maps',default="")
     nvox = models.CharField(max_length=300,default="")
     ZorT_c = (("Z","Z"),("T","T"))
