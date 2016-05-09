@@ -4,6 +4,7 @@ from neuropowertoolbox.models import PeakTableModel, ParameterModel, MixtureMode
 from neuropower.utils import BUM, cluster, neuropowermodels,peakdistribution, utils
 from neuropowertoolbox.utils import get_url, get_neuropower_steps, get_session_id
 from django.http import HttpResponse, HttpResponseRedirect
+import matplotlib
 from neuropowertoolbox.plots import plotPower
 from django.forms import model_to_dict
 from django.shortcuts import render
@@ -101,10 +102,6 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
                                             "ZorT":"T" if neurovault_image["map_type"] =="T map" else "Z",
                                             "Subj":neurovault_image["number_of_subjects"]})
         context["parsform"] = parsform
-
-        # fields = ['url','spmfile','maskfile','ZorT','Exc','Subj','Samples',
-        #           'alpha','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
-
         return render(request,template,context)
 
     if not request.method=="POST" or not parsform.is_valid():
@@ -153,6 +150,8 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         if parsdata.maskfile == "":
             mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
             nvox = np.sum(mask.get_data())
+            masklocation = os.path.join(settings.MEDIA_ROOT,"maps/mask_"+mapID+".nii.gz")
+            nib.save(mask,masklocation)
             form.nvox = nvox
         else:
             maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
@@ -172,6 +171,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
                 SPM_nib = nib.Nifti1Image(SPM_masked,np.eye(4))
                 nib.save(SPM_nib,parsdata.location)
                 form.nvox = np.sum(mask)
+        form.masklocation = masklocation
         form.save()
 
         if parsdata.spmfile == "":
@@ -302,7 +302,20 @@ def neuropowersamplesize(request):
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
         mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
         peaks = peakdata.data
-        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=8,nvox=float(parsdata.nvox),alpha=0.05,exc=float(parsdata.ExcZ))
+
+        # smoothness
+        if parsdata.SmoothEst==1:
+            #Manual
+            FWHM = np.array([parsdata.Smoothx,parsdata.Smoothy,parsdata.Smoothz])
+            voxsize = np.array([parsdata.Voxx,parsdata.Voxy,parsdata.Voxz])
+        elif parsdata.SmoothEst==2:
+            # Estimate from data
+            cmd_smooth = "smoothest -V -z "+parsdata.location+" -m "+parsdata.masklocation
+            tmp = os.popen(cmd_smooth).read()
+            FWHM = np.array([float(x[8:15]) for x in tmp.split("\n")[16].split(",")])
+            voxsize=np.array([1,1,1])
+        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=0.05,exc=float(parsdata.ExcZ))
+        print(thresholds)
         effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
         power_predicted = []
         newsubs = range(parsdata.Subj,301)
