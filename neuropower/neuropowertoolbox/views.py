@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
+import sys
+sys.path = sys.path[1:]
 from neuropowertoolbox.forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
 from neuropowertoolbox.models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
-from neuropower.utils import BUM, cluster, neuropowermodels,peakdistribution, utils
-from neuropowertoolbox.utils import get_url, get_neuropower_steps, get_session_id
+from neuropowertoolbox.utils import get_url, get_neuropower_steps, get_session_id, create_temporary_copy
+from neuropower import cluster, BUM, neuropowermodels, peakdistribution
 from django.http import HttpResponse, HttpResponseRedirect
-import matplotlib
 from neuropowertoolbox.plots import plotPower
 from django.forms import model_to_dict
 from django.shortcuts import render
@@ -22,7 +23,6 @@ import shutil
 import json
 import uuid
 import os
-
 
 temp_dir = tempfile.gettempdir()
 
@@ -113,8 +113,6 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         form.SID = sid
         mapID = "%s_%s" %(str(sid),str(uuid.uuid4()))
         form.mapID = mapID
-        peaktable = os.path.join(settings.MEDIA_ROOT,"peaktables","peaks_%s.csv" %(mapID))
-        form.peaktable = peaktable
         form.save()
 
         # handle data: copy to temporary location
@@ -123,10 +121,10 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         form.mapID = mapID
         if not parsdata.url == "":
             url = parsform.cleaned_data['url']
-            location = utils.create_temporary_copy(url,mapID,mask=False,url=True)
+            location = create_temporary_copy(url,mapID,mask=False,url=True)
         elif not parsdata.spmfile == "":
             spmfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.spmfile))
-            location = utils.create_temporary_copy(spmfile,mapID,mask=False, url=False)
+            location = create_temporary_copy(spmfile,mapID,mask=False, url=False)
         form.location = location
         form.save()
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
@@ -155,7 +153,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
             form.nvox = nvox
         else:
             maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
-            masklocation = utils.create_temporary_copy(maskfile,mapID,mask=True,url=False)
+            masklocation = create_temporary_copy(maskfile,mapID,mask=True,url=False)
             mask = nib.load(masklocation).get_data()
 
             # return error when dimensions are different
@@ -229,8 +227,7 @@ def neuropowertable(request):
         SPM = nib.load(parsdata.location).get_data()
         if parsdata.ZorT == 'T':
             SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-        cluster.cluster(SPM,parsdata.ExcZ,parsdata.peaktable)
-        peaks = pd.read_csv(parsdata.peaktable,sep="\t")
+        peaks = cluster.cluster(SPM,parsdata.ExcZ)
         if len(peaks) < 30:
             context["text"] = "There are too few peaks for a good estimation.  Either the ROI is too small or the screening threshold is too high."
         else:
@@ -321,7 +318,7 @@ def neuropowersamplesize(request):
         newsubs = range(parsdata.Subj,301)
         for s in newsubs:
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
-            powerpred =  {k:1-neuropowermodels.altCDF(v,projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items()}
+            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items()}
             power_predicted.append(powerpred)
         powertable = pd.DataFrame(power_predicted)
         powertable['newsamplesize']=newsubs

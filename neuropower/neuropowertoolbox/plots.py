@@ -1,12 +1,13 @@
 import matplotlib as mpl
 mpl.use('Agg')
+import sys
+sys.path.insert(0,"/usr/local/miniconda2/envs/crnenv/lib/python2.7/site-packages")
 
 from neuropowertoolbox.models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from palettable.colorbrewer.qualitative import Paired_12,Set1_9
-from neuropower.utils import BUM, cluster, peakdistribution
 from django.http import HttpResponse, HttpResponseRedirect
-from neuropower.utils import neuropowermodels as npm
+from neuropower import *
 from neuropowertoolbox.utils import get_session_id
 from mpld3 import plugins
 import pandas as pd
@@ -25,9 +26,9 @@ def plotModel(request):
     peaks = peakdata.data
     twocol = Paired_12.mpl_colors
     xn = np.arange(-10,30,0.01)
-    nul = [1-float(mixdata.pi1)]*npm.nulPDF(xn,exc=float(parsdata.ExcZ),method="RFT")
-    alt = float(mixdata.pi1)*npm.altPDF(xn,mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
-    mix = npm.mixprobdens(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=2,method="RFT")
+    nul = [1-float(mixdata.pi1)]*neuropowermodels.nulPDF(xn,exc=float(parsdata.ExcZ),method="RFT")
+    alt = float(mixdata.pi1)*neuropowermodels.altPDF(xn,mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
+    mix = neuropowermodels.mixPDF(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=2,method="RFT")
     xn_p = np.arange(0,1,0.01)
     alt_p = [1-float(mixdata.pi1)]*scipy.stats.beta.pdf(xn_p, float(mixdata.a), 1)+1-float(mixdata.pi1)
     null_p = [1-float(mixdata.pi1)]*len(xn_p)
