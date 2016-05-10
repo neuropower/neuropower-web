@@ -288,13 +288,13 @@ def neuropowersamplesize(request):
     powerinputform = PowerForm(request.POST or None)
 
     if not ParameterModel.objects.filter(SID=sid):
-        texttop = "No data found. Go to 'Input' and fill out the form."
+        context['texttop'] = "No data found. Go to 'Input' and fill out the form."
 
     elif not MixtureModel.objects.filter(SID=sid):
-        texttop = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
+        context['texttop'] = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
 
     else:
-        texttop = "Hover over the lines to see detailed power predictions"
+        context['texttop'] = "Hover over the lines to see detailed power predictions"
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
         mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
@@ -320,6 +320,9 @@ def neuropowersamplesize(request):
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
             powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
             power_predicted.append(powerpred)
+        missing = [k for k,v in thresholds.items() if v == 'nan']
+        if len(missing) > 0:
+            context['MCPwarning']="There is not enough power to estimate a threshold for "+" and ".join(missing)+"."
         powertable = pd.DataFrame(power_predicted)
         powertable['newsamplesize']=newsubs
         powertableform = PowerTableForm()
@@ -327,8 +330,8 @@ def neuropowersamplesize(request):
         savepowertableform.SID = sid
         savepowertableform.data = powertable
         savepowertableform.save()
-        powerinputform = PowerForm(request.POST or None)
-        plothtml = plotPower(sid)['code']
+        context['powerinputform'] = PowerForm(request.POST or None)
+        context['plothtml'] = plotPower(sid)['code']
         if request.method == "POST":
             if powerinputform.is_valid():
                 savepowerinputform = powerinputform.save(commit=False)
@@ -338,12 +341,8 @@ def neuropowersamplesize(request):
                 pow = float(powerinputdata.reqPow)
                 ss = powerinputdata.reqSS
                 plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
-                plothtml = plotpower['code']
+                context['plothtml'] = plotpower['code']
                 context["textbottom"] = plotpower['text']
-
-    context["texttop"] = texttop
-    context["plothtml"] = plothtml
-    context["powerinputform"] = powerinputform
 
     return render(request,template,context)
 
