@@ -318,7 +318,7 @@ def neuropowersamplesize(request):
         newsubs = range(parsdata.Subj,301)
         for s in newsubs:
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
-            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items()}
+            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
             power_predicted.append(powerpred)
         powertable = pd.DataFrame(power_predicted)
         powertable['newsamplesize']=newsubs
@@ -366,8 +366,13 @@ def neuropowercrosstab(request):
 
     else:
         powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
-        powertable = powerdata.data[['newsamplesize','RFT','BF','BH','UN']].round(decimals=2)
-        powertable.columns=['Sample Size','Random Field Theory','Bonferroni','Benjamini-Hochberg','Uncorrected']
+        names = powerdata.data.columns.tolist()[:-1]
+        names.insert(0,'newsamplesize')
+        powertable = powerdata.data[names].round(decimals=2)
+        repldict = {'BF':'Bonferroni','BH':'Benjamini-Hochberg','UN':'Uncorrected','RFT':'Random Field Theory','newsamplesize':'Samplesize'}
+        for word, initial in repldict.items():
+            names=[i.replace(word,initial) for i in names]
+        powertable.columns=names
         context["power"] = powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])
 
     return render(request,template,context)
