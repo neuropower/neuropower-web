@@ -318,7 +318,7 @@ def neuropowersamplesize(request):
         newsubs = range(parsdata.Subj,301)
         for s in newsubs:
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
-            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT") for k,v in thresholds.items()}
+            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items()}
             power_predicted.append(powerpred)
         powertable = pd.DataFrame(power_predicted)
         powertable['newsamplesize']=newsubs
