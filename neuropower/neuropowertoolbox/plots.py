@@ -1,8 +1,5 @@
 import matplotlib as mpl
 mpl.use('Agg')
-import sys
-sys.path.insert(0,"/usr/local/miniconda2/envs/crnenv/lib/python2.7/site-packages")
-
 from neuropowertoolbox.models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from palettable.colorbrewer.qualitative import Paired_12,Set1_9
@@ -28,7 +25,7 @@ def plotModel(request):
     xn = np.arange(-10,30,0.01)
     nul = [1-float(mixdata.pi1)]*neuropowermodels.nulPDF(xn,exc=float(parsdata.ExcZ),method="RFT")
     alt = float(mixdata.pi1)*neuropowermodels.altPDF(xn,mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
-    mix = neuropowermodels.mixPDF(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=2,method="RFT")
+    mix = neuropowermodels.mixPDF(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
     xn_p = np.arange(0,1,0.01)
     alt_p = [1-float(mixdata.pi1)]*scipy.stats.beta.pdf(xn_p, float(mixdata.a), 1)+1-float(mixdata.pi1)
     null_p = [1-float(mixdata.pi1)]*len(xn_p)
