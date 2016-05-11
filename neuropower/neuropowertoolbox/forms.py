@@ -28,7 +28,7 @@ class ParameterForm(forms.ModelForm):
         self.fields['Subj'].label = "How many subjects does the group map represent?"
         self.fields['Samples'].label = "Is this a one-sample or a two-sample test?"
         self.fields['alpha'].label = "At which alpha-level are the statistical tests carried out?"
-        self.fields['SmoothEst'].label = "Do you want to manually specify the smoothness or estimate from the data?"
+        self.fields['SmoothEst'].label = "Do you want to manually specify the smoothness or estimate from the data? <br> Note though that estimating smoothness on statistical maps leads to <a href='http://www.fil.ion.ucl.ac.uk/spm/doc/papers/sjk_robust.pdf'>biases</a>.  It is preferable to manually specify the data."
         self.fields['SmoothEst'].widget = forms.RadioSelect()
 
         self.fields['Smoothx'].label = ""
