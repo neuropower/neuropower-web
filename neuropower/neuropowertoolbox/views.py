@@ -119,6 +119,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         mapID = "%s_%s" %(str(sid),str(uuid.uuid4()))
         form.mapID = mapID
+        print("we get here")
         if not parsdata.url == "":
             url = parsform.cleaned_data['url']
             location = create_temporary_copy(url,mapID,mask=False,url=True)
@@ -155,7 +156,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
             maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
             masklocation = create_temporary_copy(maskfile,mapID,mask=True,url=False)
             mask = nib.load(masklocation).get_data()
-
+#
             # return error when dimensions are different
             if SPM.get_data().shape != mask.shape:
                 parsform = ParameterForm(request.POST or None,
@@ -165,9 +166,6 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
                 context["parsform"] = parsform
                 return render(request,template,context)
             else:
-                SPM_masked = np.multiply(SPM.get_data(),mask)
-                SPM_nib = nib.Nifti1Image(SPM_masked,np.eye(4))
-                nib.save(SPM_nib,parsdata.location)
                 form.nvox = np.sum(mask)
         form.masklocation = masklocation
         form.save()
@@ -225,9 +223,10 @@ def neuropowertable(request):
         sid = request.session.session_key #why are we getting session id again?
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         SPM = nib.load(parsdata.location).get_data()
+        MASK = nib.load(parsdata.masklocation).get_data()
         if parsdata.ZorT == 'T':
             SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-        peaks = cluster.cluster(SPM,parsdata.ExcZ)
+        peaks = cluster.cluster(SPM,parsdata.ExcZ,MASK)
         if len(peaks) < 30:
             context["text"] = "There are too few peaks for a good estimation.  Either the ROI is too small or the screening threshold is too high."
         else:

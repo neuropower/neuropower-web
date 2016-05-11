@@ -64,7 +64,7 @@ class ParameterForm(forms.ModelForm):
             for field_name in ['Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']:
                 if field_name in self.errors:
                     del self.errors[field_name]
-        
+
         if self.err == "dim":
             raise forms.ValidationError("The selected statistical map and mask do not have the same dimensions.")
 
