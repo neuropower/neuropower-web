@@ -19,8 +19,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY =  "@sc_pxiu+hjyf+kdex&*0n@d#@^xnvgma10=)*14innt#boy72"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -154,14 +152,14 @@ STATICFILES_DIRS = [
 MEDIA_URL="/media/"
 MEDIA_ROOT=os.path.join(BASE_DIR,"media")
 
+# Bogus secret key.
+try:
+    from secrets import *
+except ImportError:
+    from bogus_secrets import *
+
 ## App specific settings
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
-
-OPBEAT={
-    'ORGANIZATION_ID': 'ef1586e347da4af78b3303a65e2025a6',
-    'APP_ID': '9abbe5d7a5',
-    'SECRET_TOKEN': 'e39574b61ae2cdc7d5a40eb3f28dd028e4ed2a62',
-}
 
 LOGGING = {
     'version': 1,
