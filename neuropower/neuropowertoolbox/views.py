@@ -334,7 +334,7 @@ def neuropowersamplesize(request):
         savepowertableform.SID = sid
         savepowertableform.data = powertable
         savepowertableform.save()
-        context['powerinputform'] = PowerForm(request.POST or None)
+        powerinputform = PowerForm(request.POST or None)
         context['plothtml'] = plotPower(sid)['code']
         if request.method == "POST":
             if powerinputform.is_valid():
@@ -347,7 +347,7 @@ def neuropowersamplesize(request):
                 plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
                 context['plothtml'] = plotpower['code']
                 context["textbottom"] = plotpower['text']
-
+    context["powerinputform"] = powerinputform
     return render(request,template,context)
 
 def neuropowercrosstab(request):
