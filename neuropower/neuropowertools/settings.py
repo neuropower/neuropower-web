@@ -156,7 +156,6 @@ MEDIA_ROOT=os.path.join(BASE_DIR,"media")
 
 ## App specific settings
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
-FILE_UPLOAD_TEMP_DIR = os.path.join(BASE_DIR,"tmp")
 
 OPBEAT={
     'ORGANIZATION_ID': 'ef1586e347da4af78b3303a65e2025a6',
