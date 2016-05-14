@@ -96,7 +96,6 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
 
         if not (neurovault_image['map_type'] == 'Z map' or neurovault_image['map_type'] == 'T map' or neurovault_image['analysis_level']==None):
             context["message"] = "Power analyses can only be performed on Z or T maps."
-        print(neurovault_image['analysis_level'])
         if not (neurovault_image['analysis_level'] == 'group' or neurovault_image['analysis_level']==None):
             context["message"] = "Power analyses can only be performed on group statistical maps."
 
@@ -316,7 +315,6 @@ def neuropowersamplesize(request):
             FWHM = np.array([float(x[8:15]) for x in tmp.split("\n")[16].split(",")])
             voxsize=np.array([1,1,1])
         thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=0.05,exc=float(parsdata.ExcZ))
-        print(thresholds)
         effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
         power_predicted = []
         newsubs = range(parsdata.Subj,301)
