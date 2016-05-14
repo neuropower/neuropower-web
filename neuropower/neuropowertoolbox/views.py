@@ -94,9 +94,10 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         collection_id = str(neurovault_image['collection_id'])
         neurovault_collection = get_url("http://neurovault.org/api/collections/%s/?format=json" %(collection_id))
 
-        if not neurovault_image['map_type'] == 'Z map' or not neurovault_image['map_type'] == 'Z map':
+        if not (neurovault_image['map_type'] == 'Z map' or neurovault_image['map_type'] == 'T map' or neurovault_image['analysis_level']==None):
             context["message"] = "Power analyses can only be performed on Z or T maps."
-        if not neurovault_image['analysis_level'] == 'group':
+        print(neurovault_image['analysis_level'])
+        if not (neurovault_image['analysis_level'] == 'group' or neurovault_image['analysis_level']==None):
             context["message"] = "Power analyses can only be performed on group statistical maps."
 
         parsform = ParameterForm(request.POST or None,
@@ -124,7 +125,6 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         mapID = "%s_%s" %(str(sid),str(uuid.uuid4()))
         form.mapID = mapID
-        print("we get here")
         if not parsdata.url == "":
             url = parsform.cleaned_data['url']
             location = create_temporary_copy(url,mapID,mask=False,url=True)
