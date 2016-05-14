@@ -5,6 +5,7 @@ import numpy as np
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
 import nibabel
+import os
 #import tempfile
 
 #temp_dir = tempfile.gettempdir()
