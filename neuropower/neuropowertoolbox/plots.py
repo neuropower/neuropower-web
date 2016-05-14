@@ -81,7 +81,7 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     hover_BF = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['BF'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'BF' in powtab.columns]
     hover_BH = [pd.DataFrame(['Benjamini-Hochberg','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['BH'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'BH' in powtab.columns]
     hover_RFT = [pd.DataFrame(['Random Field Theory','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['RFT'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'RFT' in powtab.columns]
-    hover_UN = [pd.DataFrame(['Uncorrected','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['UN'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'BUN' in powtab.columns]
+    hover_UN = [pd.DataFrame(['Uncorrected','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['UN'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'UN' in powtab.columns]
 
     fig,axs=plt.subplots(1,1,figsize=(8,5))
     fig.patch.set_facecolor('None')
