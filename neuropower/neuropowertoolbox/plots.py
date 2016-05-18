@@ -107,6 +107,7 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     if pow != 0:
         if all(powtab[MCP]<pow):
             text = "To obtain a statistical power of "+str(pow)+" this study would require a sample size larger than 600 subjects."
+            amax = max(powtab.newsamplesize)
         else:
             min = int(np.min([i for i,elem in enumerate(powtab[MCP]>pow,1) if elem])+sub-1)
             axs.plot([min,min],[0,powtab[MCP][min-sub]],color=cols[MCP])
