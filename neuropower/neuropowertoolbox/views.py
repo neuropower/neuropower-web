@@ -366,11 +366,14 @@ def neuropowercrosstab(request):
     powerinputform = PowerForm(request.POST or None)
 
     if not MixtureModel.objects.filter(SID=sid):
-        context["text"] = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
+        context["text"] = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit' to initiate and inspect the fit of the mixture model to the distribution."
 
 
     if not ParameterModel.objects.filter(SID=sid):
         context["text"] = "No data found. Go to 'Input' and fill out the form."
+
+    if not PowerTableModel.objects.filter(SID=sid)[::-1][0]:
+        context["text"] = "Power table not found.  Go to 'Power Calculation' tab first."
 
     else:
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
