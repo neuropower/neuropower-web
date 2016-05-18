@@ -45,8 +45,7 @@ def methods(request):
 def end_session(request):
     '''ends a session so the user can start a new one.'''
     try:
-        sid = request.session.session_key
-        del request.session[sid]
+        request.session.flush()
     except KeyError:
         pass
     return neuropowerinput(request,end_session=True)
@@ -56,9 +55,9 @@ def end_session(request):
 def neuropowerstart(request):
     '''step 1: start'''
 
-
     # Get the template/step status
     sid = get_session_id(request)
+    print(sid)
     template = "neuropower/neuropowerstart.html"
     steps = get_neuropower_steps(template,sid)
 
@@ -91,6 +90,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
 
     if neurovault_id:
         neurovault_image = get_url("http://neurovault.org/api/images/%s/?format=json" %(neurovault_id))
+        request.session.flush()
         collection_id = str(neurovault_image['collection_id'])
         neurovault_collection = get_url("http://neurovault.org/api/collections/%s/?format=json" %(collection_id))
 
@@ -321,10 +321,10 @@ def neuropowersamplesize(request):
             tmp = os.popen(cmd_smooth).read()
             FWHM = np.array([float(x[8:15]) for x in tmp.split("\n")[16].split(",")])
             voxsize=np.array([1,1,1])
-        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=0.05,exc=float(parsdata.ExcZ))
+        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=float(parsdata.alpha),exc=float(parsdata.ExcZ))
         effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
         power_predicted = []
-        newsubs = range(parsdata.Subj,301)
+        newsubs = range(parsdata.Subj,parsdata.Subj+600)
         for s in newsubs:
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
             powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
