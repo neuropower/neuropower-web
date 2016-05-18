@@ -90,7 +90,6 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
 
     if neurovault_id:
         neurovault_image = get_url("http://neurovault.org/api/images/%s/?format=json" %(neurovault_id))
-        request.session.flush()
         collection_id = str(neurovault_image['collection_id'])
         neurovault_collection = get_url("http://neurovault.org/api/collections/%s/?format=json" %(collection_id))
 
