@@ -61,9 +61,9 @@ class ParameterForm(forms.ModelForm):
         smoothest = cleaned_data.get("SmoothEst")
 
         if smoothest == 2:
-            for field_name in ['Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']:
-                if field_name in self.errors:
-                    del self.errors[field_name]
+            pass
+        else:
+            raise forms.ValidationError('Either provide values for smoothness and voxelsize or estimate smoothness from the data.')
 
         if self.err == "dim":
             raise forms.ValidationError("The selected statistical map and mask do not have the same dimensions.")
@@ -104,6 +104,8 @@ class ParameterForm(forms.ModelForm):
 
         if alpha > 0.20:
             raise forms.ValidationError("Are you sure about that alpha level? Your tests have a high chance of producing false positives.")
+
+        return cleaned_data
 
     helper = FormHelper()
     helper.form_method = 'POST'
