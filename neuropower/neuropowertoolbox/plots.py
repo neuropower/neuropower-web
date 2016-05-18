@@ -121,14 +121,17 @@ def plotPower(sid,MCP='',pow=0,ss=0):
             text = "To obtain a statistical power of %s this study would require a sample size of %s subjects." %(pow,min)
             amax = max(min,amax)
     if ss != 0:
-        ss_pow = powtab[MCP][ss]
-        axs.plot([ss,ss],[0,ss_pow],color=cols[MCP],linestyle="--")
-        axs.plot([sub,ss],[ss_pow,ss_pow],color=cols[MCP],linestyle="--")
-        xticks = [x for x in list(np.arange((np.ceil(sub/10.))*10,100,10)) if not x == np.round(ss/10.)*10]
-        axs.set_xticks(xticks+[ss])
-        axs.set_yticks(list(np.arange(0,1.1,0.1)))
-        text = "A sample size of %s subjects with %s control comes with a power of %s." %(ss,MCP,str(np.round(ss_pow,decimals=2)))
-        amax = max(ss,amax)
+        if powtab[MCP] == 'BH' and not 'BH' in powtab.columns:
+            text = "There is not enough power to estimate a threshold for FDR control."
+        else:
+            ss_pow = powtab[MCP][ss]
+            axs.plot([ss,ss],[0,ss_pow],color=cols[MCP],linestyle="--")
+            axs.plot([sub,ss],[ss_pow,ss_pow],color=cols[MCP],linestyle="--")
+            xticks = [x for x in list(np.arange((np.ceil(sub/10.))*10,100,10)) if not x == np.round(ss/10.)*10]
+            axs.set_xticks(xticks+[ss])
+            axs.set_yticks(list(np.arange(0,1.1,0.1)))
+            text = "A sample size of %s subjects with %s control comes with a power of %s." %(ss,MCP,str(np.round(ss_pow,decimals=2)))
+            amax = max(ss,amax)
     axs.set_ylim([0,1])
     axs.set_xlim([sub,amax])
     axs.set_title("Power curves")
