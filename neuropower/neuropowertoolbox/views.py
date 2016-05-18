@@ -225,24 +225,25 @@ def neuropowertable(request):
 
     else:
         sid = request.session.session_key #why are we getting session id again?
+        peakform = PeakTableForm()
+        form = peakform.save(commit=False)
+        form.SID = sid
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         SPM = nib.load(parsdata.location).get_data()
         MASK = nib.load(parsdata.masklocation).get_data()
         if parsdata.ZorT == 'T':
             SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-        peaks = cluster.cluster(SPM,parsdata.ExcZ,MASK)
+        peaks = cluster.cluster(SPM,float(parsdata.ExcZ),MASK)
         if len(peaks) < 30:
             context["text"] = "There are too few peaks for a good estimation.  Either the ROI is too small or the screening threshold is too high."
+            form.err = context["text"]
         else:
             pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
             pvalues = [max(10**(-6),p) for p in pvalues]
             peaks['pval'] = pvalues
-            peakform = PeakTableForm()
-            form = peakform.save(commit=False)
-            form.SID = sid
             form.data = peaks
-            form.save()
             context["peaks"] = peaks.to_html(classes=["table table-striped"])
+        form.save()
 
     return render(request,template,context)
 
@@ -261,6 +262,9 @@ def neuropowermodel(request):
     else:
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
+        if not peakdata.err == "":
+            context["text"] = peakdata.err
+            return render(request,template,context)
         peaks = peakdata.data
         bum = BUM.bumOptim(peaks.pval.tolist(),starts=10) # :)
 
@@ -300,6 +304,9 @@ def neuropowersamplesize(request):
         context['texttop'] = "Hover over the lines to see detailed power predictions"
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
+        if not peakdata.err == "":
+            context["text"] = peakdata.err
+            return render(request,template,context)
         mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
         peaks = peakdata.data
 
@@ -366,6 +373,10 @@ def neuropowercrosstab(request):
         context["text"] = "No data found. Go to 'Input' and fill out the form."
 
     else:
+        peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
+        if not peakdata.err == "":
+            context["text"] = peakdata.err
+            return render(request,template,context)
         powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
         names = powerdata.data.columns.tolist()[:-1]
         names.insert(0,'newsamplesize')
