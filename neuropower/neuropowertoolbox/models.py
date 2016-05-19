@@ -1,10 +1,6 @@
 from __future__ import unicode_literals
 from django.db import models
 from picklefield.fields import PickledObjectField
-import numpy as np
-from django.contrib.sessions.backends.db import SessionStore
-from django.contrib.sessions.models import Session
-import nibabel
 import os
 from django.conf import settings
 

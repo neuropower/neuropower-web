@@ -4,23 +4,17 @@ sys.path = sys.path[1:]
 from neuropowertoolbox.forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
 from neuropowertoolbox.models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
 from neuropowertoolbox.utils import get_url, get_neuropower_steps, get_session_id, create_temporary_copy
-from neuropower import cluster, BUM, neuropowermodels, peakdistribution
-from django.http import HttpResponse, HttpResponseRedirect
+from neuropower import cluster, BUM, neuropowermodels
+from django.http import HttpResponseRedirect
 from neuropowertoolbox.plots import plotPower
-from django.forms import model_to_dict
 from django.shortcuts import render
-from django.core.files import File
 from django.conf import settings
 from scipy.stats import norm, t
-from django.db import models
 from nilearn import masking
 import nibabel as nib
 import pandas as pd
 import numpy as np
 import tempfile
-import requests
-import shutil
-import json
 import uuid
 import os
 
