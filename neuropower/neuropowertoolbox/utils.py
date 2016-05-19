@@ -1,4 +1,4 @@
-from neuropowertoolbox.models import ParameterModel, MixtureModel
+from neuropowertoolbox.models import ParameterModel, MixtureModel, PeakTableModel, PowerModel
 import requests
 import os
 os.environ['http_proxy']=''
@@ -25,11 +25,14 @@ def get_neuropower_steps(template_page,session_id=None):
         pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
         pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
-    # Need to ask @jokedurnez about this flow
-    #if not not MixtureModel.objects.filter(SID=session_id):
-    #    pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
-    #    pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+    if not PeakTableModel.objects.filter(SID=session_id):
+        pages["neuropower/neuropowermodel.html"]["enabled"] = "no"
+        pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
+        pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
+    if not MixtureModel.objects.filter(SID=session_id):
+        pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
+        pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
     # Set the active page
     pages["active"] = pages[template_page]
