@@ -85,7 +85,6 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
     if neurovault_id:
         neurovault_image = get_url("http://neurovault.org/api/images/%s/?format=json" %(neurovault_id))
         collection_id = str(neurovault_image['collection_id'])
-        neurovault_collection = get_url("http://neurovault.org/api/collections/%s/?format=json" %(collection_id))
 
         if not (neurovault_image['map_type'] == 'Z map' or neurovault_image['map_type'] == 'T map' or neurovault_image['analysis_level']==None):
             context["message"] = "Power analyses can only be performed on Z or T maps."
@@ -355,8 +354,6 @@ def neuropowercrosstab(request):
     sid = get_session_id(request)
     template = "neuropower/neuropowercrosstab.html"
     context = {}
-
-    powerinputform = PowerForm(request.POST or None)
 
     # Load model data
     peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]

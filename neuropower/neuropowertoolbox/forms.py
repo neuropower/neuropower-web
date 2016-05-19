@@ -1,10 +1,9 @@
 from neuropowertoolbox.models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel,PowerModel
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
-from crispy_forms.bootstrap import PrependedText, PrependedAppendedText, FormActions
+from crispy_forms.bootstrap import PrependedAppendedText, FormActions
 from crispy_forms.helper import FormHelper
 from django.core import exceptions
 from django import forms
-import nibabel as nib
 
 class ParameterForm(forms.ModelForm):
     class Meta:

@@ -10,7 +10,6 @@ from mpld3 import plugins
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import jinja2
 import scipy
 import mpld3
 
