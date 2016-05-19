@@ -80,10 +80,10 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     """
 
 
-    hover_BF = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['BF'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab))]
-    hover_BH = [pd.DataFrame(['Benjamini-Hochberg','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['BH'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab))]
-    hover_RFT = [pd.DataFrame(['Random Field Theory','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['RFT'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab))]
-    hover_UN = [pd.DataFrame(['Uncorrected','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['UN'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab))]
+    hover_BF = [pd.DataFrame(['Bonferroni','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['BF'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'BF' in powtab.columns]
+    hover_BH = [pd.DataFrame(['Benjamini-Hochberg','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['BH'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'BH' in powtab.columns]
+    hover_RFT = [pd.DataFrame(['Random Field Theory','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['RFT'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'RFT' in powtab.columns]
+    hover_UN = [pd.DataFrame(['Uncorrected','Sample Size: '+str(newsubs[i]),'Power: '+str(powtxt['UN'][i])]).to_html(header=False,index_names=False,index=False) for i in range(len(powtab)) if 'BUN' in powtab.columns]
 
     fig,axs=plt.subplots(1,1,figsize=(8,5))
     fig.patch.set_facecolor('None')
@@ -94,14 +94,22 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     RFT=axs.plot(powtab.newsamplesize,powtab.RFT,'o',markersize=15,alpha=0,label="") if 'RFT' in powtab.columns else 'nan'
     UN=axs.plot(powtab.newsamplesize,powtab.UN,'o',markersize=15,alpha=0,label="") if 'UN' in powtab.columns else 'nan'
     plugins.clear(fig)
-    plugins.connect(fig, plugins.PointHTMLTooltip(BF[0], hover_BF,hoffset=0,voffset=10,css=css))
-    plugins.connect(fig, plugins.PointHTMLTooltip(BH[0], hover_BH,hoffset=0,voffset=10,css=css))
-    plugins.connect(fig, plugins.PointHTMLTooltip(RFT[0], hover_RFT,hoffset=0,voffset=10,css=css))
-    plugins.connect(fig, plugins.PointHTMLTooltip(UN[0], hover_UN,hoffset=0,voffset=10,css=css))
-    axs.plot(powtab.newsamplesize,powtab.BF,color=cols['BF'],lw=2,label="Bonferroni")
-    axs.plot(powtab.newsamplesize,powtab.BH,color=cols['BH'],lw=2,label="Benjamini-Hochberg")
-    axs.plot(powtab.newsamplesize,powtab.RFT,color=cols['RFT'],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
-    axs.plot(powtab.newsamplesize,powtab.UN,color=cols['UN'],lw=2,label="Uncorrected")
+    if 'BF' in powtab.columns:
+        plugins.connect(fig, plugins.PointHTMLTooltip(BF[0], hover_BF,hoffset=0,voffset=10,css=css))
+    if 'BH' in powtab.columns:
+        plugins.connect(fig, plugins.PointHTMLTooltip(BH[0], hover_BH,hoffset=0,voffset=10,css=css))
+    if 'RFT' in powtab.columns:
+        plugins.connect(fig, plugins.PointHTMLTooltip(RFT[0], hover_RFT,hoffset=0,voffset=10,css=css))
+    if 'UN' in powtab.columns:
+        plugins.connect(fig, plugins.PointHTMLTooltip(UN[0], hover_UN,hoffset=0,voffset=10,css=css))
+    if 'BF' in powtab.columns:
+        axs.plot(newsubs,powtab.BF,color=cols['BF'],lw=2,label="Bonferroni")
+    if 'BH' in powtab.columns:
+        axs.plot(newsubs,powtab.BH,color=cols['BH'],lw=2,label="Benjamini-Hochberg")
+    if 'RFT' in powtab.columns:
+        axs.plot(newsubs,powtab.RFT,color=cols['RFT'],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
+    if 'UN' in powtab.columns:
+        axs.plot(newsubs,powtab.UN,color=cols['UN'],lw=2,label="Uncorrected")
     text = "None"
     if pow != 0:
         if all(powtab[MCP]<pow):
