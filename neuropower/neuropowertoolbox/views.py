@@ -159,7 +159,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
             maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
             masklocation = create_temporary_copy(maskfile,mapID,mask=True,url=False)
             mask = nib.load(masklocation).get_data()
-#
+
             # return error when dimensions are different
             if SPM.get_data().shape != mask.shape:
                 parsform = ParameterForm(request.POST or None,
@@ -180,32 +180,20 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
 
 
 def neuropowerviewer(request):
-
-    # Get the template/step status
+    # Get the template
     sid = get_session_id(request)
     template = "neuropower/neuropowerviewer.html"
-    steps = get_neuropower_steps(template,sid)
+    context = {}
 
-    viewer = ""
-    url = ""
-    text = ""
-    thr = ""
-    if not ParameterModel.objects.filter(SID=sid):
-        text = "Please first fill out the input."
+    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+    if parsdata.url == "":
+        context["text"] = "The viewer is only available for publicly available data (specify a url in the input)."
     else:
-        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        if parsdata.url == "":
-            text = "The viewer is only available for publicly available data (specify a url in the input)."
-        else:
-            url = parsdata.url
-            thr = parsdata.Exc
-            viewer = "<div class='papaya' data-params='params'></div>"
+        context["url"] = parsdata.url
+        context["thr"] = parsdata.Exc
+        context["viewer"] = "<div class='papaya' data-params='params'></div>"
 
-    context = {"url":url,
-               "viewer":viewer,
-               "text":text,
-               "thr":thr,
-               "steps":steps}
+    context["steps"] = get_neuropower_steps(template,sid)
 
     return render(request,template,context)
 
@@ -214,144 +202,157 @@ def neuropowertable(request):
     # Get the template/step status
     sid = get_session_id(request)
     template = "neuropower/neuropowertable.html"
-    steps = get_neuropower_steps(template,sid)
-    context = {"steps":steps}
+    context = {}
 
-    if not ParameterModel.objects.filter(SID=sid):
-        # Should not be able to reach this condition
-        context["text"] = "No data found. Go to 'Input' and fill out the form."
-        return render(request,template,context)
+    # Initiate peak table
+    peakform = PeakTableForm()
+    form = peakform.save(commit=False)
+    form.SID = sid
 
+    # Load model data
+    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+
+    # Compute peaks
+    SPM = nib.load(parsdata.location).get_data()
+    MASK = nib.load(parsdata.masklocation).get_data()
+    if parsdata.ZorT == 'T':
+        SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
+    peaks = cluster.cluster(SPM,float(parsdata.ExcZ),MASK)
+
+    if len(peaks) < 30:
+        context["text"] = "There are too few peaks for a good estimation.  Either the ROI is too small or the screening threshold is too high."
+        form.err = context["text"]
     else:
-        sid = request.session.session_key #why are we getting session id again?
-        peakform = PeakTableForm()
-        form = peakform.save(commit=False)
-        form.SID = sid
-        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        SPM = nib.load(parsdata.location).get_data()
-        MASK = nib.load(parsdata.masklocation).get_data()
-        if parsdata.ZorT == 'T':
-            SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-        peaks = cluster.cluster(SPM,float(parsdata.ExcZ),MASK)
-        if len(peaks) < 30:
-            context["text"] = "There are too few peaks for a good estimation.  Either the ROI is too small or the screening threshold is too high."
-            form.err = context["text"]
-        else:
-            pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
-            pvalues = [max(10**(-6),p) for p in pvalues]
-            peaks['pval'] = pvalues
-            form.data = peaks
-            context["peaks"] = peaks.to_html(classes=["table table-striped"])
-        form.save()
+        pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
+        pvalues = [max(10**(-6),p) for p in pvalues]
+        peaks['pval'] = pvalues
+        form.data = peaks
+        context["peaks"] = peaks.to_html(classes=["table table-striped"])
+    form.save()
+
+    # Get step status
+    context["steps"] = get_neuropower_steps(template,sid)
 
     return render(request,template,context)
 
 def neuropowermodel(request):
 
-    # Get the template/step status
+    # Get the template
     sid = get_session_id(request)
     template = "neuropower/neuropowermodel.html"
-    steps = get_neuropower_steps(template,sid)
-    context = {"steps":steps}
+    context = {}
 
-    if not ParameterModel.objects.filter(SID=sid):
-        # We should not be able to get to this step
-        context["text"] = "No data found. Go to 'Input' and fill out the form."
+    # Load model data
+    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+    peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
+    if not peakdata.err == "":
+        context["text"] = peakdata.err
         return render(request,template,context)
-    else:
-        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
-        if not peakdata.err == "":
-            context["text"] = peakdata.err
-            return render(request,template,context)
-        peaks = peakdata.data
-        bum = BUM.bumOptim(peaks.pval.tolist(),starts=10) # :)
+    peaks = peakdata.data
 
-        modelfit = neuropowermodels.modelfit(peaks.peak.tolist(),
-                                             bum['pi1'],
-                                             exc = float(parsdata.ExcZ),
-                                             starts=10,
-                                             method="RFT")
+    # Estimate pi1
+    bum = BUM.bumOptim(peaks.pval.tolist(),starts=10) # :)
 
-        mixtureform = MixtureForm()
-        form = mixtureform.save(commit=False)
-        form.SID = sid
-        form.pi1 = bum['pi1']
-        form.a = bum['a']
-        form.mu = modelfit['mu']
-        form.sigma = modelfit['sigma']
-        form.save()
-        return render(request,template,context)
+    # Estimate mixture model
+    modelfit = neuropowermodels.modelfit(peaks.peak.tolist(),
+                                         bum['pi1'],
+                                         exc = float(parsdata.ExcZ),
+                                         starts=10,
+                                         method="RFT")
+
+    # Save estimates to form
+    mixtureform = MixtureForm()
+    form = mixtureform.save(commit=False)
+    form.SID = sid
+    form.pi1 = bum['pi1']
+    form.a = bum['a']
+    form.mu = modelfit['mu']
+    form.sigma = modelfit['sigma']
+    form.save()
+
+    # Get step status
+    context["steps"] = get_neuropower_steps(template,sid)
+
+    return render(request,template,context)
 
 def neuropowersamplesize(request):
 
     # Get the template/step status
     sid = get_session_id(request)
     template = "neuropower/neuropowersamplesize.html"
-    steps = get_neuropower_steps(template,sid)
-    context = {"steps":steps}
+    context = {}
+
+    # Load model data
+    context['texttop'] = "Hover over the lines to see detailed power predictions"
+    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
+    peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
+    if not peakdata.err == "":
+        context["text"] = peakdata.err
+        return render(request,template,context)
+    mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
+    peaks = peakdata.data
+
+    # Estimate smoothness
+    if parsdata.SmoothEst==1:
+        #Manual
+        FWHM = np.array([parsdata.Smoothx,parsdata.Smoothy,parsdata.Smoothz])
+        voxsize = np.array([parsdata.Voxx,parsdata.Voxy,parsdata.Voxz])
+    elif parsdata.SmoothEst==2:
+        # Estimate from data
+        cmd_smooth = "smoothest -V -z "+parsdata.location+" -m "+parsdata.masklocation
+        tmp = os.popen(cmd_smooth).read()
+        FWHM = np.array([float(x[8:15]) for x in tmp.split("\n")[16].split(",")])
+        voxsize=np.array([1,1,1])
+
+    # Compute thresholds and standardised effect size
+    thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=float(parsdata.alpha),exc=float(parsdata.ExcZ))
+    effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
+
+    # Compute predicted power
+    power_predicted = []
+    newsubs = range(parsdata.Subj,parsdata.Subj+600)
+    for s in newsubs:
+        projected_effect = float(effect_cohen)*np.sqrt(float(s))
+        powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
+        power_predicted.append(powerpred)
+
+    # Check if there are thresholds (mainly BH) missing
+    missing = [k for k,v in thresholds.items() if v == 'nan']
+    if len(missing) > 0:
+        context['MCPwarning']="There is not enough power to estimate a threshold for "+" and ".join(missing)+"."
+
+    # Save power calculation to table and model
+    powertable = pd.DataFrame(power_predicted)
+    powertable['newsamplesize']=newsubs
+    powertableform = PowerTableForm()
+
+    savepowertableform = powertableform.save(commit=False)
+    savepowertableform.SID = sid
+    savepowertableform.data = powertable
+    savepowertableform.save()
 
     powerinputform = PowerForm(request.POST or None)
 
-    if not ParameterModel.objects.filter(SID=sid):
-        context['texttop'] = "No data found. Go to 'Input' and fill out the form."
+    context['plothtml'] = plotPower(sid)['code']
 
-    elif not MixtureModel.objects.filter(SID=sid):
-        context['texttop'] = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit'to initiate and inspect the fit of the mixture model to the distribution."
+    # Adjust plot with specific power or sample size question
+    if request.method == "POST":
+        if powerinputform.is_valid():
+            savepowerinputform = powerinputform.save(commit=False)
+            savepowerinputform.SID = sid
+            savepowerinputform.save()
+            powerinputdata = PowerModel.objects.filter(SID=sid)[::-1][0]
+            pow = float(powerinputdata.reqPow)
+            ss = powerinputdata.reqSS
+            plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
+            context['plothtml'] = plotpower['code']
+            context["textbottom"] = plotpower['text']
 
-    else:
-        context['texttop'] = "Hover over the lines to see detailed power predictions"
-        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
-        if not peakdata.err == "":
-            context["text"] = peakdata.err
-            return render(request,template,context)
-        mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
-        peaks = peakdata.data
-
-        # smoothness
-        if parsdata.SmoothEst==1:
-            #Manual
-            FWHM = np.array([parsdata.Smoothx,parsdata.Smoothy,parsdata.Smoothz])
-            voxsize = np.array([parsdata.Voxx,parsdata.Voxy,parsdata.Voxz])
-        elif parsdata.SmoothEst==2:
-            # Estimate from data
-            cmd_smooth = "smoothest -V -z "+parsdata.location+" -m "+parsdata.masklocation
-            tmp = os.popen(cmd_smooth).read()
-            FWHM = np.array([float(x[8:15]) for x in tmp.split("\n")[16].split(",")])
-            voxsize=np.array([1,1,1])
-        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=float(parsdata.alpha),exc=float(parsdata.ExcZ))
-        effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
-        power_predicted = []
-        newsubs = range(parsdata.Subj,parsdata.Subj+600)
-        for s in newsubs:
-            projected_effect = float(effect_cohen)*np.sqrt(float(s))
-            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
-            power_predicted.append(powerpred)
-        missing = [k for k,v in thresholds.items() if v == 'nan']
-        if len(missing) > 0:
-            context['MCPwarning']="There is not enough power to estimate a threshold for "+" and ".join(missing)+"."
-        powertable = pd.DataFrame(power_predicted)
-        powertable['newsamplesize']=newsubs
-        powertableform = PowerTableForm()
-        savepowertableform = powertableform.save(commit=False)
-        savepowertableform.SID = sid
-        savepowertableform.data = powertable
-        savepowertableform.save()
-        powerinputform = PowerForm(request.POST or None)
-        context['plothtml'] = plotPower(sid)['code']
-        if request.method == "POST":
-            if powerinputform.is_valid():
-                savepowerinputform = powerinputform.save(commit=False)
-                savepowerinputform.SID = sid
-                savepowerinputform.save()
-                powerinputdata = PowerModel.objects.filter(SID=sid)[::-1][0]
-                pow = float(powerinputdata.reqPow)
-                ss = powerinputdata.reqSS
-                plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
-                context['plothtml'] = plotpower['code']
-                context["textbottom"] = plotpower['text']
     context["powerinputform"] = powerinputform
+
+    # Get step status
+    context["steps"] = get_neuropower_steps(template,sid)
+
     return render(request,template,context)
 
 def neuropowercrosstab(request):
@@ -359,34 +360,28 @@ def neuropowercrosstab(request):
     # Get the template/step status
     sid = get_session_id(request)
     template = "neuropower/neuropowercrosstab.html"
-    steps = get_neuropower_steps(template,sid)
-    context = {"steps":steps}
+    context = {}
 
     powerinputform = PowerForm(request.POST or None)
 
-    if not MixtureModel.objects.filter(SID=sid):
-        context["text"] = "Before doing any power calculations, the distribution of effects has to be estimated.  Please go to 'Model Fit' to initiate and inspect the fit of the mixture model to the distribution."
+    # Load model data
+    peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
+    if not peakdata.err == "":
+        context["text"] = peakdata.err
+        return render(request,template,context)
+    powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
 
+    # Restyle power table for export
+    names = powerdata.data.columns.tolist()[:-1]
+    names.insert(0,'newsamplesize')
+    powertable = powerdata.data[names].round(decimals=2)
+    repldict = {'BF':'Bonferroni','BH':'Benjamini-Hochberg','UN':'Uncorrected','RFT':'Random Field Theory','newsamplesize':'Samplesize'}
+    for word, initial in repldict.items():
+        names=[i.replace(word,initial) for i in names]
+    powertable.columns=names
+    context["power"] = powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])
 
-    if not ParameterModel.objects.filter(SID=sid):
-        context["text"] = "No data found. Go to 'Input' and fill out the form."
-
-    if not PowerTableModel.objects.filter(SID=sid)[::-1][0]:
-        context["text"] = "Power table not found.  Go to 'Power Calculation' tab first."
-
-    else:
-        peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
-        if not peakdata.err == "":
-            context["text"] = peakdata.err
-            return render(request,template,context)
-        powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
-        names = powerdata.data.columns.tolist()[:-1]
-        names.insert(0,'newsamplesize')
-        powertable = powerdata.data[names].round(decimals=2)
-        repldict = {'BF':'Bonferroni','BH':'Benjamini-Hochberg','UN':'Uncorrected','RFT':'Random Field Theory','newsamplesize':'Samplesize'}
-        for word, initial in repldict.items():
-            names=[i.replace(word,initial) for i in names]
-        powertable.columns=names
-        context["power"] = powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])
+    # Get step status
+    context["steps"] = get_neuropower_steps(template,sid)
 
     return render(request,template,context)
