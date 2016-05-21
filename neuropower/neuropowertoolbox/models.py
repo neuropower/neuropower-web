@@ -36,14 +36,14 @@ class ParameterModel(models.Model):
     Voxy = models.DecimalField(max_digits=5,decimal_places=2,null=True)
     Voxz = models.DecimalField(max_digits=5,decimal_places=2,null=True)
     def __unicode__(self): # Python 3: __str__
-        return self
+        return "<ParameterModel:%s>" %self.SID
 
 class PeakTableModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     data = PickledObjectField(default="")
     err = models.CharField(max_length=1000,default="")
     def __unicode__(self): # Python 3: __str__
-        return self
+        return "<PeakTableModel:%s>" %self.SID
 
 class MixtureModel(models.Model):
     SID = models.CharField(max_length=300,default="")
@@ -52,13 +52,13 @@ class MixtureModel(models.Model):
     mu = models.DecimalField(max_digits=10,decimal_places=4)
     sigma = models.DecimalField(max_digits=10,decimal_places=4)
     def __unicode__(self): # Python 3: __str__
-        return self
+        return "<MixtureModel:%s>" %self.SID
 
 class PowerTableModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     data = PickledObjectField(default="")
     def __unicode__(self): # Python 3: __str__
-        return self
+        return "<PowerTableModel:%s>" %self.SID
 
 class PowerModel(models.Model):
     SID = models.CharField(max_length=300,default="")
@@ -67,4 +67,4 @@ class PowerModel(models.Model):
     MCP_c = (("RFT", "Random Field Theory"),("BH", "Benjamini-Hochberg"),("BF","Bonferroni"),("UN","Uncorrected"))
     MCP = models.CharField(max_length=10,choices=MCP_c)
     def __unicode__(self):
-        return self
+        return "<PowerModel:%s>" %self.SID
