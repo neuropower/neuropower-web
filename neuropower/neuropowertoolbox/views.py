@@ -157,7 +157,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
             nvox = np.sum(mask.get_data())
             masklocation = os.path.join(settings.MEDIA_ROOT,"maps/mask_"+mapID+".nii.gz")
             nib.save(mask,masklocation)
-            form.nvox = nvox
+            form.nvox = nvox        
         else:
             maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
             masklocation = create_temporary_copy(maskfile,mapID,mask=True,url=False)
