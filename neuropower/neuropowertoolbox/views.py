@@ -272,13 +272,17 @@ def neuropowermodel(request):
     peaks = peakdata.data
 
     # Estimate pi1
-    bum = BUM.bumOptim(peaks.pval.tolist(),starts=10) # :)
+    bum = BUM.bumOptim(peaks.pval.tolist(),starts=20) # :)
+    if bum['pi1']<0.1:
+        context['message']=message+"\nWARNING: The estimates prevalence of activation is very low.  The estimation procedure gets rather unstable in this case. Proceed with caution."
+    if bum['pi1']==0:
+        context['message']=message+"\n The estimated prevalence of activation is zero, which means our model can't find evidence that there is non-null activation in this contrast.  As such, a power analysis will not be possible..."
 
     # Estimate mixture model
     modelfit = neuropowermodels.modelfit(peaks.peak.tolist(),
                                          bum['pi1'],
                                          exc = float(parsdata.ExcZ),
-                                         starts=10,
+                                         starts=20,
                                          method="RFT")
 
     # Save estimates to form
@@ -287,12 +291,16 @@ def neuropowermodel(request):
     form.SID = sid
     form.pi1 = bum['pi1']
     form.a = bum['a']
-    form.mu = modelfit['mu']
-    form.sigma = modelfit['sigma']
+    if bum['pi1']>0:
+        form.mu = modelfit['mu']
+        form.sigma = modelfit['sigma']
+    else:
+        form.mu = 0
+        form.sigma = 0
     form.save()
 
     # Get step status
-    context["steps"] = get_neuropower_steps(template,sid)
+    context["steps"] = get_neuropower_steps(template,sid,bum['pi1'])
 
     return render(request,template,context)
 
@@ -320,61 +328,67 @@ def neuropowersamplesize(request):
     mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
     peaks = peakdata.data
 
-    # Estimate smoothness
-    if parsdata.SmoothEst==1:
-        #Manual
-        FWHM = np.array([parsdata.Smoothx,parsdata.Smoothy,parsdata.Smoothz])
-        voxsize = np.array([parsdata.Voxx,parsdata.Voxy,parsdata.Voxz])
-    elif parsdata.SmoothEst==2:
-        # Estimate from data
-        cmd_smooth = "smoothest -V -z "+parsdata.location+" -m "+parsdata.masklocation
-        tmp = os.popen(cmd_smooth).read()
-        FWHM = np.array([float(x[8:15]) for x in tmp.split("\n")[16].split(",")])
-        voxsize=np.array([1,1,1])
-
-    # Compute thresholds and standardised effect size
-    thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=float(parsdata.alpha),exc=float(parsdata.ExcZ))
-    effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
-
-    # Compute predicted power
-    power_predicted = []
-    newsubs = range(parsdata.Subj,parsdata.Subj+600)
-    for s in newsubs:
-        projected_effect = float(effect_cohen)*np.sqrt(float(s))
-        powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
-        power_predicted.append(powerpred)
-
-    # Check if there are thresholds (mainly BH) missing
-    missing = [k for k,v in thresholds.items() if v == 'nan']
-    if len(missing) > 0:
-        context['MCPwarning']="There is not enough power to estimate a threshold for "+" and ".join(missing)+"."
-
-    # Save power calculation to table and model
-    powertable = pd.DataFrame(power_predicted)
-    powertable['newsamplesize']=newsubs
-    powertableform = PowerTableForm()
-
-    savepowertableform = powertableform.save(commit=False)
-    savepowertableform.SID = sid
-    savepowertableform.data = powertable
-    savepowertableform.save()
-
     powerinputform = PowerForm(request.POST or None)
 
-    context['plothtml'] = plotPower(sid)['code']
+    if mixdata.mu==0:
+        context['message']=message+"\n Our model can't find evidence that there is non-null activation in this contrast.  As such, a power analysis will not be possible..."
+    else:
+        context["plot"] = True
+        if mixdata.pi1<0.1:
+            context['message']=message+"\nWARNING: The estimates prevalence of activation is very low.  The estimation procedure gets rather unstable in this case. Proceed with caution."
+        # Estimate smoothness
+        if parsdata.SmoothEst==1:
+            #Manual
+            FWHM = np.array([parsdata.Smoothx,parsdata.Smoothy,parsdata.Smoothz])
+            voxsize = np.array([parsdata.Voxx,parsdata.Voxy,parsdata.Voxz])
+        elif parsdata.SmoothEst==2:
+            # Estimate from data
+            cmd_smooth = "smoothest -V -z "+parsdata.location+" -m "+parsdata.masklocation
+            tmp = os.popen(cmd_smooth).read()
+            FWHM = np.array([float(x[8:15]) for x in tmp.split("\n")[16].split(",")])
+            voxsize=np.array([1,1,1])
 
-    # Adjust plot with specific power or sample size question
-    if request.method == "POST":
-        if powerinputform.is_valid():
-            savepowerinputform = powerinputform.save(commit=False)
-            savepowerinputform.SID = sid
-            savepowerinputform.save()
-            powerinputdata = PowerModel.objects.filter(SID=sid)[::-1][0]
-            pow = float(powerinputdata.reqPow)
-            ss = powerinputdata.reqSS
-            plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
-            context['plothtml'] = plotpower['code']
-            context["textbottom"] = plotpower['text']
+        # Compute thresholds and standardised effect size
+        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=float(parsdata.alpha),exc=float(parsdata.ExcZ))
+        effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
+
+        # Compute predicted power
+        power_predicted = []
+        newsubs = range(parsdata.Subj,parsdata.Subj+600)
+        for s in newsubs:
+            projected_effect = float(effect_cohen)*np.sqrt(float(s))
+            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
+            power_predicted.append(powerpred)
+
+        # Check if there are thresholds (mainly BH) missing
+        missing = [k for k,v in thresholds.items() if v == 'nan']
+        if len(missing) > 0:
+            context['MCPwarning']="There is not enough power to estimate a threshold for "+" and ".join(missing)+"."
+
+        # Save power calculation to table and model
+        powertable = pd.DataFrame(power_predicted)
+        powertable['newsamplesize']=newsubs
+        powertableform = PowerTableForm()
+
+        savepowertableform = powertableform.save(commit=False)
+        savepowertableform.SID = sid
+        savepowertableform.data = powertable
+        savepowertableform.save()
+
+        context['plothtml'] = plotPower(sid)['code']
+
+        # Adjust plot with specific power or sample size question
+        if request.method == "POST":
+            if powerinputform.is_valid():
+                savepowerinputform = powerinputform.save(commit=False)
+                savepowerinputform.SID = sid
+                savepowerinputform.save()
+                powerinputdata = PowerModel.objects.filter(SID=sid)[::-1][0]
+                pow = float(powerinputdata.reqPow)
+                ss = powerinputdata.reqSS
+                plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
+                context['plothtml'] = plotpower['code']
+                context["textbottom"] = plotpower['text']
 
     context["powerinputform"] = powerinputform
 
@@ -394,22 +408,31 @@ def neuropowercrosstab(request):
     if not link == "":
         return HttpResponseRedirect(link)
 
-    # Load model data
-    peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
-    if not peakdata.err == "":
-        context["text"] = peakdata.err
-        return render(request,template,context)
-    powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
+    mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
 
-    # Restyle power table for export
-    names = powerdata.data.columns.tolist()[:-1]
-    names.insert(0,'newsamplesize')
-    powertable = powerdata.data[names].round(decimals=2)
-    repldict = {'BF':'Bonferroni','BH':'Benjamini-Hochberg','UN':'Uncorrected','RFT':'Random Field Theory','newsamplesize':'Samplesize'}
-    for word, initial in repldict.items():
-        names=[i.replace(word,initial) for i in names]
-    powertable.columns=names
-    context["power"] = powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])
+    if mixdata.mu==0:
+        context['message']="\n Our model can't find evidence that there is non-null activation.  As such, a power analysis will not be possible..."
+    else:
+        context["plot"]
+        if mixdata.pi1<0.1:
+            context['message']="\nWARNING: The estimates prevalence of activation is very low.  The estimation procedure gets rather unstable in this case. Proceed with caution."
+
+        # Load model data
+        peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
+        if not peakdata.err == "":
+            context["text"] = peakdata.err
+            return render(request,template,context)
+        powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
+
+        # Restyle power table for export
+        names = powerdata.data.columns.tolist()[:-1]
+        names.insert(0,'newsamplesize')
+        powertable = powerdata.data[names].round(decimals=2)
+        repldict = {'BF':'Bonferroni','BH':'Benjamini-Hochberg','UN':'Uncorrected','RFT':'Random Field Theory','newsamplesize':'Samplesize'}
+        for word, initial in repldict.items():
+            names=[i.replace(word,initial) for i in names]
+        powertable.columns=names
+        context["power"] = powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])
 
     # Get step status
     context["steps"] = get_neuropower_steps(template,sid)

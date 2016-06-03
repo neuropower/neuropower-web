@@ -24,10 +24,11 @@ def plotModel(request):
     else:
         peaks = peakdata.data
         twocol = Paired_12.mpl_colors
-        xn = np.arange(-10,30,0.01)
-        nul = [1-float(mixdata.pi1)]*neuropowermodels.nulPDF(xn,exc=float(parsdata.ExcZ),method="RFT")
-        alt = float(mixdata.pi1)*neuropowermodels.altPDF(xn,mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
-        mix = neuropowermodels.mixPDF(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
+        if mixdata.pi1>0:
+            xn = np.arange(-10,30,0.01)
+            nul = [1-float(mixdata.pi1)]*neuropowermodels.nulPDF(xn,exc=float(parsdata.ExcZ),method="RFT")
+            alt = float(mixdata.pi1)*neuropowermodels.altPDF(xn,mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
+            mix = neuropowermodels.mixPDF(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
         xn_p = np.arange(0,1,0.01)
         alt_p = float(mixdata.pi1)*scipy.stats.beta.pdf(xn_p, float(mixdata.a), 1)+1-float(mixdata.pi1)
         null_p = [1-float(mixdata.pi1)]*len(xn_p)
@@ -47,17 +48,19 @@ def plotModel(request):
         axs[0].set_xlabel("Peak p-values")
         axs[0].set_ylabel("Density")
         axs[1].hist(peaks.peak,lw=0,facecolor=twocol[0],normed=True,bins=np.arange(min(peaks.peak),30,0.3),label="observed distribution")
-        axs[1].set_xlim([float(parsdata.ExcZ),np.max(peaks.peak)])
-        axs[1].set_ylim([0,1])
-        axs[1].plot(xn,nul,color=twocol[3],lw=2,label="null distribution")
-        axs[1].plot(xn,alt,color=twocol[5],lw=2, label="alternative distribution")
-        axs[1].plot(xn,mix,color=twocol[1],lw=2,label="total distribution")
+        axs[1].set_xlim([float(parsdata.ExcZ),np.max(peaks.peak)+1])
+        axs[1].set_ylim([0,1.3])
+
+        if not mixdata.pi1==0:
+            axs[1].plot(xn,nul,color=twocol[3],lw=2,label="null distribution")
+            axs[1].plot(xn,alt,color=twocol[5],lw=2, label="alternative distribution")
+            axs[1].plot(xn,mix,color=twocol[1],lw=2,label="total distribution")
+            axs[1].legend(loc="upper right",frameon=False)
 
         peak_heights_string = str(round(float(mixdata.mu)/np.sqrt(parsdata.Subj),2))
         axs[1].set_title("Distribution of peak heights \n $\delta_1$ = %s" %(peak_heights_string))
         axs[1].set_xlabel("Peak heights (z-values)")
         axs[1].set_ylabel("Density")
-        axs[1].legend(loc="upper right",frameon=False)
     canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
@@ -88,31 +91,25 @@ def plotPower(sid,MCP='',pow=0,ss=0):
     fig,axs=plt.subplots(1,1,figsize=(8,5))
     fig.patch.set_facecolor('None')
     lty = ['--' if all(powtab.BF==powtab.RFT) else '-']
-    print(powtab)
     BF=axs.plot(powtab.newsamplesize,powtab.BF,'o',markersize=15,alpha=0,label="") if 'BF' in powtab.columns else 'nan'
     BH=axs.plot(powtab.newsamplesize,powtab.BH,'o',markersize=15,alpha=0,label="") if 'BH' in powtab.columns else 'nan'
     RFT=axs.plot(powtab.newsamplesize,powtab.RFT,'o',markersize=15,alpha=0,label="") if 'RFT' in powtab.columns else 'nan'
     UN=axs.plot(powtab.newsamplesize,powtab.UN,'o',markersize=15,alpha=0,label="") if 'UN' in powtab.columns else 'nan'
     plugins.clear(fig)
-    if 'BF' in powtab.columns:
-        plugins.connect(fig, plugins.PointHTMLTooltip(BF[0], hover_BF,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(BF[0], hover_BF,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(RFT[0], hover_RFT,hoffset=0,voffset=10,css=css))
+    plugins.connect(fig, plugins.PointHTMLTooltip(UN[0], hover_UN,hoffset=0,voffset=10,css=css))
     if 'BH' in powtab.columns:
         plugins.connect(fig, plugins.PointHTMLTooltip(BH[0], hover_BH,hoffset=0,voffset=10,css=css))
-    if 'RFT' in powtab.columns:
-        plugins.connect(fig, plugins.PointHTMLTooltip(RFT[0], hover_RFT,hoffset=0,voffset=10,css=css))
-    if 'UN' in powtab.columns:
-        plugins.connect(fig, plugins.PointHTMLTooltip(UN[0], hover_UN,hoffset=0,voffset=10,css=css))
-    if 'BF' in powtab.columns:
-        axs.plot(newsubs,powtab.BF,color=cols['BF'],lw=2,label="Bonferroni")
-    if 'BH' in powtab.columns:
         axs.plot(newsubs,powtab.BH,color=cols['BH'],lw=2,label="Benjamini-Hochberg")
-    if 'RFT' in powtab.columns:
-        axs.plot(newsubs,powtab.RFT,color=cols['RFT'],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
-    if 'UN' in powtab.columns:
-        axs.plot(newsubs,powtab.UN,color=cols['UN'],lw=2,label="Uncorrected")
+    axs.plot(newsubs,powtab.BF,color=cols['BF'],lw=2,label="Bonferroni")
+    axs.plot(newsubs,powtab.RFT,color=cols['RFT'],lw=2,linestyle=str(lty[0]),label="Random Field Theory")
+    axs.plot(newsubs,powtab.UN,color=cols['UN'],lw=2,label="Uncorrected")
     text = "None"
     if pow != 0:
-        if all(powtab[MCP]<pow):
+        if MCP == 'BH' and not 'BH' in powtab.columns:
+            text = "There is not enough power to estimate a threshold for FDR control.  As such it's impossible to predict power for FDR control."
+        elif all(powtab[MCP]<pow):
             text = "To obtain a statistical power of "+str(pow)+" this study would require a sample size larger than 600 subjects."
             amax = max(powtab.newsamplesize)
         else:
@@ -122,8 +119,8 @@ def plotPower(sid,MCP='',pow=0,ss=0):
             text = "To obtain a statistical power of %s this study would require a sample size of %s subjects." %(pow,min)
             amax = max(min,amax)
     if ss != 0:
-        if powtab[MCP] == 'BH' and not 'BH' in powtab.columns:
-            text = "There is not enough power to estimate a threshold for FDR control."
+        if MCP == 'BH' and not 'BH' in powtab.columns:
+            text = "There is not enough power to estimate a threshold for FDR control.  As such it's impossible to predict power for FDR control."
         else:
             ss_pow = powtab[MCP][ss]
             axs.plot([ss,ss],[0,ss_pow],color=cols[MCP],linestyle="--")

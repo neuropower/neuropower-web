@@ -21,6 +21,7 @@
   <div class="alert alert-info alert-dismissible" role="alert">{{ MCPwarning }}</div>
   {% endif %}
 
+  {% if plot %}
   <div class="col-sm-4">
     <form method='POST' action='.'>
       {% csrf_token %}
@@ -37,6 +38,7 @@
     <a class="btn btn-primary btn" onclick="save_svg()" style="float:right;margin-right:100px">save svg</a>
   </div>
 </div>
+{% endif %}
 
 <!-- Message to user about power-->
 {% if textbottom %}

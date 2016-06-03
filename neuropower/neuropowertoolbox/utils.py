@@ -6,7 +6,7 @@ import urllib
 from django.conf import settings
 from django.http import HttpResponseRedirect
 
-def get_neuropower_steps(template_page,session_id=None):
+def get_neuropower_steps(template_page,session_id=None,pi1=None):
     '''get_neuropower_steps returns a complete dictionary object with button colors, active status, and  currently active based on a template page and session data object.
     '''
     # template name, step class, and color
@@ -38,6 +38,10 @@ def get_neuropower_steps(template_page,session_id=None):
     if not PowerTableModel.objects.filter(SID=session_id):
         pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
+    if pi1==0:
+        pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
+        pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+        
     # Set the active page
     pages["active"] = pages[template_page]
     return pages
@@ -91,8 +95,9 @@ def get_db_entries(template_page,session_id=None):
         elif not PowerTableModel.objects.filter(SID=session_id):
             err = "powerm"
 
+    print("-------",err,"-------")
     if not err == "":
-        link = "http://www.neuropowertools.org/"+relink[err]+"/?message="+message[err]
+        link = "http://192.168.99.100/"+relink[err]+"/?message="+message[err]
     else:
         link = ""
 
