@@ -3,7 +3,7 @@ import sys
 sys.path = sys.path[1:]
 from neuropowertoolbox.forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
 from neuropowertoolbox.models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
-from neuropowertoolbox.utils import get_url, get_neuropower_steps, get_session_id, create_temporary_copy
+from neuropowertoolbox.utils import get_url, get_neuropower_steps, get_db_entries, get_session_id, create_temporary_copy
 from neuropower import cluster, BUM, neuropowermodels
 from django.http import HttpResponseRedirect
 from neuropowertoolbox.plots import plotPower
@@ -51,14 +51,12 @@ def neuropowerstart(request):
 
     # Get the template/step status
     sid = get_session_id(request)
-    print(sid)
     template = "neuropower/neuropowerstart.html"
     steps = get_neuropower_steps(template,sid)
 
     context = {"steps":steps}
 
     return render(request,template,context)
-
 
 def neuropowerinput(request,neurovault_id=None,end_session=False):
     '''step 2: input'''
@@ -68,6 +66,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
 
     # Get the template/step status
     template = "neuropower/neuropowerinput.html"
+    context = {}
     steps = get_neuropower_steps(template,sid)
 
     parsform = ParameterForm(request.POST or None,
@@ -76,7 +75,9 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
                              err="")
 
     neurovault_id = request.GET.get('neurovault','')
-    context = {"steps":steps}
+    context["steps"] = steps
+    message = request.GET.get('message','')
+    context['message'] = message
 
     # If the user has ended their session, give message
     if end_session == True:
@@ -178,6 +179,10 @@ def neuropowerviewer(request):
     template = "neuropower/neuropowerviewer.html"
     context = {}
 
+    link = get_db_entries(template,sid)
+    if not link == "":
+        return HttpResponseRedirect(link)
+
     parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
     if parsdata.url == "":
         context["text"] = "The viewer is only available for publicly available data (specify a url in the input)."
@@ -196,6 +201,13 @@ def neuropowertable(request):
     sid = get_session_id(request)
     template = "neuropower/neuropowertable.html"
     context = {}
+
+    message = request.GET.get('message','')
+    context['message'] = message
+
+    link = get_db_entries(template,sid)
+    if not link == "":
+        return HttpResponseRedirect(link)
 
     # Initiate peak table
     peakform = PeakTableForm()
@@ -234,6 +246,13 @@ def neuropowermodel(request):
     sid = get_session_id(request)
     template = "neuropower/neuropowermodel.html"
     context = {}
+
+    message = request.GET.get('message','')
+    context['message'] = message
+
+    link = get_db_entries(template,sid)
+    if not link == "":
+        return HttpResponseRedirect(link)
 
     # Load model data
     parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
@@ -274,6 +293,13 @@ def neuropowersamplesize(request):
     sid = get_session_id(request)
     template = "neuropower/neuropowersamplesize.html"
     context = {}
+
+    message = request.GET.get('message','')
+    context['message'] = message
+
+    link = get_db_entries(template,sid)
+    if not link == "":
+        return HttpResponseRedirect(link)
 
     # Load model data
     context['texttop'] = "Hover over the lines to see detailed power predictions"
@@ -354,6 +380,10 @@ def neuropowercrosstab(request):
     sid = get_session_id(request)
     template = "neuropower/neuropowercrosstab.html"
     context = {}
+
+    link = get_db_entries(template,sid)
+    if not link == "":
+        return HttpResponseRedirect(link)
 
     # Load model data
     peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]

@@ -34,5 +34,10 @@ urlpatterns = [
     url(r'^neuropowermodel/result.png$', plots.plotModel,name='plotmodel'),
     url(r'^neuropowersamplesize/$',views.neuropowersamplesize,name='neuropowersamplesize'),
     url(r'^neuropowercrosstab/$',views.neuropowercrosstab,name='neuropowercrosstab'),
-    url(r'^404/$', django.views.defaults.page_not_found, )
+    url(r'^404/$', django.views.defaults.page_not_found, ),
+    # with message
+    url(r'^neuropowerinput/(?P<message>\w+)/$',views.neuropowerinput,name='neuropowerinput'),
+    url(r'^neuropowertable/(?P<message>\w+)/$',views.neuropowertable,name='neuropowertable'),
+    url(r'^neuropowermodel/(?P<message>\w+)/$',views.neuropowermodel,name='neuropowermodel'),
+    url(r'^neuropowersamplesize/(?P<message>\w+)/$',views.neuropowersamplesize,name='neuropowersamplesize')
     ]

@@ -13,11 +13,14 @@
 
 {% block content %}
 
-{% if MCPwarning %}
-<div class="alert alert-info alert-dismissible" role="alert">{{ MCPwarning }}</div>
-{% endif %}
-
 <div class="row">
+  {% if message %}
+  <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
+  {% endif %}
+  {% if MCPwarning %}
+  <div class="alert alert-info alert-dismissible" role="alert">{{ MCPwarning }}</div>
+  {% endif %}
+
   <div class="col-sm-4">
     <form method='POST' action='.'>
       {% csrf_token %}
