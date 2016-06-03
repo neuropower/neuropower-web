@@ -127,6 +127,15 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         form.save()
         parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
         SPM = nib.load(parsdata.location)
+        if len(SPM.shape)>3:
+            if not SPM.shape[4]==1 or len(SPM.shape)>4:
+                parsform = ParameterForm(request.POST or None,
+                                         request.FILES or None,
+                                         default_url = "URL to nifti image",
+                                         err = "shape")
+                context["parsform"] = parsform
+                return render(request,template,context)
+
 
         # check if the IQR is realistic (= check whether these are Z- or T-values)
         IQR = np.subtract(*np.percentile(SPM.get_data(),[75,25]))

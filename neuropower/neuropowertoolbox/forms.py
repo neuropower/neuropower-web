@@ -70,6 +70,9 @@ class ParameterForm(forms.ModelForm):
         if self.err == "median":
             raise forms.ValidationError("Are you sure this is a statistical map?  The interquartile range is extremely large.")
 
+        if self.err == "shape":
+            raise forms.ValidationError("Are you sure this is a statistical map?  Your map has more than 3 dimensions.")
+
         if url and not spmfile == None:
             raise forms.ValidationError("Please choose: either paste a link to the data or upload your map.  Not both.")
 
