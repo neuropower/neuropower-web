@@ -29,7 +29,7 @@ def plotModel(request):
         alt = float(mixdata.pi1)*neuropowermodels.altPDF(xn,mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
         mix = neuropowermodels.mixPDF(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
         xn_p = np.arange(0,1,0.01)
-        alt_p = [1-float(mixdata.pi1)]*scipy.stats.beta.pdf(xn_p, float(mixdata.a), 1)+1-float(mixdata.pi1)
+        alt_p = float(mixdata.pi1)*scipy.stats.beta.pdf(xn_p, float(mixdata.a), 1)+1-float(mixdata.pi1)
         null_p = [1-float(mixdata.pi1)]*len(xn_p)
         mpl.rcParams['font.size']='11.0'
 
