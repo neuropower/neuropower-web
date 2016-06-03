@@ -157,7 +157,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
             nvox = np.sum(mask.get_data())
             masklocation = os.path.join(settings.MEDIA_ROOT,"maps/mask_"+mapID+".nii.gz")
             nib.save(mask,masklocation)
-            form.nvox = nvox        
+            form.nvox = nvox
         else:
             maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
             masklocation = create_temporary_copy(maskfile,mapID,mask=True,url=False)
@@ -339,8 +339,8 @@ def neuropowersamplesize(request):
         # Estimate smoothness
         if parsdata.SmoothEst==1:
             #Manual
-            FWHM = np.array([parsdata.Smoothx,parsdata.Smoothy,parsdata.Smoothz])
-            voxsize = np.array([parsdata.Voxx,parsdata.Voxy,parsdata.Voxz])
+            FWHM = np.array([float(parsdata.Smoothx),float(parsdata.Smoothy),float(parsdata.Smoothz)])
+            voxsize = np.array([float(parsdata.Voxx),float(parsdata.Voxy),float(parsdata.Voxz)])
         elif parsdata.SmoothEst==2:
             # Estimate from data
             cmd_smooth = "smoothest -V -z "+parsdata.location+" -m "+parsdata.masklocation

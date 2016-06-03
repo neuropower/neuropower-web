@@ -61,8 +61,6 @@ class ParameterForm(forms.ModelForm):
 
         if smoothest == 2:
             pass
-        else:
-            raise forms.ValidationError('Either provide values for smoothness and voxelsize or estimate smoothness from the data.')
 
         if self.err == "dim":
             raise forms.ValidationError("The selected statistical map and mask do not have the same dimensions.")

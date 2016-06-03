@@ -41,7 +41,7 @@ def get_neuropower_steps(template_page,session_id=None,pi1=None):
     if pi1==0:
         pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
         pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
-        
+
     # Set the active page
     pages["active"] = pages[template_page]
     return pages
@@ -95,7 +95,6 @@ def get_db_entries(template_page,session_id=None):
         elif not PowerTableModel.objects.filter(SID=session_id):
             err = "powerm"
 
-    print("-------",err,"-------")
     if not err == "":
         link = "http://192.168.99.100/"+relink[err]+"/?message="+message[err]
     else:
