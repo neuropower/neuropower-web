@@ -96,7 +96,7 @@ def get_db_entries(template_page,session_id=None):
             err = "powerm"
 
     if not err == "":
-        link = "http://192.168.99.100/"+relink[err]+"/?message="+message[err]
+        link = "http://www.neuropowertools.org/"+relink[err]+"/?message="+message[err]
     else:
         link = ""
 

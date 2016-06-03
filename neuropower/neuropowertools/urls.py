@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^tutorial/$',views.tutorial,name='tutorial'),
     url(r'^methods/$',views.methods,name='methods'),
     url(r'^end/$',views.end_session,name='end_session'),
+    url(r'^neuropowerdata/$',views.neuropowerdata,name='neuropowerdata'),
     url(r'^neuropowerstart/$',views.neuropowerstart,name='neuropowerstart'),
     url(r'^neuropowerinput/$',views.neuropowerinput,name='neuropowerinput'),
     url(r'^neuropowerinput/(?P<neurovault>\w+)/$',views.neuropowerinput,name='neuropowerinput'),
