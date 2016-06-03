@@ -413,7 +413,6 @@ def neuropowercrosstab(request):
     if mixdata.mu==0:
         context['message']="\n Our model can't find evidence that there is non-null activation.  As such, a power analysis will not be possible..."
     else:
-        context["plot"]
         if mixdata.pi1<0.1:
             context['message']="\nWARNING: The estimates prevalence of activation is very low.  The estimation procedure gets rather unstable in this case. Proceed with caution."
 
