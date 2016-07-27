@@ -1,0 +1,23 @@
+{% extends 'main/base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  Tutorial | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{% include 'main/navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <br>
+  <br>
+  <div class="col-xs-1"></div>
+  <div class="col-xs-10">
+    <p> The manuscript with the methodological validation can be found on <a href="http://biorxiv.org/content/early/2016/04/20/049429"> bioRchiv</a>.</p>
+  </div>
+  <div class="col-xs-1"></div>
+</div>
+{% endblock %}

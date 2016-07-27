@@ -20,19 +20,16 @@ import os
 
 temp_dir = tempfile.gettempdir()
 
-### MAIN TEMPLATE PAGES ################################################
-
-def home(request):
-    return render(request,"main/home.html",{})
+## MAIN PAGE TEMPLATE PAGES
 
 def FAQ(request):
-    return render(request,"main/FAQ.html",{})
+    return render(request,"neuropower/FAQ.html",{})
 
 def tutorial(request):
-    return render(request,"main/tutorial.html",{})
+    return render(request,"neuropower/tutorial.html",{})
 
 def methods(request):
-    return render(request,"main/methods.html",{})
+    return render(request,"neuropower/methods.html",{})
 
 ### SESSION CONTROL
 

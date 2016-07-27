@@ -27,17 +27,17 @@
   <div class="col-md-4 infobox">
     <h3>Access NeuroPower</h3>
     <p class="infocontent">Use the web tool yourself. All you need is a statistical map and some information about the research.</p>
-    <p><a class="btn btn-default btn-lg" href="./neuropowerstart" role="button">NeuroPower &raquo;</a></p>
+    <p><a class="btn btn-default btn-lg" href="{% url 'neuropowerstart' %}" role="button">NeuroPower &raquo;</a></p>
   </div>
   <div class="col-md-4 infobox">
     <h3>Tutorial</h3>
     <p class="infocontent" style="padding-bottom:18px">Here you can find a step-by-step tutorial of the application.</p>
-    <p><a class="btn btn-default btn-lg" href="./tutorial" role="button">Tutorial &raquo;</a></p>
+    <p><a class="btn btn-default btn-lg" href="{% url 'npTutorial' %}" role="button">Tutorial &raquo;</a></p>
   </div>
   <div class="col-md-4 infobox">
     <h3>Methods</h3>
     <p class="infocontent">Learn more about the complex underlying methods, pitfalls, and assumptions behind the toolbox.</p>
-    <p><a class="btn btn-default btn-lg" href="./methods" role="button">Methods &raquo;</a></p>
+    <p><a class="btn btn-default btn-lg" href=".{% url 'npMethods' %}" role="button">Methods &raquo;</a></p>
   </div>
 </div>
 {% endblock %}
