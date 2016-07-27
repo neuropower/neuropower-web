@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from neuropowertoolbox import views, plots
+from apps.neuropowertoolbox import views, plots
 import django.views.defaults
 
 urlpatterns = [

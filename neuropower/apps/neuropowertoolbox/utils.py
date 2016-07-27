@@ -1,4 +1,4 @@
-from neuropowertoolbox.models import ParameterModel, MixtureModel, PeakTableModel, PowerTableModel
+from models import ParameterModel, MixtureModel, PeakTableModel, PowerTableModel
 import requests
 import os
 os.environ['http_proxy']=''

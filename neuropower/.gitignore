@@ -7,3 +7,4 @@ sqlite
 *.csv
 *.nii.gz
 */secrets.py
+script.sh

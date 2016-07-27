@@ -134,6 +134,12 @@ body {
   color: white !important;
 }
 
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+  color: #5d4848;
+  background-color: #5d4848;
+}
 
 /* Neuropower Navigation */
 

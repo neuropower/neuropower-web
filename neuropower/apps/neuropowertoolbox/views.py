@@ -1,12 +1,12 @@
 from __future__ import unicode_literals
 import sys
 sys.path = sys.path[1:]
-from neuropowertoolbox.forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
-from neuropowertoolbox.models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
-from neuropowertoolbox.utils import get_url, get_neuropower_steps, get_db_entries, get_session_id, create_temporary_copy
+from forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
+from models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
+from utils import get_url, get_neuropower_steps, get_db_entries, get_session_id, create_temporary_copy
 from neuropower import cluster, BUM, neuropowermodels
 from django.http import HttpResponseRedirect
-from neuropowertoolbox.plots import plotPower
+from plots import plotPower
 from django.shortcuts import render
 from django.conf import settings
 from scipy.stats import norm, t
