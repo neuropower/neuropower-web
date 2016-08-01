@@ -12,5 +12,6 @@ RUN source activate crnenv && \
   apt-get install -y libfreetype6-dev libxft-dev && \
   pip install -U uwsgi && \
   pip install -U Jinja2
+RUN pip --no-cache-dir install -U matplotlib
 
 EXPOSE 3031
