@@ -4,7 +4,11 @@ from django.contrib import admin
 import django.views.defaults
 
 urlpatterns = [
-    url(r'^FAQ/$',views.FAQ,name='dFAQ'),
-    url(r'^tutorial/$',views.tutorial,name='dTutorial'),
-    url(r'^methods/$',views.methods,name='dMethods'),
+    url(r'^start/$',views.start,name='DStart'),
+    url(r'^maininput/$',views.maininput,name='DMainInput'),
+    url(r'^consinput/$',views.consinput,name='DConsInput'),
+
+    url(r'^FAQ/$',views.FAQ,name='DFAQ'),
+    url(r'^tutorial/$',views.tutorial,name='DTutorial'),
+    url(r'^methods/$',views.methods,name='DMethods'),
     ]
