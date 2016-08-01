@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # own
+    'apps.designtoolbox',
     'apps.neuropowertoolbox',
     # third party
     'crispy_forms',
