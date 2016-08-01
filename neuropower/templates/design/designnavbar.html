@@ -1,0 +1,14 @@
+<div class="row">
+    <div id="progressbar" class="col-md-12">
+        <a class="btn btn-default" id="overview" href="{% url 'DStart' %}">Overview</a>
+        <a class="btn btn-default" id="maininput" href="{% url 'DMainInput' %}">Main Input</a>
+        <a class="btn btn-default" id="consandprobs" href="{% url 'DConsInput' %}">Contrasts and Probabilities</a>
+
+        <!-- If viewer has just ended session, disable button -->
+        {% if message %}
+        <a class="btn btn-danger disabled" href="{% url 'end_session' %}">RESET</a>
+        {% else %}
+        <a class="btn btn-danger" href="{% url 'end_session' %}">RESET</a>
+        {% endif %}
+    </div>
+</div>

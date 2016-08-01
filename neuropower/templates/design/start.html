@@ -3,21 +3,20 @@
 {% load crispy_forms_tags %}
 
 {% block head_title %}
-  Tutorial | {{block.super}}
+  NeuroPower | {{block.super}}
 {% endblock %}
 
 {% block navbar %}
 {% include 'main/navbar.html' %}
+{%include 'design/designnavbar.html' %}
 {% endblock %}
 
 {% block content %}
 <div class="row">
-  <br>
-  <br>
-  <div class="col-xs-1"></div>
-  <div class="col-xs-10">
-    <p> Nothing to say so far.</p>
+  <div class="col-xs-12">
+    <h2> Welcome ! </h1>
+      <p> Blablabla.</p>
   </div>
-  <div class="col-xs-1"></div>
 </div>
+
 {% endblock %}
