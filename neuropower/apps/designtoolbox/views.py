@@ -52,7 +52,7 @@ def consinput(request):
     template = "design/cons.html"
     context = {}
 
-    consform = DesignConsForm(request.POST or None)
+    consform = DesignConsForm(request.POST or None,stim=3,cons=2)
 
     if not request.method=="POST" or not consform.is_valid():
         context["consform"] = consform
