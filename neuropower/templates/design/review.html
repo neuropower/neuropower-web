@@ -1,0 +1,57 @@
+{% extends 'main/base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  NeuroPower | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{% include 'main/navbar.html' %}
+{%include 'design/designnavbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xs-9"></div>
+    <div class="col-xs-3">
+      <a class="btn" href="{% url 'DOptions' %}">Options</a>
+    </div>
+</div>
+
+<div class="row">
+  <div class="col-xs-12">
+    <h3> Review </h3>
+    <p> Please review carefully the following design settings.  Once you press the button to start the design optimisation, the procedure will run for a few hours.</p>
+    </form>
+  </div>
+  <div class="col-md-3 col-xs-12"> Inter trial interval </div>
+  <div class="col-md-9 col-xs-12"> {{ ITI }} seconds </div>
+
+  <div class="col-md-3 col-xs-12"> Scanner repetition time (TR) </div>
+  <div class="col-md-9 col-xs-12"> {{ TR }} seconds </div>
+
+  <div class="col-md-3 col-xs-12"> Number of trial types </div>
+  <div class="col-md-9 col-xs-12"> {{ S }} trials (or conditions) </div>
+
+  <div class="col-md-3 col-xs-12"> Total number of trials </div>
+  <div class="col-md-9 col-xs-12"> {{ L }} trials </div>
+
+  <div class="col-md-3 col-xs-12"> Probabilities </div>
+  <div class="col-md-9 col-xs-12"> {{ P }} </div>
+
+
+</div>
+
+<div class="row">
+  {% if message %}
+  <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
+  {% endif %}
+  <div class="col-md-12">
+    <form id="GAform" method='POST' action='.' enctype="multipart/form-data">
+      {% csrf_token %}
+      {% crispy revform %}
+    </form>
+  </div>
+</div>
+{% endblock %}
