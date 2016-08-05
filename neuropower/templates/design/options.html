@@ -13,10 +13,14 @@
 
 {% block content %}
 <div class="row">
-  <div class="col-xs-12">
-    <h2> Options ! </h1>
-      <p> Woohoo Running.</p>
+  {% if message %}
+  <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
+  {% endif %}
+  <div class="col-md-12">
+    <form id="opsform" method='POST' action='.' enctype="multipart/form-data">
+      {% csrf_token %}
+      {% crispy opsform %}
+    </form>
   </div>
 </div>
-
 {% endblock %}

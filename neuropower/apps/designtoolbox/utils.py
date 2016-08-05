@@ -6,7 +6,6 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 import numpy as np
 from models import DesignModel
-from forms import DesignProbsForm
 
 def get_session_id(request):
     '''get_session_id gets the user session id, and creates one if it doesn't exist'''
@@ -16,7 +15,7 @@ def get_session_id(request):
     return(sid)
 
 def probs_and_cons(sid):
-    desdata = DesignModel.objects.filter(SID=sid)[::-1][0]
+    desdata = DesignModel.objects.get(SID=sid)
     C = np.array(
         [
         [desdata.C00,desdata.C01,desdata.C02,desdata.C03,desdata.C04,desdata.C05,desdata.C06,desdata.C07,desdata.C08,desdata.C09],
@@ -26,12 +25,20 @@ def probs_and_cons(sid):
         [desdata.C40,desdata.C41,desdata.C42,desdata.C43,desdata.C44,desdata.C45,desdata.C46,desdata.C47,desdata.C48,desdata.C49]
         ]
     )
-    C = C[:desdata.S,:desdata.Clen]
+    C = C[:desdata.Clen,:desdata.S]
+    print(C)
+    for line in range(C.shape[0]):
+        if not np.sum(C[line,:])==0:
+            cor = np.sum(C[line,:])
+        else:
+            cor = np.max(C[line,:])-np.min(C[line,:])
+        C[line,:] = C[line,:]/cor
 
     P = np.array(
     [desdata.P0,desdata.P1,desdata.P2,desdata.P3,desdata.P4,desdata.P5,desdata.P6,desdata.P7,desdata.P8,desdata.P9]
     )
     P = P[:desdata.S]
+    P = P/np.sum(P)
     print(P)
 
     return {"C":C,"P":P}
@@ -42,6 +49,7 @@ def get_design_steps(template_page,sid):
              "design/input.html": {"class":"maininput","color":"#c9c4c5","enabled":"yes"},
              "design/cons.html": {"class":"consandprobs","color":"#c9c4c5","enabled":"yes"},
              "design/review.html": {"class":"review","color":"#c9c4c5","enabled":"yes"},
+             "design/options.html": {"class":"options","color":"#c9c4c5","enabled":"yes"},
              "design/runGA.html": {"class":"run","color":"#c9c4c5","enabled":"yes"}
              }
 

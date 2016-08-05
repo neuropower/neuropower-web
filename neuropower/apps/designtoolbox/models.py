@@ -83,6 +83,7 @@ class DesignModel(models.Model):
     W2 = models.FloatField(default=0.25)
     W3 = models.FloatField(default=0.25)
     W4 = models.FloatField(default=0.25)
+    W = PickledObjectField(default="")
     Aoptimality_c = ((1,"A-optimality"),(2,"D-optimality"))
     Aoptimality = models.IntegerField(choices=Aoptimality_c,default=1)
     Saturation_c = ((1,"Saturation"),(2,"No Saturation"))

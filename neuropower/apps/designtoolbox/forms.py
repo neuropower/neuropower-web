@@ -27,6 +27,22 @@ class DesignMainForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(DesignMainForm,self).clean()
+
+        if cleaned_data.get("ITI")<0:
+            raise forms.ValidationError("ITI cannot be smaller than 0. Parameters not saved.")
+
+        if cleaned_data.get("TR")<0 or cleaned_data.get("TR")>5:
+            raise forms.ValidationError("Are you sure about that TR? Parameters not saved.")
+
+        if cleaned_data.get("S")>10:
+            raise forms.ValidationError("Sorry, at the moment we can only model designs when there are at most 10 stimulus types. Parameters not saved.")
+
+        if cleaned_data.get("Clen")>5:
+            raise forms.ValidationError("Sorry, at the moment we can only model designs when there are at most 5 contrasts. Parameters not saved.")
+
+        if cleaned_data.get("ConfoundOrder")>10:
+            raise forms.ValidationError("Sorry, at the moment we can only model designs with a confoundorder smaller than 10. Parameters not saved.")
+
         return cleaned_data
 
     helper = FormHelper()
@@ -215,15 +231,26 @@ class DesignReviewForm(forms.ModelForm):
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
         HTML("""<br><br><br><br><br>"""),
-        HTML("<p>Run Genetic Algorithm</p>"),
         ButtonHolder(Submit('Run', 'Run !', css_class='btn-black')),
         HTML("""<br><br><br><br><br>"""),
         )
 
+class DesignWeightsForm(forms.ModelForm):
+    class Meta:
+        model = DesignModel
+        fields = '__all__'
+
+    def __init__(self,*args,**kwargs):
+        super(DesignWeightsForm,self).__init__(*args,**kwargs)
+
+    def clean(self):
+        cleaned_data = super(DesignWeightsForm,self).clean()
+        return cleaned_data
+
 class DesignProbsForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITI']
+        fields = '__all__'
 
     def __init__(self,*args,**kwargs):
         super(DesignProbsForm,self).__init__(*args,**kwargs)
@@ -231,3 +258,58 @@ class DesignProbsForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(DesignProbsForm,self).clean()
         return cleaned_data
+
+class DesignOptionsForm(forms.ModelForm):
+    class Meta:
+        model = DesignModel
+        fields = ['rho','Aoptimality','Saturation','resolution','G','q','I','cycles','preruncycles']
+
+    def __init__(self,*args,**kwargs):
+        super(DesignOptionsForm,self).__init__(*args,**kwargs)
+        self.fields['rho'].label = "The assumed temporal autocorrelation coefficient."
+        self.fields['Aoptimality'].label = "Do you want to optimise using A-optimality or D-optimality?"
+        self.fields['Saturation'].label = "We assume that there is saturation in the BOLD-signal: the signal cannot exceed 2 times the height of the HRF.  This avoids that for an ITI going towards 0, the signal goes to infinity."
+        self.fields['resolution'].label = "The resolution of the timing of stimuli."
+        self.fields['G'].label = "How many designs go from one generation to the next?"
+        self.fields['q'].label = "What percentage of the trials gets mutated?"
+        self.fields['I'].label = "How many immigrants per generation?"
+        self.fields['cycles'].label = "Number of generations (iterations or cycles)."
+        self.fields['preruncycles'].label = "Number of generations in the prerun to define the maximum efficiency and detection power."
+
+    def clean(self):
+        cleaned_data = super(DesignOptionsForm,self).clean()
+        return cleaned_data
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        Fieldset(
+            'Design and optimisation parameters',
+            HTML("""<p>These parameters are hidden and the default values can be found below.  To change the parameters, fill out the fields you wish to change and click save.</p><br><br>"""),
+            Div(
+            Div(Field('rho'),css_class='col-xs-12'),
+            Div(Field('Aoptimality'),css_class='col-xs-12'),
+            Div(Field('Saturation'),css_class='col-xs-12'),
+            Div(Field('resolution'),css_class='col-xs-12'),
+            css_class='row-md-12 col-xs-12'
+            )
+            ),
+        HTML("<br><br><br>"),
+        Fieldset(
+            'Genetic algorithm parameters',
+            HTML("""<p>The following parameters are set for a good flow of the genetic algorithm.</p><br><br>"""),
+            Div(
+            Div(Field('G'),css_class='col-xs-12'),
+            Div(Field('q'),css_class='col-xs-12'),
+            Div(Field('I'),css_class='col-xs-12'),
+            Div(Field('cycles'),css_class='col-xs-12'),
+            Div(Field('preruncycles'),css_class='col-xs-12'),
+            css_class='row-md-12 col-xs-12'
+            )
+            ),
+        HTML("""<br><br><br><br><br>"""),
+        ButtonHolder(Submit('Submit', 'Save', css_class='btn-black')),
+        HTML("""<br><br><br><br><br>""")
+    )
