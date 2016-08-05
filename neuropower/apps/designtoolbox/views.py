@@ -6,8 +6,8 @@ from django.shortcuts import render
 from django.conf import settings
 from scipy.stats import norm, t
 import os
-from utils import get_session_id
-from forms import DesignMainForm,DesignConsForm
+from utils import get_session_id, probs_and_cons, get_design_steps
+from forms import DesignMainForm,DesignConsForm,DesignReviewForm,DesignProbsForm
 from models import DesignModel
 
 ## MAIN PAGE TEMPLATE PAGES
@@ -22,16 +22,42 @@ def methods(request):
     return render(request,"design/methods.html",{})
 
 def start(request):
-    return render(request,'design/start.html',{})
-
-def maininput(request):
-    sid = get_session_id(request)
 
     # Get the template/step status
+
+    template = "design/start.html"
+    context = {}
+
+    # Get the session ID and database entry
+
+    sid = get_session_id(request)
+    context["steps"] = get_design_steps(template,sid)
+
+    return render(request,template,context)
+
+def maininput(request):
+
+    # Get the template/step status
+
     template = "design/input.html"
     context = {}
 
-    inputform = DesignMainForm(request.POST or None)
+    # Get the session ID and database entry
+
+    sid = get_session_id(request)
+    context["steps"] = get_design_steps(template,sid)
+
+    try:
+        desdata = DesignModel.objects.get(SID=sid)
+    except DesignModel.DoesNotExist:
+        desdata = None
+
+    # Define form
+
+    inputform = DesignMainForm(request.POST or None,instance=desdata)
+
+    # If page was result of POST or not valid: show form with db entries
+    # Else: go to next page
 
     if not request.method=="POST" or not inputform.is_valid():
         context["inputform"] = inputform
@@ -43,16 +69,37 @@ def maininput(request):
         return HttpResponseRedirect('../consinput/')
 
 def consinput(request):
-    sid = get_session_id(request)
-    desdata = DesignModel.objects.filter(SID=sid)[::-1][0]
-    n = desdata.S
-    c = desdata.Clen
 
     # Get the template/step status
+
     template = "design/cons.html"
     context = {}
 
-    consform = DesignConsForm(request.POST or None,stim=3,cons=2)
+    # Get the session ID and database entry
+
+    sid = get_session_id(request)
+    context["steps"] = get_design_steps(template,sid)
+
+    try:
+        desdata = DesignModel.objects.get(SID=sid)
+    except DesignModel.DoesNotExist:
+        desdata = None
+        inputform = DesignMainForm(request.POST or None, instance=desdata)
+        template = 'design/input.html'
+        message = "Before you can fill out the contrasts and trial probabilities, you'll first need to fill out this form with basic information about your design."
+        context = {
+            "inputform": inputform,
+            "message": message,
+            "steps":get_design_steps(template,sid)
+        }
+        return render(request,template,context)
+
+    # Define form
+
+    consform = DesignConsForm(request.POST or None,instance=desdata,stim=desdata.S,cons=desdata.Clen)
+
+    # If page was result of POST or not valid: show form with db entries
+    # Else: go to next page
 
     if not request.method=="POST" or not consform.is_valid():
         context["consform"] = consform
@@ -61,7 +108,80 @@ def consinput(request):
         form = consform.save(commit=False)
         form.SID = sid
         form.save()
-        return render(request,'design/DGaPars.html',{})
+        return HttpResponseRedirect('../review/')
+
+def review(request):
+
+    # Get the template/step status
+
+    template = "design/review.html"
+    context = {}
+
+    # Get the session ID and database entry
+
+    sid = get_session_id(request)
+    context["steps"] = get_design_steps(template,sid)
+
+    try:
+        desdata = DesignModel.objects.get(SID=sid)
+    except DesignModel.DoesNotExist:
+        desdata = None
+        inputform = DesignMainForm(request.POST or None, instance=desdata)
+        template = 'design/input.html'
+        message = "Before you can review your settings, you'll first need to fill out this form with basic information about your design."
+        context = {
+            "inputform": inputform,
+            "message": message,
+            "steps":get_design_steps(template,sid)
+        }
+        return render(request,template,context)
+
+    # Define form
+
+    revform = DesignReviewForm(request.POST or None,instance=desdata)
+    context["revform"] = revform
+
+    # Set summary variables in context
+
+    matrices = probs_and_cons(sid)
+    context['ITI']=desdata.ITI
+    context['TR']=desdata.TR
+    context['S']=desdata.S
+    context['L']=desdata.L
+    context["P"] = matrices["P"]
+
+    # If page was result of POST: show summary
+    # Else: go to next page
+
+    if not request.method=="POST":
+        return render(request,template,context)
+    else:
+        form = revform.save(commit=False)
+        form.SID = sid
+        form.save()
+        return HttpResponseRedirect('../runGA/')
+
+def options(request):
+    sid = get_session_id(request)
+    desdata = DesignModel.objects.filter(SID=sid)[::-1][0]
+
+    # Get the template/step status
+    template = "design/options.html"
+    context = {}
+
+    return render(request,template,context)
+
+def runGA(request):
+    sid = get_session_id(request)
+    context["steps"] = get_design_steps(template,sid)
+
+    desdata = DesignModel.objects.filter(SID=sid)[::-1][0]
+
+    # Get the template/step status
+    template = "design/RunGA.html"
+    context = {}
+
+    return render(request,template,context)
 
 ### SESSION CONTROL
 
