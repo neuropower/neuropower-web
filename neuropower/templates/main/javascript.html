@@ -5,7 +5,7 @@
 
 <script>
 $(document).ready(function() {
-  $(".dropdown-toggle").dropdown();  
+  $(".dropdown-toggle").dropdown();
   // Is defined for neuropower step pages
   {% if steps %}
        $("#{{ steps.active.class }}").css("background-color","{{ steps.active.color }}");
@@ -15,9 +15,9 @@ $(document).ready(function() {
       {% for step,params in steps.items %}
 
           {% if params.enabled == "no" %}
-              $("#{{ params.class }}").addClass("disabled");   
+              $("#{{ params.class }}").addClass("disabled");
           {% else %}
-              $("#{{ params.class }}").removeClass("disabled");   
+              $("#{{ params.class }}").removeClass("disabled");
           {% endif %}
 
       {% endfor %}

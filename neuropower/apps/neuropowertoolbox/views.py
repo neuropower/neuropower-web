@@ -228,7 +228,7 @@ def neuropowertable(request):
     MASK = nib.load(parsdata.masklocation).get_data()
     if parsdata.ZorT == 'T':
         SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-    peaks = cluster.cluster(SPM,float(parsdata.ExcZ),MASK)
+    peaks = cluster.PeakTable(SPM,float(parsdata.ExcZ),MASK)
 
     if len(peaks) < 30:
         context["text"] = "There are too few peaks for a good estimation.  Either the ROI is too small or the screening threshold is too high."
@@ -269,7 +269,7 @@ def neuropowermodel(request):
     peaks = peakdata.data
 
     # Estimate pi1
-    bum = BUM.bumOptim(peaks.pval.tolist(),starts=20) # :)
+    bum = BUM.EstimatePi1(peaks.pval.tolist(),starts=20) # :)
     if bum['pi1']<0.1:
         context['message']=message+"\nWARNING: The estimates prevalence of activation is very low.  The estimation procedure gets rather unstable in this case. Proceed with caution."
     if bum['pi1']==0:

@@ -230,14 +230,16 @@ def options(request):
         return HttpResponseRedirect('../runGA/')
 
 def runGA(request):
-    sid = get_session_id(request)
-    context["steps"] = get_design_steps(template,sid)
-
-    desdata = DesignModel.objects.filter(SID=sid)[::-1][0]
 
     # Get the template/step status
-    template = "design/RunGA.html"
+
+    template = "design/runGA.html"
     context = {}
+
+    # Get the session ID and database entry
+
+    sid = get_session_id(request)
+    context["steps"] = get_design_steps(template,sid)
 
     return render(request,template,context)
 
