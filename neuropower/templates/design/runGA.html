@@ -5,6 +5,9 @@
 {% block head_title %}
   NeuroPower | {{block.super}}
 {% endblock %}
+{%block head %}
+<meta http-equiv="refresh" content="10">
+{% endblock %}
 
 {% block navbar %}
 {% include 'main/navbar.html' %}
@@ -12,29 +15,13 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-  <div class="col-xs-12">
-    <h2 id="lala"> Welcome ! </h1>
-      <p> Woohoo Running.</p>
-  </div>
+
+<div class="row" id="magic">
 </div>
 
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
-$(document).ready(function(){
-  $('#lala').click(function(){
-    $('#lala').fadeTo("slow",0.25);
-  });
-  });
 
-  // $('div').click(function() {
-  //   $("#fade").show();
-  //   $("#loader").show();
-  //   //document.location = "{% url 'neuropowertable' %}"
-  // });
-
-});
-</script>
+{%include 'design/update.js' %}
 {% endblock %}
