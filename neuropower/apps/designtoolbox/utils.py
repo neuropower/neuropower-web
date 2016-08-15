@@ -16,6 +16,9 @@ def get_session_id(request):
 
 def probs_and_cons(sid):
     desdata = DesignModel.objects.get(SID=sid)
+
+    # contrasts
+
     C = np.array(
         [
         [desdata.C00,desdata.C01,desdata.C02,desdata.C03,desdata.C04,desdata.C05,desdata.C06,desdata.C07,desdata.C08,desdata.C09],
@@ -26,22 +29,38 @@ def probs_and_cons(sid):
         ]
     )
     C = C[:desdata.Clen,:desdata.S]
-    print(C)
     for line in range(C.shape[0]):
         if not np.sum(C[line,:])==0:
             cor = np.sum(C[line,:])
         else:
             cor = np.max(C[line,:])-np.min(C[line,:])
         C[line,:] = C[line,:]/cor
+    C = np.around(C.astype(np.double),2)
+
+    # probabilities
 
     P = np.array(
     [desdata.P0,desdata.P1,desdata.P2,desdata.P3,desdata.P4,desdata.P5,desdata.P6,desdata.P7,desdata.P8,desdata.P9]
     )
     P = P[:desdata.S]
     P = P/np.sum(P)
-    print(P)
+    P = np.around(P.astype(np.double),2)
 
-    return {"C":C,"P":P}
+    ## to html
+
+    Phtml = "".join(["<tr><td>Stimulus "+str(d+1)+":&emsp;</td><td>"+str(P[d])+"</td></tr>" for d in range(len(P))])
+    Chtml = "".join(["<tr><td>Contrast "+str(c)+":&emsp;</td>"+"".join(["<td>"+str(C[c][d])+"&emsp;</td>" for d in range(len(C[c]))])+"</tr>" for c in range(C.shape[0])])
+
+    return {"C":C,"P":P,"Phtml":Phtml,"Chtml":Chtml}
+
+def weights_html(weights):
+    html = [
+        "<tr><td>Estimation efficiency:&emsp;</td><td>"+str(weights[0])+"</td></tr>",
+        "<tr><td>Detection power:&emsp;</td><td>"+str(weights[1])+"</td></tr>",
+        "<tr><td>Confounds efficiency:&emsp;</td><td>"+str(weights[2])+"</td></tr>",
+        "<tr><td>Probabilities efficiency:&emsp;</td><td>"+str(weights[3])+"</td></tr>"]
+    html_join = "".join(html)
+    return html_join
 
 def get_design_steps(template_page,sid):
     # template name, step class, and color
