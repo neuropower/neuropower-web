@@ -1,40 +1,29 @@
 <script type="text/javascript">
-// var figSel = d3.select("#magic");
-//
-// var svgSel = figSel.append("svg")
-//   .attr("width",50)
-//   .attr("height",50);
-//
-// var circleSel = svgSel.append("circle")
-//   .attr("cx",25)
-//   .attr("cy",25)
-//   .attr("r",25)
-//   .style("fill","purple");
-//
+
 var figSel = d3.select("#magic");
 
-var circleRadii = [40,20,10];
+var identityScale = d3.scale.linear()
+  .range([0,1000]);
+
+//The data for our line
+var lineData = [ { "x": 1,   "y": 5},  { "x": 20,  "y": 20},
+                 { "x": 40,  "y": 10}, { "x": 600,  "y": 40},
+                 { "x": 200,  "y": 5},  { "x": 100, "y": 600}];
 
 var svgSel = figSel.append("svg")
-  .attr("width",600)
-  .attr("height",100);
+ .attr("width",200)
+ .attr("height",200);
 
-var circles = svgSel.selectAll("circle")
-  .data(circleRadii)
-  .enter()
-  .append("circle");
+//This is the accessor function we talked about above
+var lineFunc = d3.svg.line()
+    .x(function(d) { return d.x; })
+    .y(function(d) { return d.y; })
+    .interpolate("linear");
 
-var circleAttributes = circles
-  .attr("cx",50)
-  .attr("cy",50)
-  .attr("r", function(d){return d;})
-  //  .style("fill","red");
-    .style("fill",function(d){
-      var returnColor;
-        if (d == 40) {returnColor="green";
-        } else if (d==20) {returnColor="purple";
-        } else if (d==10) {returnColor="red"; }
-    return returnColor;
-    });
+var lineGraph = svgSel.append("path")
+                            .attr("d", lineFunc(lineData))
+                            .attr("stroke", "blue")
+                            .attr("stroke-width", 2)
+                            .attr("fill", "none");
 
 </script>
