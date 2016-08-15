@@ -8,6 +8,7 @@ import pandas as pd
 import mseq
 import itertools
 import scipy.linalg
+import json
 
 class GeneticAlgorithm(object):
     '''
@@ -54,7 +55,7 @@ class GeneticAlgorithm(object):
             hard limit on the number of repeated stimuli
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None):
         self.ITI = ITI
         self.TR = TR
         self.L = L
@@ -74,6 +75,8 @@ class GeneticAlgorithm(object):
         self.rc = C.shape[0]
         self.preruncycles = preruncycles
         self.maxrepeat = MaxRepeat
+        if write:
+            self.write = write
 
         self.CreateTsComp()
         self.CreateLmComp()
@@ -152,6 +155,10 @@ class GeneticAlgorithm(object):
             NextGen = self.GeneticAlgorithmGeneration(Generation)
             Generation = NextGen["NextGen"]
             Best.append(NextGen['FBest'])
+            if self.write:
+                with open(self.write,'w') as fp:
+                    json.dump(Generation,fp)
+
 
         NatSel = {"Best":Best,
                "Generation":Generation}
