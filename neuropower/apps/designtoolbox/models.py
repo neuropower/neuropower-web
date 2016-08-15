@@ -96,5 +96,7 @@ class DesignModel(models.Model):
     preruncycles = models.IntegerField(default=10)
     ConfoundOrder = models.IntegerField(default=3)
     MaxRepeat = models.IntegerField(default=6)
+    stop = models.IntegerField(default=0)
+    running = models.IntegerField(default=0)
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID
