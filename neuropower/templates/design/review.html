@@ -27,19 +27,33 @@
   </div>
   <div class="col-md-3 col-xs-12"> Inter trial interval </div>
   <div class="col-md-9 col-xs-12"> {{ ITI }} seconds </div>
-
+  <div class="col-xs-12"><br></div>
   <div class="col-md-3 col-xs-12"> Scanner repetition time (TR) </div>
   <div class="col-md-9 col-xs-12"> {{ TR }} seconds </div>
-
+  <div class="col-xs-12"><br></div>
   <div class="col-md-3 col-xs-12"> Number of trial types </div>
   <div class="col-md-9 col-xs-12"> {{ S }} trials (or conditions) </div>
+  <div class="col-xs-12"><br></div>
 
   <div class="col-md-3 col-xs-12"> Total number of trials </div>
   <div class="col-md-9 col-xs-12"> {{ L }} trials </div>
+  <div class="col-xs-12"><br></div>
 
   <div class="col-md-3 col-xs-12"> Probabilities </div>
-  <div class="col-md-9 col-xs-12"> {{ P }} </div>
+  <div class="col-md-9 col-xs-12"><div class="table"><table>{{Phtml|safe}}</table></div></div>
+  <div class="col-xs-12"><br></div>
+  <div class="col-md-3 col-xs-12"> Contrasts </div>
+  <div class="col-md-9 col-xs-12"><div class="table"><table>{{Chtml|safe}}</table></div></div>
+  <div class="col-xs-12"><br></div>
+  <div class="col-md-3 col-xs-12"> Optimisation </div>
+  <div class="col-md-9 col-xs-12"><div class="table"><table>{{Whtml|safe}}</table></div></div>
 
+  <div class="col-md-3 col-xs-12"> Max number of repeated stimuli </div>
+  <div class="col-md-9 col-xs-12"> {{ repeat }} stimuli </div>
+  <div class="col-xs-12"><br></div>
+  <div class="col-md-3 col-xs-12"> Counfonding order </div>
+  <div class="col-md-9 col-xs-12"> {{ order }} trials </div>
+  <div class="col-xs-12"><br></div>
 
 </div>
 
