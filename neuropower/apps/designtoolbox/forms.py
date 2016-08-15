@@ -231,7 +231,7 @@ class DesignReviewForm(forms.ModelForm):
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
         HTML("""<br><br><br><br><br>"""),
-        ButtonHolder(Submit('Run', 'Run !', css_class='btn-black')),
+        ButtonHolder(Submit('Save', 'Save', css_class='btn-black')),
         HTML("""<br><br><br><br><br>"""),
         )
 
@@ -313,3 +313,27 @@ class DesignOptionsForm(forms.ModelForm):
         ButtonHolder(Submit('Submit', 'Save', css_class='btn-black')),
         HTML("""<br><br><br><br><br>""")
     )
+
+class DesignRunForm(forms.ModelForm):
+    class Meta:
+        model = DesignModel
+        fields = []
+
+    def __init__(self,*args,**kwargs):
+        super(DesignRunForm,self).__init__(*args,**kwargs)
+
+    def clean(self):
+        cleaned_data = super(DesignRunForm,self).clean()
+        return cleaned_data
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        HTML("""<br><br><br><br><br>"""),
+        ButtonHolder(Submit('GA', 'Run', css_class='btn-black')),
+        HTML("""&emsp;"""),
+        ButtonHolder(Submit('GA', 'Stop', css_class='btn-black')),
+        HTML("""<br><br><br><br><br>"""),
+        )
