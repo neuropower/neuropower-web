@@ -10,7 +10,6 @@ urlpatterns = [
     url(r'^review/$',views.review,name='DReview'),
     url(r'^runGA/$',views.runGA,name='DRunGA'),
     url(r'^options/$',views.options,name='DOptions'),
-
     url(r'^FAQ/$',views.FAQ,name='DFAQ'),
     url(r'^tutorial/$',views.tutorial,name='DTutorial'),
     url(r'^methods/$',views.methods,name='DMethods'),

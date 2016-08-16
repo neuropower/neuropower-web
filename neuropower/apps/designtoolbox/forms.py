@@ -331,9 +331,7 @@ class DesignRunForm(forms.ModelForm):
     helper.field_class = 'col-lg-12'
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
-        HTML("""<br><br><br><br><br>"""),
         ButtonHolder(Submit('GA', 'Run', css_class='btn-black')),
         HTML("""&emsp;"""),
-        ButtonHolder(Submit('GA', 'Stop', css_class='btn-black')),
-        HTML("""<br><br><br><br><br>"""),
+        ButtonHolder(Submit('GA', 'Stop', css_class='btn-black'))
         )

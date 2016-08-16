@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import sys
 sys.path = sys.path[1:]
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.conf import settings
 from scipy.stats import norm, t
 import os
@@ -13,6 +13,7 @@ from designcore import design
 import numpy as np
 import time
 import json
+import pandas as pd
 
 ## MAIN PAGE TEMPLATE PAGES
 
@@ -271,9 +272,9 @@ def runGA(request):
     # Get parameters to GA
 
     matrices = probs_and_cons(sid)
-    desfile = os.path.join(settings.MEDIA_ROOT,"designs",str(sid)+".json")
-    if os.path.isfile(desfile):
-        os.remove(desfile)
+    desfile = os.path.join(settings.MEDIA_ROOT,"designs",str(sid)+".tsv")
+    # if os.path.isfile(desfile):
+    #     os.remove(desfile)
 
     des = design.GeneticAlgorithm(
         # design specific
@@ -300,9 +301,7 @@ def runGA(request):
     des.counter = 0
 
     # Example responsive loop
-    if not request.method=="POST":
-        return render(request,template,context)
-    else:
+    if request.method=="POST":
         if request.POST.get("GA")=="Stop":
             # set 'stop' in db to 1
             form = runform.save(commit=False)
@@ -310,6 +309,7 @@ def runGA(request):
             form.save()
 
         if request.POST.get("GA")=="Run":
+            context["refrun"]=1
             # set 'stop' in db to 0
             form = runform.save(commit=False)
             form.stop = 0
@@ -338,6 +338,8 @@ def runGA(request):
                     des.GeneticAlgorithmCreateOrder()
                     Generation = des.GeneticAlgorithmAddOrder(Generation,[7,7,6])
                     Best = []
+                    form.running = 2
+                    form.save()
                     for gen in range(des.preruncycles):
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
@@ -356,6 +358,8 @@ def runGA(request):
                     Generation = {'order':[],'F':[],'ID':[]}
                     Generation = des.GeneticAlgorithmAddOrder(Generation,[7,7,6])
                     Best = []
+                    form.running = 3
+                    form.save()
                     for gen in range(des.preruncycles):
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
@@ -369,15 +373,17 @@ def runGA(request):
 
                 # Initiate !
                 if desdata.stop==0:
+                    form.running = 4
+                    form.save()
                     Generation = {'order':[],'F':[],'ID':[]}
                     Generation = des.GeneticAlgorithmAddOrder(Generation,[7,7,6])
 
                 # Run !
                 if desdata.stop==0:
                     print("running genetic algorithm")
-                    Results = {}
-                    Results['Best']=[]
-                    Results['Gen']=[]
+                    Results = []
+                    form.running = 5
+                    form.save()
                     for gen in range(desdata.cycles):
                         des.counter = gen
                         print("Generation: "+str(gen+1))
@@ -386,10 +392,13 @@ def runGA(request):
                             break
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
                         Generation = NextGen["NextGen"]
-                        Results["Best"].append(NextGen["FBest"])
-                        Results["Gen"].append(gen)
-                        with open(desfile,'w') as fp:
-                            json.dump(Results,fp)
+                        Results.append({"Best":int(NextGen["FBest"]*1000),"Gen":gen})
+                        with open(desfile,'w') as outfile:
+                            json.dump(Results,outfile)
+                    outfile.close()
+                    form.stop = 0
+                    form.running = 0
+                    form.save()
                     print("Done !")
 
             form.stop = 0
@@ -397,7 +406,33 @@ def runGA(request):
             form.save()
             print("Stopped or done !")
 
+    else:
+        desdata = DesignModel.objects.get(SID=sid)
+        context["refrun"]=None
+        if desdata.running==1:
+            context["message"]="Design optimisation initiated."
+            context["refrun"]=1
+        elif desdata.running==2:
+            context["message"]="Running pre-run to find maximum efficiency."
+            context["refrun"]=1
+        elif desdata.running==3:
+            context["message"]="Running pre-run to find maximum power."
+            context["refrun"]=1
+        elif desdata.running==4:
+            context["message"]="Starting design optimisation."
+            context["refrun"]=1
+        elif desdata.running==5:
+            context["message"]="Design optimisation running."
+            context["refrun"]=1
+
+        if os.path.isfile(desfile):
+            jsonfile = open(desfile).read()
+            data = json.loads(jsonfile)
+            data = json.dumps(data)
+            context['text']=data
     return render(request,template,context)
+
+
 
 ### SESSION CONTROL
 
