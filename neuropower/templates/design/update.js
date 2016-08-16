@@ -1,29 +1,46 @@
 <script type="text/javascript">
 
-var figSel = d3.select("#magic");
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
-var identityScale = d3.scale.linear()
-  .range([0,1000]);
+var svg = d3.select("#magic").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-//The data for our line
-var lineData = [ { "x": 1,   "y": 5},  { "x": 20,  "y": 20},
-                 { "x": 40,  "y": 10}, { "x": 600,  "y": 40},
-                 { "x": 200,  "y": 5},  { "x": 100, "y": 600}];
+var x = d3.time.scale()
+    .range([0, width]);
 
-var svgSel = figSel.append("svg")
- .attr("width",200)
- .attr("height",200);
+var y = d3.scale.linear()
+    .range([height, 0]);
 
-//This is the accessor function we talked about above
-var lineFunc = d3.svg.line()
-    .x(function(d) { return d.x; })
-    .y(function(d) { return d.y; })
-    .interpolate("linear");
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
 
-var lineGraph = svgSel.append("path")
-                            .attr("d", lineFunc(lineData))
-                            .attr("stroke", "blue")
-                            .attr("stroke-width", 2)
-                            .attr("fill", "none");
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var lineData = JSON.parse("/Users/Joke/Documents/Onderzoek/ProjectsOngoing/ly29baxbc93w5pc1a7u2jc5gqe73tla9.json");
+//
+// var lineFunc = d3.svg.line()
+//     .x(function(d) { return d.Gen; })
+//     .y(function(d) { return d.Best; })
+//     .interpolate("linear");
+//
+// var lineGraph = svgSel.append("path")
+//                             .attr("d", lineFunc(lineData))
+//                             .attr("stroke", "blue")
+//                             .attr("stroke-width", 2)
+//                             .attr("fill", "none");
+
+    var lines = svg.append("circle")
+      .attr("cx",10)
+      .attr("cy",10)
+      .attr("r",20)
+      .attr("fill","red");
 
 </script>
