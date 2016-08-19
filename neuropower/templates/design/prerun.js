@@ -1,5 +1,6 @@
 <script type="text/javascript">
 
+
 var margin = {top: 20, right: 20, bottom: 30, left: 50},
     width = 500 - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
@@ -24,7 +25,7 @@ svg.append("g")
 var lineData = JSON.parse('{{ text | escapejs }}');
 console.log(lineData)
 var lineFunc = d3.svg.line()
-    .x(function(d) { return margin.left+d.Gen/500*(width-margin.left-margin.right); })
+    .x(function(d) { return margin.left+d.Gen/{{preruns}}*(width-margin.left-margin.right); })
     .y(function(d) { return (height-margin.top-margin.bottom)/5*4; })
     .interpolate("linear");
 

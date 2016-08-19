@@ -1,5 +1,14 @@
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
+{%block head %}
+<meta http-equiv="refresh" content="1" >
+{% endblock %}
+
 {% block scripts %}
-{%include 'design/update.js' %}
+{% if refrun == "1" or refrun == "2" %}
+{% include 'design/prerun.js' %}
+{% endif %}
+{% if refrun == "3" %}
+{% include 'design/update.js' %}
+{% endif %}
 {% endblock %}

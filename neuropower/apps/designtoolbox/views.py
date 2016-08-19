@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 import sys
 sys.path = sys.path[1:]
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, render_to_response
 from django.conf import settings
 from scipy.stats import norm, t
 import os
 from utils import get_session_id, probs_and_cons, get_design_steps, weights_html
-from forms import DesignMainForm,DesignConsForm,DesignReviewForm,DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm
+from forms import DesignMainForm,DesignConsForm,DesignReviewForm,DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm
 from models import DesignModel
 from designcore import design
 import numpy as np
@@ -304,6 +304,7 @@ def runGA(request):
     # Responsive loop
 
     if request.method=="POST":
+        stopped = 0
 
         # If stop is requested
         if request.POST.get("GA")=="Stop":
@@ -349,13 +350,13 @@ def runGA(request):
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
                         if desdata.stop == 1:
+                            stopped=1
                             break
                         print("Generation: "+str(gen+1))
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
                         Generation = NextGen["NextGen"]
                         Best.append(NextGen['FBest'])
                         des.FeMax = Best[-1]
-                        print(des.FeMax)
 
                 # prerun for FdMax #
                 if des.weights[1]>0 and desdata.stop==0:
@@ -374,19 +375,20 @@ def runGA(request):
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
                         if desdata.stop == 1:
+                            stopped=1
                             break
                         print("Generation: "+str(gen+1))
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
                         Generation = NextGen["NextGen"]
                         Best.append(NextGen['FBest'])
                         des.FdMax = Best[-1]
-                        print(des.FdMax)
 
                 # Initiate !
                 des.prerun = None
                 if desdata.stop==0:
                     form.running = 4
                     form.save()
+                    des.GeneticAlgorithmCreateOrder()
                     Generation = {'order':[],'F':[],'ID':[]}
                     Generation = des.GeneticAlgorithmAddOrder(Generation,[7,7,6])
 
@@ -401,6 +403,7 @@ def runGA(request):
                         print("Generation: "+str(gen+1))
                         desdata = DesignModel.objects.get(SID=sid)
                         if desdata.stop == 1:
+                            stopped=1
                             break
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
                         Generation = NextGen["NextGen"]
@@ -408,34 +411,50 @@ def runGA(request):
                         with open(desfile,'w') as outfile:
                             json.dump(Results,outfile)
                     outfile.close()
+                    OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
+                    form.optimal = Generation['order'][OptInd]
                     form.stop = 0
-                    form.running = 0
+                    form.running = 6
                     form.save()
-                    print("Done !")
-
-            form.stop = 0
-            form.running = 0
+                    context['message']="Analysis complete"
+                if stopped == 1:
+                    form.running = 0
+                    form.stop = 0
             form.save()
-            print("Stopped or done !")
+
+        if request.POST.get("Download")=="Download optimal sequence":
+            response = HttpResponse(form.optimal,content_type="text/plain")
+            response['Content-Disposition'] = 'attachment; filename="design.txt"'
+            return response
 
     else:
         desdata = DesignModel.objects.get(SID=sid)
-        context["refrun"]=None
+        context["preruns"]=desdata.preruncycles
+        context["runs"]=desdata.cycles
+        context["refrun"]=0
+
+        context["message"]=""
         if desdata.running==1:
             context["message"]="Design optimisation initiated."
-            context["refrun"]=1
+            context["refrun"]="1"
         elif desdata.running==2:
             context["message"]="Running first pre-run to find maximum efficiency."
-            context["refrun"]=1
+            context["refrun"]="1"
         elif desdata.running==3:
             context["message"]="Running second pre-run to find maximum power."
-            context["refrun"]=2
+            context["refrun"]="2"
         elif desdata.running==4:
             context["message"]="Starting design optimisation."
-            context["refrun"]=3
+            context["refrun"]="3"
         elif desdata.running==5:
             context["message"]="Design optimisation running."
-            context["refrun"]=3
+            context["refrun"]="3"
+        elif desdata.running==6:
+            context["message"]="Design optimisation done"
+            context['refrun']="3"
+            downform = DesignDownloadForm(request.POST or None,instance=desdata)
+            context["downform"] = downform
+            downform = downform.save(commit=False)
 
         if os.path.isfile(desfile):
             jsonfile = open(desfile).read()
@@ -445,6 +464,7 @@ def runGA(request):
                 context['text']=data
             except ValueError:
                 pass
+
     return render(request,template,context)
 
 def updatepage(request):

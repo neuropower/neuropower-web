@@ -7,6 +7,7 @@
 {% endblock %}
 
 {%block head %}
+<meta http-equiv="refresh" content="3" >
 {% endblock %}
 
 {% block navbar %}
@@ -31,10 +32,21 @@
     </form>
   </div>
 
-
 <div id="magic"></div>
-{% include 'design/updatepage.html' with text=text refrun=3 %}
+{% include 'design/updatepage.html' with text=text refrun=refrun preruns=preruns runs=runs %}
 </div>
 
+<div class="row">
+  <div class="col-sm-2"></div>
+  <div class="col-sm-2">
+    <br><br><br><br><br>
+    {% if downform %}
+    <form id="downform" method='POST' action='.'>
+      {% csrf_token %}
+      {% crispy downform %}
+    </form>
+    {% endif %}
+
+</div>
 
 {% endblock %}

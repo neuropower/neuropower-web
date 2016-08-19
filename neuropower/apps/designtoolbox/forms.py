@@ -335,3 +335,23 @@ class DesignRunForm(forms.ModelForm):
         HTML("""&emsp;"""),
         ButtonHolder(Submit('GA', 'Stop', css_class='btn-black'))
         )
+
+class DesignDownloadForm(forms.ModelForm):
+    class Meta:
+        model = DesignModel
+        fields = []
+
+    def __init__(self,*args,**kwargs):
+        super(DesignDownloadForm,self).__init__(*args,**kwargs)
+
+    def clean(self):
+        cleaned_data = super(DesignDownloadForm,self).clean()
+        return cleaned_data
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        ButtonHolder(Submit('Download', 'Download optimal sequence', css_class='btn-black')),
+        )

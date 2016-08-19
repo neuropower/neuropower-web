@@ -49,10 +49,14 @@ svg.append("g")
   .attr("transform", "translate(0," + (height-margin.top) + ")")
   .call(xAxis);
 
+var numcycles = Number( {{ runs }} );
+
+console.log(numcycles);
+
 var lineData = JSON.parse('{{ text | escapejs }}');
 console.log(lineData)
 var lineFunc = d3.svg.line()
-    .x(function(d) { return margin.left+d.Gen/1000*(width-margin.left-margin.right); })
+    .x(function(d) { return margin.left+d.Gen/numcycles*(width-margin.left-margin.right); })
     .y(function(d) { return height-margin.top-d.Best/1000*(height-margin.top-margin.bottom); })
     .interpolate("linear");
 
