@@ -5,36 +5,8 @@
 {% block head_title %}
   NeuroPower | {{block.super}}
 {% endblock %}
+
 {%block head %}
-<style>
-path {
-    stroke: steelblue;
-    stroke-width: 1;
-    fill: none;
-  }
-
-  .axis {
-    shape-rendering: crispEdges;
-  }
-
-  .x.axis line {
-    stroke: lightgrey;
-  }
-
-  .x.axis .minor {
-    stroke-opacity: .5;
-  }
-
-  .x.axis path {
-    display: none;
-  }
-
-  .y.axis line, .y.axis path {
-    fill: none;
-    stroke: #000;
-  }
-
-</style>
 {% endblock %}
 
 {% block navbar %}
@@ -58,63 +30,11 @@ path {
       {% crispy runform %}
     </form>
   </div>
-{% include 'design/json.html' with refrun=refrun %}
+
+
+<div id="magic"></div>
+{% include 'design/updatepage.html' with text=text refrun=3 %}
 </div>
 
 
-{% endblock %}
-
-{% block scripts %}
-<script type="text/javascript">
-
-var margin = {top: 20, right: 20, bottom: 30, left: 50},
-    width = 500 - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
-
-var yScale=d3.scale.linear()
-  .domain([0,100])
-  .range([height-margin.top,margin.bottom]);
-
-var xScale = d3.scale.linear()
-  .domain([0,100])
-  .range([margin.left,width-margin.right]);
-
-var yAxis = d3.svg.axis()
-  .orient("left")
-  .scale(yScale);
-
-var xAxis = d3.svg.axis()
-  .orient("bottom")
-  .scale(xScale);
-
-var svg = d3.select("#magic").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom);
-
-// where y-axis starts
-svg.append("g")
-  .attr("transform", "translate("+margin.left+",0)")
-  .call(yAxis);
-
-// where x-axis starts
-svg.append("g")
-  .attr("transform", "translate(0," + (height-margin.top) + ")")
-  .call(xAxis);
-
-var lineData = JSON.parse('{{ text | escapejs }}');
-console.log(lineData)
-var lineFunc = d3.svg.line()
-    .x(function(d) { return margin.left+d.Gen/100*(width-margin.left-margin.right); })
-    .y(function(d) { return height-margin.top-d.Best/200000*(height-margin.top-margin.bottom); })
-    .interpolate("linear");
-
-var lineGraph = svg.append("path")
-                          .attr("d", lineFunc(lineData))
-                          .attr("stroke", "blue")
-                          .attr("stroke-width", 4)
-                          .attr("fill", "red");
-
-
-</script>
-{%include 'design/update.js' %}
 {% endblock %}

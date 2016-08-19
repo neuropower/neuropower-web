@@ -8,15 +8,17 @@
 
 {% block navbar %}
 {% include 'main/navbar.html' %}
-{%include 'design/designnavbar.html' %}
 {% endblock %}
 
 {% block content %}
 <div class="row">
-  <div class="col-xs-12">
-    <h2> Welcome ! </h1>
-      <p> Blablabla.</p>
+  <div class="col-xs-1"></div>
+  <div class="col-xs-10">
+    <h2> Design </h2>
+    <br><br>
+      <p>This toolbox helps researchers with the planning of experimental designs for fMRI experiments.  In short: depending on the exact time and order of stimulus presentations, a study can win in statistical power or efficiency in estimating the brain signal. As such, depending on the design criteria, you'll have more power with fewer subjects or with shorter experiments.  For more details about the methods, please see <a href="../methods/">the methods section</a>, or take a look at the <a href="../tutorial/">step-by-step tutorial</a> on this page.  To use the toolbox, go <a href="../input/">here</a>. </p>
   </div>
+  <div class="col-xs-1"></div>
 </div>
 
 {% endblock %}
