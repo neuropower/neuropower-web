@@ -250,6 +250,8 @@ def runGA(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template,sid)
 
+    # check if there is a database entry: else go back to inputform
+
     try:
         desdata = DesignModel.objects.get(SID=sid)
     except DesignModel.DoesNotExist:
@@ -264,17 +266,16 @@ def runGA(request):
         }
         return render(request,template,context)
 
-    # Define form
+    # Define form (Run or Stop)
 
     runform = DesignRunForm(request.POST or None,instance=desdata)
+    form = runform.save(commit=False)
     context["runform"] = runform
 
     # Get parameters to GA
 
     matrices = probs_and_cons(sid)
     desfile = os.path.join(settings.MEDIA_ROOT,"designs",str(sid)+".tsv")
-    # if os.path.isfile(desfile):
-    #     os.remove(desfile)
 
     des = design.GeneticAlgorithm(
         # design specific
@@ -300,25 +301,25 @@ def runGA(request):
     )
     des.counter = 0
 
-    # Example responsive loop
+    # Responsive loop
+
     if request.method=="POST":
+
+        # If stop is requested
         if request.POST.get("GA")=="Stop":
-            # set 'stop' in db to 1
-            form = runform.save(commit=False)
             form.stop = 1
             form.save()
+            context["message"] = "Analysis halted."
 
+        # If run is requested
         if request.POST.get("GA")=="Run":
-            context["refrun"]=1
-            # set 'stop' in db to 0
-            form = runform.save(commit=False)
-            form.stop = 0
-            form.save()
 
-            # check whether loop is already running
+            # check whether loop is already running and only start if it's not running
             desdata = DesignModel.objects.get(SID=sid)
+            if not desdata.running==0:
+                context["message"] = "Analysis is already running."
 
-            if desdata.running==0:
+            else:
                 form.running = 1
                 form.save()
 
@@ -340,7 +341,11 @@ def runGA(request):
                     Best = []
                     form.running = 2
                     form.save()
+                    gens=[]
                     for gen in range(des.preruncycles):
+                        gens.append({"Gen":gen})
+                        with open(desfile,'w') as outfile:
+                            json.dump(gens,outfile)
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
                         if desdata.stop == 1:
@@ -350,6 +355,7 @@ def runGA(request):
                         Generation = NextGen["NextGen"]
                         Best.append(NextGen['FBest'])
                         des.FeMax = Best[-1]
+                        print(des.FeMax)
 
                 # prerun for FdMax #
                 if des.weights[1]>0 and desdata.stop==0:
@@ -360,7 +366,11 @@ def runGA(request):
                     Best = []
                     form.running = 3
                     form.save()
+                    gens = []
                     for gen in range(des.preruncycles):
+                        gens.append({"Gen":gen})
+                        with open(desfile,'w') as outfile:
+                            json.dump(gens,outfile)
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
                         if desdata.stop == 1:
@@ -370,8 +380,10 @@ def runGA(request):
                         Generation = NextGen["NextGen"]
                         Best.append(NextGen['FBest'])
                         des.FdMax = Best[-1]
+                        print(des.FdMax)
 
                 # Initiate !
+                des.prerun = None
                 if desdata.stop==0:
                     form.running = 4
                     form.save()
@@ -413,24 +425,30 @@ def runGA(request):
             context["message"]="Design optimisation initiated."
             context["refrun"]=1
         elif desdata.running==2:
-            context["message"]="Running pre-run to find maximum efficiency."
+            context["message"]="Running first pre-run to find maximum efficiency."
             context["refrun"]=1
         elif desdata.running==3:
-            context["message"]="Running pre-run to find maximum power."
-            context["refrun"]=1
+            context["message"]="Running second pre-run to find maximum power."
+            context["refrun"]=2
         elif desdata.running==4:
             context["message"]="Starting design optimisation."
-            context["refrun"]=1
+            context["refrun"]=3
         elif desdata.running==5:
             context["message"]="Design optimisation running."
-            context["refrun"]=1
+            context["refrun"]=3
 
         if os.path.isfile(desfile):
             jsonfile = open(desfile).read()
-            data = json.loads(jsonfile)
-            data = json.dumps(data)
-            context['text']=data
+            try:
+                data = json.loads(jsonfile)
+                data = json.dumps(data)
+                context['text']=data
+            except ValueError:
+                pass
     return render(request,template,context)
+
+def updatepage(request):
+    return render(request,"design/updatepage.html",{})
 
 
 
