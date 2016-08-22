@@ -1,4 +1,4 @@
-from models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel,PowerModel
+from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel,PowerModel
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import PrependedAppendedText, FormActions
 from crispy_forms.helper import FormHelper

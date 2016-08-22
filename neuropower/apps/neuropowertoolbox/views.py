@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 import sys
 sys.path = sys.path[1:]
-from forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
-from models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
-from utils import get_url, get_neuropower_steps, get_db_entries, get_session_id, create_temporary_copy
-from neuropower import cluster, BUM, neuropowermodels
+from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
+from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
+from .utils import get_url, get_neuropower_steps, get_db_entries, get_session_id, create_temporary_copy
+from neuropowercore import cluster, BUM, neuropowermodels
 from django.http import HttpResponseRedirect
 from plots import plotPower
 from django.shortcuts import render

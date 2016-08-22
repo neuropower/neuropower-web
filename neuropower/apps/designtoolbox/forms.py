@@ -1,4 +1,4 @@
-from models import DesignModel
+from .models import DesignModel
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import PrependedAppendedText, FormActions
 from crispy_forms.helper import FormHelper
@@ -120,7 +120,7 @@ class DesignConsForm(forms.ModelForm):
         'C10','C11','C12','C13','C14','C15','C16','C17','C18','C19',
         'C20','C21','C22','C23','C24','C25','C26','C27','C28','C29',
         'C30','C31','C32','C33','C34','C35','C36','C37','C38','C39',
-        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49'
+        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb'
         ]
 
     def __init__(self,*args,**kwargs):
@@ -151,7 +151,7 @@ class DesignConsForm(forms.ModelForm):
         # add layout: probabilities
 
         self.helper.layout.append(
-            HTML('<h5> What are the probabilities for each stimulus type? </h5><br>')
+            HTML('<h5> What are the probabilities (or frequencies) for each stimulus type? </h5><br>')
             )
 
         for indf,field in enumerate(fieldsP):
@@ -163,8 +163,20 @@ class DesignConsForm(forms.ModelForm):
             HTML('<br><br><br><br><br>')
             )
 
+        # hard limit
+        self.helper.layout.append(
+            HTML('<h5> Do you want a hard limit on those probabilities? </h5><br><p>Check if you want to preserve the probabilities exactly.  This largely restricts the possibilities to search over, so you might want to change the number of cycles in the settings.</p>')
+            )
+
+        self.helper.layout.append(
+            Div(Field("HardProb"),css_class='col-xs-1')
+            )
+
         # add layout: contrasts
 
+        self.helper.layout.append(
+            HTML('<br><br><br><br><br>')
+            )
         self.helper.layout.append(
             HTML('<h5> What are the specific contrasts that will be tested? </h5><br>')
             )

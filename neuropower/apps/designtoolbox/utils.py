@@ -5,7 +5,7 @@ import urllib
 from django.conf import settings
 from django.http import HttpResponseRedirect
 import numpy as np
-from models import DesignModel
+from .models import DesignModel
 
 def get_session_id(request):
     '''get_session_id gets the user session id, and creates one if it doesn't exist'''

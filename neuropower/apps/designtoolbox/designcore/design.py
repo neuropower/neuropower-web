@@ -9,6 +9,7 @@ import mseq
 import itertools
 import scipy.linalg
 import json
+from collections import Counter
 
 class GeneticAlgorithm(object):
     '''
@@ -53,9 +54,11 @@ class GeneticAlgorithm(object):
             (eg. 3: the probability that A follows A 3 trials ago = A follows B 3 trials ago)
         MaxRepeat: integer
             hard limit on the number of repeated stimuli
+        HardProb: boolean, default = False
+            setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None,HardProb=False):
         self.ITI = ITI
         self.TR = TR
         self.L = L
@@ -75,6 +78,7 @@ class GeneticAlgorithm(object):
         self.rc = C.shape[0]
         self.preruncycles = preruncycles
         self.maxrepeat = MaxRepeat
+        self.HardProb = HardProb
         if write:
             self.write = write
 
@@ -196,15 +200,28 @@ class GeneticAlgorithm(object):
         Generation = self.GeneticAlgorithmMutation(Generation)
         Generation = self.GeneticAlgorithmImmigration(Generation)
 
-        # cutoff on number of repeats
-        IndMaxRep = []
-        for ord in range(len(Generation['order'])):
-            RepCheck = ''.join(str(e) for e in [0]*self.maxrepeat) in ''.join(str(e) for e in Generation['order'][ord])
-            if RepCheck:
-                IndMaxRep.append(ord)
-        Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndMaxRep]
-        Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndMaxRep]
-        Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndMaxRep]
+        # cutoff on hard limits
+        if self.maxrepeat or self.HardProb:
+            IndRemove = []
+            for ord in range(len(Generation['order'])):
+                RepCheck = False
+                ProbCheck = False
+                if self.maxrepeat:
+                    rep = 0
+                    for num in range(self.stimtype):
+                        help = ''.join(str(e) for e in [num]*self.maxrepeat) in ''.join(str(e) for e in Generation['order'][ord])
+                        rep = rep+1 if help==True else rep
+                        print(rep)
+                    RepCheck = True if rep>0 else False
+                #if self.HardProb:
+                    #ObsCnt = Counter(Generation['order'][ord]).values()
+                    #ObsProb = [np.around(float(x)/float(np.sum(ObsCnt)),decimals=2) for x in ObsCnt]
+                    #ProbCheck = np.array_equal(np.array(ObsProb),np.array(self.P))
+                if RepCheck or not ProbCheck:
+                    IndRemove.append(ord)
+            Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndRemove]
+            Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndRemove]
+            Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndRemove]
 
         # To check overall improvement: save best design in Generation
         FBest = np.max(Generation['F'])

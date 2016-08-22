@@ -96,6 +96,7 @@ class DesignModel(models.Model):
     preruncycles = models.IntegerField(default=10)
     ConfoundOrder = models.IntegerField(default=3)
     MaxRepeat = models.IntegerField(default=6)
+    HardProb = models.BooleanField(default=False)
     stop = models.IntegerField(default=0)
     running = models.IntegerField(default=0)
     optimal = PickledObjectField(default="")
