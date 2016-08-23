@@ -443,6 +443,7 @@ def runGA(request):
 
     else:
         desdata = DesignModel.objects.get(SID=sid)
+        print(desdata.running)
         context["preruns"]=desdata.preruncycles
         context["runs"]=desdata.cycles
         context["refrun"]=0
