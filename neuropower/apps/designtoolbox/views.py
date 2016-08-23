@@ -304,11 +304,11 @@ def runGA(request):
     # Responsive loop
 
     if request.method=="POST":
+        form = runform.save(commit=False)
 
         # If stop is requested
         if request.POST.get("GA")=="Stop":
 
-            form = runform.save(commit=False)
             form.stop = 1
             form.running = 0
             form.save()
