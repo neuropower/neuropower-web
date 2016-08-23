@@ -320,7 +320,7 @@ def runGA(request):
 
             # check whether loop is already running and only start if it's not running
             desdata = DesignModel.objects.get(SID=sid)
-            if not desdata.running==0 or desdata.running==6:
+            if not (desdata.running==0 or desdata.running==6):
                 context["message"] = "Analysis is already running."
 
             else:
@@ -430,7 +430,7 @@ def runGA(request):
                     form.save()
                     context['message']="Analysis complete"
             form.stop = 0
-            if OptInt:
+            if desdata.optimal:
                 form.running = 6
             else:
                 form.running = 0
