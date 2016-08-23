@@ -310,6 +310,7 @@ def runGA(request):
         # If stop is requested
         if request.POST.get("GA")=="Stop":
             form.stop = 1
+            form.running = 0
             form.save()
             context["message"] = "Analysis halted."
 
@@ -340,7 +341,8 @@ def runGA(request):
                     Generation = {'order':[],'F':[],'ID':[]}
                     des.GeneticAlgorithmCreateOrder()
                     weights = [0,0,1] if des.HardProb==True else [1/3,1/3,1/3]
-                    weights = [int(x) for x in weights*self.G]
+                    weights = [int(x) for x in weights*desdata.G]
+                    weights = [7,7,6]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
                     Best = []
                     form.running = 2
@@ -367,7 +369,8 @@ def runGA(request):
                     des.prerun = 'Fd'
                     Generation = {'order':[],'F':[],'ID':[]}
                     weights = [0,0,1] if des.HardProb==True else [1/3,1/3,1/3]
-                    weights = [int(x) for x in weights*self.G]
+                    weights = [int(x) for x in weights*desdata.G]
+                    weights = [7,7,6]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
                     Best = []
                     form.running = 3
@@ -397,6 +400,7 @@ def runGA(request):
                     Generation = {'order':[],'F':[],'ID':[]}
                     weights = [0,0,1] if des.HardProb==True else [1/3,1/3,1/3]
                     weights = [int(x) for x in weights*des.G]
+                    weights = [7,7,6]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
 
                 # Run !

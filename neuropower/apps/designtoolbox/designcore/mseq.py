@@ -18,6 +18,8 @@ import math
 import pickle
 import os
 import sys
+from django.conf import settings
+
 
 class Msequence(object):
     '''
@@ -45,7 +47,7 @@ class Msequence(object):
         self.stimtypeno = stimtypeno
 
         # read in taps file and count
-        tapsfile = "/Users/Joke/Documents/Onderzoek/ProjectsOngoing/Neuropower/neuropower-web/neuropower/apps/designtoolbox/designcore/taps.p"
+        tapsfile = os.path.join(settings.MEDIA_ROOT,"taps.p")
         self.taps = pickle.load(open(tapsfile))
 
         # initate baseVal

@@ -1,0 +1,32 @@
+brew install docker docker-machine docker-compose
+docker-machine ls
+docker-machine help
+docker-machine create --driver virtualbox neuropower_demo
+docker-machine create --driver virtualbox
+docker-machine env neuro
+eval "$(docker-machine env neuro)"
+docker ps
+cd ..
+git clone https://github.com/NeuroVault/NeuroVault.git
+cd neuropower/
+cp ../NeuroVault/Dockerfile .
+atom Dockerfile
+export ATOM_PATH=/Applications/Atom\ 2.app/
+atom Dockerfile
+nano Dockerfile
+docker build -t filo/neuropower .
+cat neuropower/requirements.txt
+nano Dockerfile
+
+docker build -t filo/neuropower .
+mv Dockerfile neuropower/
+docker run -it filo/neuropower python
+docker ps
+
+docker ps -a
+
+nano Dockerfile
+docker build -t filo/neuropower .
+git clean -f
+nano docker-compose.yml
+docker build -t filo/neuropower .

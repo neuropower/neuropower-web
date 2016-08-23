@@ -200,28 +200,38 @@ class GeneticAlgorithm(object):
         Generation = self.GeneticAlgorithmMutation(Generation)
         Generation = self.GeneticAlgorithmImmigration(Generation)
 
-        # cutoff on hard limits
-        if self.maxrepeat or self.HardProb:
-            IndRemove = []
-            for ord in range(len(Generation['order'])):
-                RepCheck = False
-                ProbCheck = False
-                if self.maxrepeat:
-                    rep = 0
-                    for num in range(self.stimtype):
-                        help = ''.join(str(e) for e in [num]*self.maxrepeat) in ''.join(str(e) for e in Generation['order'][ord])
-                        rep = rep+1 if help==True else rep
-                        print(rep)
-                    RepCheck = True if rep>0 else False
+        # cutoff on number of repeats
+        IndMaxRep = []
+        for ord in range(len(Generation['order'])):
+            RepCheck = ''.join(str(e) for e in [0]*self.maxrepeat) in ''.join(str(e) for e in Generation['order'][ord])
+            if RepCheck:
+                IndMaxRep.append(ord)
+        Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndMaxRep]
+        Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndMaxRep]
+        Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndMaxRep]
+
+        # # cutoff on hard limits
+        # if self.maxrepeat or self.HardProb:
+        #     IndRemove = []
+        #     for ord in range(len(Generation['order'])):
+        #         RepCheck = False
+        #         ProbCheck = False
+        #         if self.maxrepeat:
+        #             rep = 0
+        #             for num in range(self.stimtype):
+        #                 help = ''.join(str(e) for e in [num]*self.maxrepeat) in ''.join(str(e) for e in Generation['order'][ord])
+        #                 rep = rep+1 if help==True else rep
+        #                 print(rep)
+        #             RepCheck = True if rep>0 else False
                 #if self.HardProb:
                     #ObsCnt = Counter(Generation['order'][ord]).values()
                     #ObsProb = [np.around(float(x)/float(np.sum(ObsCnt)),decimals=2) for x in ObsCnt]
                     #ProbCheck = np.array_equal(np.array(ObsProb),np.array(self.P))
-                if RepCheck or not ProbCheck:
-                    IndRemove.append(ord)
-            Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndRemove]
-            Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndRemove]
-            Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndRemove]
+            #     if RepCheck or not ProbCheck:
+            #         IndRemove.append(ord)
+            # Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndRemove]
+            # Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndRemove]
+            # Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndRemove]
 
         # To check overall improvement: save best design in Generation
         FBest = np.max(Generation['F'])
