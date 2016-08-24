@@ -8,3 +8,4 @@ sqlite
 *.nii.gz
 */secrets.py
 script.sh
+media/designs/*
