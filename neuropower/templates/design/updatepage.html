@@ -1,16 +1,18 @@
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
 {%block head %}
-<meta http-equiv="refresh" content="1" >
+<!-- <meta http-equiv="refresh" content="10" > -->
 {% endblock %}
 
 {% block content %}
+<div id="magic"><p>{{ refrun }}</p></div>
 {% endblock %}
+
 {% block scripts %}
-{% if refrun == 1 or refrun == 2 %}
+{% if refrun == "1" or refrun == "2" %}
 {% include 'design/prerun.js' %}
 {% endif %}
-{% if refrun == 3 %}
+{% if refrun == "3" %}
 {% include 'design/update.js' %}
 {% endif %}
 {% endblock %}

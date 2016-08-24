@@ -137,7 +137,7 @@ def consinput(request):
         consform.P = matrices['P']
         consform.C = matrices['C']
         if desdata.HardProb==True:
-            consform.G = desdata.G*10
+            consform.G = 200
         consform.save()
 
         return HttpResponseRedirect('../review/')
@@ -347,9 +347,8 @@ def runGA(request):
                     des.prerun = 'Fe'
                     Generation = {'order':[],'F':[],'ID':[]}
                     des.GeneticAlgorithmCreateOrder()
-                    weights = [0,0,1] if des.HardProb==True else [1/3,1/3,1/3]
-                    weights = [int(x) for x in np.array(weights)*desdata.G]
-                    #weights = [7,7,6]
+                    weights = [0,0,1] if des.HardProb==True else [1/3.,1/3.,1/3.]
+                    weights = [int(x) for x in np.array(weights)*des.G]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
                     Best = []
                     gens=[]
@@ -375,9 +374,8 @@ def runGA(request):
                     print("running maximum efficiency (Fd)")
                     des.prerun = 'Fd'
                     Generation = {'order':[],'F':[],'ID':[]}
-                    weights = np.array([0,0,1]) if des.HardProb==True else np.array([1/3,1/3,1/3])
-                    weights = [int(x) for x in weights*desdata.G]
-                    #weights = [7,7,6]
+                    weights = [0,0,1.] if des.HardProb==True else [1/3.,1/3.,1/3.]
+                    weights = [int(x) for x in np.array(weights)*des.G]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
                     Best = []
                     gens = []
@@ -403,9 +401,8 @@ def runGA(request):
                     form.save()
                     des.GeneticAlgorithmCreateOrder()
                     Generation = {'order':[],'F':[],'ID':[]}
-                    weights = [0,0,1] if des.HardProb==True else [1/3,1/3,1/3]
-                    weights = [int(x) for x in weights*des.G]
-                    weights = [7,7,6]
+                    weights = [0,0,1] if des.HardProb==True else [1./3,1./3,1./3]
+                    weights = [int(x) for x in np.array(weights)*des.G]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
 
                 # Run !
@@ -445,7 +442,6 @@ def runGA(request):
 
     else:
         desdata = DesignModel.objects.get(SID=sid)
-        print(desdata.running)
         context["preruns"]=desdata.preruncycles
         context["runs"]=desdata.cycles
         context["refrun"]=0

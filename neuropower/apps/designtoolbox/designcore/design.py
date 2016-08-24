@@ -188,8 +188,9 @@ class GeneticAlgorithm(object):
         self.GeneticAlgorithmCreateOrder()
 
         # Create first generation
-        r = [7,7,6]
-        Generation = self.GeneticAlgorithmAddOrder(Generation,r)
+        weights = [0,0,1.] if self.HardProb==True else [1/3.,1/3.,1/3.]
+        weights = [int(x) for x in np.array(weights)*self.G]
+        Generation = self.GeneticAlgorithmAddOrder(Generation,weights)
 
         return Generation
 
@@ -202,43 +203,36 @@ class GeneticAlgorithm(object):
 
         # cutoff on number of repeats
         IndMaxRep = []
-        for ord in range(len(Generation['order'])):
-            RepCheck = ''.join(str(e) for e in [0]*(self.maxrepeat+1)) in ''.join(str(e) for e in Generation['order'][ord])
-            if RepCheck:
-                IndMaxRep.append(ord)
-        Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndMaxRep]
-        Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndMaxRep]
-        Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndMaxRep]
+        if self.maxrepeat:
+            for ord in range(len(Generation['order'])):
+                RepCheck = ''.join(str(e) for e in [0]*(self.maxrepeat+1)) in ''.join(str(e) for e in Generation['order'][ord])
+                if RepCheck:
+                    IndMaxRep.append(ord)
 
-        # # cutoff on hard limits
-        # if self.maxrepeat or self.HardProb:
-        #     IndRemove = []
-        #     for ord in range(len(Generation['order'])):
-        #         RepCheck = False
-        #         ProbCheck = False
-        #         if self.maxrepeat:
-        #             rep = 0
-        #             for num in range(self.stimtype):
-        #                 help = ''.join(str(e) for e in [num]*self.maxrepeat) in ''.join(str(e) for e in Generation['order'][ord])
-        #                 rep = rep+1 if help==True else rep
-        #                 print(rep)
-        #             RepCheck = True if rep>0 else False
-                #if self.HardProb:
-                    #ObsCnt = Counter(Generation['order'][ord]).values()
-                    #ObsProb = [np.around(float(x)/float(np.sum(ObsCnt)),decimals=2) for x in ObsCnt]
-                    #ProbCheck = np.array_equal(np.array(ObsProb),np.array(self.P))
-            #     if RepCheck or not ProbCheck:
-            #         IndRemove.append(ord)
-            # Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndRemove]
-            # Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndRemove]
-            # Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndRemove]
+        IndHardProb = []
+        if self.HardProb:
+            for ord in range(len(Generation['order'])):
+                ObsCnt = Counter(Generation['order'][ord]).values()
+                ObsProb = [np.around(float(x)/float(np.sum(ObsCnt)),decimals=2) for x in ObsCnt]
+                ProbCheck = np.array_equal(np.array(ObsProb),np.array(self.P))
+                if not ProbCheck:
+                    IndHardProb.append(ord)
+
+        if self.maxrepeat or self.HardProb:
+            IndRemove = IndMaxRep+IndHardProb
+            Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndRemove]
+            Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndRemove]
+            Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndRemove]
 
         # To check overall improvement: save best design in Generation
         FBest = np.max(Generation['F'])
 
         # Select G best designs for Next Generation
         FCutOff = np.min(sorted(Generation['F'], reverse=True)[:self.G])
-        OptInd = np.arange(len(Generation['F']))[Generation['F']>=FCutOff]
+        OptIndLg = np.arange(len(Generation['F']))[Generation['F']>FCutOff]
+        needed = self.G-len(OptIndLg)
+        OptIndEq = np.arange(len(Generation['F']))[Generation['F']==FCutOff][:needed]
+        OptInd = np.concatenate([OptIndLg,OptIndEq])
 
         NextGen = {}
         for DictEl in Generation.keys():
@@ -255,8 +249,10 @@ class GeneticAlgorithm(object):
     def GeneticAlgorithmCrossover(self,Generation): ## REPLACE OR ADD?
 
         # Randomly select partners and loop over couples for babies
-        CouplingRnd = np.random.choice(self.G,size=self.G,replace=True)
-        CouplingRnd = [[CouplingRnd[i],CouplingRnd[i+1]] for i in np.arange(0,self.G,2)]
+        noparents = int(len(Generation['order']))
+        npairs = int(noparents/2.)
+        CouplingRnd = np.random.choice(noparents,size=(npairs*2),replace=True)
+        CouplingRnd = [[CouplingRnd[i],CouplingRnd[i+1]] for i in np.arange(0,npairs*2,2)]
         for couple in CouplingRnd:
 
             # randomly select a timepoint for cross-over
@@ -290,7 +286,8 @@ class GeneticAlgorithm(object):
     def GeneticAlgorithmMutation(self,Generation): ## REPLACE OR ADD?
 
         # loop over first G designs
-        for order in Generation['order'][:self.G]:
+        noparents = int(len(Generation['order'])/2.) #(assuming crossover was done before)
+        for order in Generation['order'][:noparents]:
 
             # randomly select the trials that will be mutated
             mutated = np.random.choice(self.L,int(round(self.L*self.q)),replace=False)

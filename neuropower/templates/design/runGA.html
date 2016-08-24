@@ -7,7 +7,7 @@
 {% endblock %}
 
 {%block head %}
-<meta http-equiv="refresh" content="1" >
+<meta http-equiv="refresh" content="100" >
 {% endblock %}
 
 {% block navbar %}
@@ -32,7 +32,7 @@
     </form>
   </div>
 
-{% include 'design/updatepage.html' with text=text refrun=refrun preruns=preruns runs=runs %}
+  {% include 'design/updatepage.html' with text=text refrun=refrun preruns=preruns runs=runs %}
 </div>
 
 <div class="row">
