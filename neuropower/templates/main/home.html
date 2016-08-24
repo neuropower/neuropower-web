@@ -11,10 +11,12 @@
     <div class="row">
       <div class="col-xs-8" style="padding-left:10px">
         <h2>Welcome</h2>
-        <p>NeuroPower is a toolbox that allows you to compute the necessary sample size for your fMRI study to obtain a certain predefined level of statistical power.  Our method can be used for whole-brain analyses, as well as for region-of-interest analyses.  What's even better: there's no need to download or install anything. Your sample size calculations are now only a few clicks away.</p>
+        <p>During the design of an fMRI experiment, many parameters have to be decided prior to any data collection.  Examples include: sample size, order of stimuli, timing of stimuli,... These parameters all have an effect on the outcome.  A good design will optimise the balance between the power and the cost of the study.  The results from a well planned design are more trustworthy and reproducible than any (pseudo-) random design.</p>
+        <p>This website is a collection of small toolboxes to help design an fMRI study.  <span style="color: #8D181B"><b>NeuroPower</b></span> helps deciding on the sample size, while <span style="color: #8D181B"><b>NeuroDesign</b></span> finds optimal order and spacing of stimuli.</p>
+        <p>Everything happens online, so there's no need to download or install anything.  Try it out now, or be sure to check back for our newest developments.</p>
       </div>
       <div class="col-xs-4">
-        <img style="padding-left:50px;width:70%" src={% static 'img/brain.png'%} />
+        <img style="padding-left:50px;width:70%;padding-top:70px" src={% static 'img/brain.png'%} />
       </div>
     </div>
   </div>
@@ -24,20 +26,15 @@
 
 {% block content %}
 <div class="row">
-  <div class="col-md-4 infobox">
-    <h3>Access NeuroPower</h3>
-    <p class="infocontent">Use the web tool yourself. All you need is a statistical map and some information about the research.</p>
+  <div class="col-md-6 infobox">
+    <h3>NeuroPower</h3>
+    <p class="infocontent">NeuroPower is a toolbox that allows you to compute the necessary sample size for your fMRI study to obtain a certain level of statistical power. Our method can be used for whole-brain analyses, as well as for region-of-interest analyses.  All you need is a statistical map and some information about the research. Try it here.</p>
     <p><a class="btn btn-default btn-lg" href="{% url 'neuropowerstart' %}" role="button">NeuroPower &raquo;</a></p>
   </div>
-  <div class="col-md-4 infobox">
-    <h3>Tutorial</h3>
-    <p class="infocontent" style="padding-bottom:18px">Here you can find a step-by-step tutorial of the application.</p>
-    <p><a class="btn btn-default btn-lg" href="{% url 'npTutorial' %}" role="button">Tutorial &raquo;</a></p>
-  </div>
-  <div class="col-md-4 infobox">
-    <h3>Methods</h3>
-    <p class="infocontent">Learn more about the complex underlying methods, pitfalls, and assumptions behind the toolbox.</p>
-    <p><a class="btn btn-default btn-lg" href=".{% url 'npMethods' %}" role="button">Methods &raquo;</a></p>
+  <div class="col-md-6 infobox">
+    <h3>NeuroDesign</h3>
+    <p class="infocontent" style="padding-bottom:18px">NeuroDesign searches for an experimental design to help researchers obtain the optimal detection power or estimation effeciency.  The method is based on a Genetic Algorithm to optimize different optimisation goals.</p>
+    <p><a class="btn btn-default btn-lg" href="{% url 'DStart' %}" role="button">NeuroDesign &raquo;</a></p>
   </div>
 </div>
 {% endblock %}

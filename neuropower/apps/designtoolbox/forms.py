@@ -151,6 +151,10 @@ class DesignConsForm(forms.ModelForm):
         # add layout: probabilities
 
         self.helper.layout.append(
+            Div(Field('G',type='hidden'),css_class=cssclass)
+            )
+
+        self.helper.layout.append(
             HTML('<h5> What are the probabilities (or frequencies) for each stimulus type? </h5><br>')
             )
 
