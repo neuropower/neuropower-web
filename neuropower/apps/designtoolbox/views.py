@@ -136,6 +136,8 @@ def consinput(request):
         matrices = probs_and_cons(sid)
         consform.P = matrices['P']
         consform.C = matrices['C']
+        if desdata.HardProb==True:
+            consform.G = desdata.G*10
         consform.save()
 
         return HttpResponseRedirect('../review/')
@@ -345,9 +347,9 @@ def runGA(request):
                     des.prerun = 'Fe'
                     Generation = {'order':[],'F':[],'ID':[]}
                     des.GeneticAlgorithmCreateOrder()
-                    #weights = [0,0,1] if des.HardProb==True else [1/3,1/3,1/3]
-                    #weights = [int(x) for x in weights*desdata.G]
-                    weights = [7,7,6]
+                    weights = [0,0,1] if des.HardProb==True else [1/3,1/3,1/3]
+                    weights = [int(x) for x in np.array(weights)*desdata.G]
+                    #weights = [7,7,6]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
                     Best = []
                     gens=[]
@@ -373,9 +375,9 @@ def runGA(request):
                     print("running maximum efficiency (Fd)")
                     des.prerun = 'Fd'
                     Generation = {'order':[],'F':[],'ID':[]}
-                    weights = [0,0,1] if des.HardProb==True else [1/3,1/3,1/3]
+                    weights = np.array([0,0,1]) if des.HardProb==True else np.array([1/3,1/3,1/3])
                     weights = [int(x) for x in weights*desdata.G]
-                    weights = [7,7,6]
+                    #weights = [7,7,6]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
                     Best = []
                     gens = []

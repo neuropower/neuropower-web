@@ -4,11 +4,13 @@
 <meta http-equiv="refresh" content="1" >
 {% endblock %}
 
+{% block content %}
+{% endblock %}
 {% block scripts %}
-{% if refrun == "1" or refrun == "2" %}
+{% if refrun == 1 or refrun == 2 %}
 {% include 'design/prerun.js' %}
 {% endif %}
-{% if refrun == "3" %}
+{% if refrun == 3 %}
 {% include 'design/update.js' %}
 {% endif %}
 {% endblock %}

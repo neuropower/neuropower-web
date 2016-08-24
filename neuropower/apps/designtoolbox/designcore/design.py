@@ -203,7 +203,7 @@ class GeneticAlgorithm(object):
         # cutoff on number of repeats
         IndMaxRep = []
         for ord in range(len(Generation['order'])):
-            RepCheck = ''.join(str(e) for e in [0]*self.maxrepeat) in ''.join(str(e) for e in Generation['order'][ord])
+            RepCheck = ''.join(str(e) for e in [0]*(self.maxrepeat+1)) in ''.join(str(e) for e in Generation['order'][ord])
             if RepCheck:
                 IndMaxRep.append(ord)
         Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndMaxRep]
