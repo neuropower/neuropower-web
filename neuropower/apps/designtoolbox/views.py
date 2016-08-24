@@ -326,7 +326,6 @@ def runGA(request):
                 context["message"] = "Analysis is already running."
 
             else:
-                form = runform.save(commit=False)
                 form.running = 1
                 form.save()
 
@@ -340,7 +339,6 @@ def runGA(request):
 
                 # prerun for FeMax #
                 if des.weights[0]>0 and desdata.stop==0:
-                    form = runform.save(commit=False)
                     form.running = 2
                     form.save()
                     print("running maximum efficiency (Fe)")
@@ -359,6 +357,8 @@ def runGA(request):
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
                         if desdata.stop == 1:
+                            form.running = 0
+                            form.save()
                             break
                         print("Generation: "+str(gen+1))
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
@@ -368,7 +368,6 @@ def runGA(request):
 
                 # prerun for FdMax #
                 if des.weights[1]>0 and desdata.stop==0:
-                    form = runform.save(commit=False)
                     form.running = 3
                     form.save()
                     print("running maximum efficiency (Fd)")
@@ -386,6 +385,8 @@ def runGA(request):
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
                         if desdata.stop == 1:
+                            form.running = 0
+                            form.save()
                             break
                         print("Generation: "+str(gen+1))
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
@@ -396,7 +397,6 @@ def runGA(request):
                 # Initiate !
                 des.prerun = None
                 if desdata.stop==0:
-                    form = runform.save(commit=False)
                     form.running = 4
                     form.save()
                     des.GeneticAlgorithmCreateOrder()
@@ -416,6 +416,8 @@ def runGA(request):
                         print("Generation: "+str(gen+1))
                         desdata = DesignModel.objects.get(SID=sid)
                         if desdata.stop == 1:
+                            form.running = 0
+                            form.save()
                             break
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
                         Generation = NextGen["NextGen"]
@@ -431,8 +433,6 @@ def runGA(request):
             form.stop = 0
             if desdata.optimal:
                 form.running = 6
-            else:
-                form.running = 0
             form.save()
 
         if request.POST.get("Download")=="Download optimal sequence":
