@@ -176,7 +176,8 @@ def review(request):
     # Set summary variables in context
 
     matrices = probs_and_cons(sid)
-    context['ITI']=desdata.ITI
+    context['ITImin']=desdata.ITImin
+    context['ITImax']=desdata.ITImax
     context['TR']=desdata.TR
     context['S']=desdata.S
     context['L']=desdata.L
@@ -280,7 +281,7 @@ def runGA(request):
 
     des = design.GeneticAlgorithm(
         # design specific
-        ITI = desdata.ITI,
+        ITI = [desdata.ITImin,desdata.ITImax],
         TR = desdata.TR,
         L = desdata.L,
         P = matrices["P"],
@@ -332,7 +333,8 @@ def runGA(request):
                 # Compute maximum efficiency
                 print("running maximum efficiency (Ff and Fc)")
                 nulorder = [np.argmin(des.P)]*des.L
-                NulDesign = {"order":nulorder}
+                nulonsets = [0]*des.L
+                NulDesign = {"order":nulorder,"onsets":nulonsets}
                 NulDesign = des.CreateDesignMatrix(NulDesign)
                 des.FfMax = des.FfCalc(NulDesign)['Ff']
                 des.FcMax = des.FcCalc(NulDesign)['Fc']
@@ -343,7 +345,7 @@ def runGA(request):
                     form.save()
                     print("running maximum efficiency (Fe)")
                     des.prerun = 'Fe'
-                    Generation = {'order':[],'F':[],'ID':[]}
+                    Generation = {'order':[],'onsets':[],'F':[],'ID':[],'Fd':[],'Fe':[],'Fc':[],'Ff':[]}
                     des.GeneticAlgorithmCreateOrder()
                     weights = [0,0,1] if des.HardProb==True else [1/3.,1/3.,1/3.]
                     weights = [int(x) for x in np.array(weights)*des.G]
@@ -372,7 +374,8 @@ def runGA(request):
                     form.save()
                     print("running maximum efficiency (Fd)")
                     des.prerun = 'Fd'
-                    Generation = {'order':[],'F':[],'ID':[]}
+                    Generation = des.GeneticAlgorithmCreateEmptyGeneration()
+
                     weights = [0,0,1.] if des.HardProb==True else [1/3.,1/3.,1/3.]
                     weights = [int(x) for x in np.array(weights)*des.G]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
@@ -400,7 +403,7 @@ def runGA(request):
                     form.running = 4
                     form.save()
                     des.GeneticAlgorithmCreateOrder()
-                    Generation = {'order':[],'F':[],'ID':[]}
+                    Generation = des.GeneticAlgorithmCreateEmptyGeneration()
                     weights = [0,0,1] if des.HardProb==True else [1./3,1./3,1./3]
                     weights = [int(x) for x in np.array(weights)*des.G]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
@@ -421,7 +424,14 @@ def runGA(request):
                             break
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
                         Generation = NextGen["NextGen"]
-                        Results.append({"Best":int(NextGen["FBest"]*1000),"Gen":gen})
+                        OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
+
+                        Results.append({"FBest":int(NextGen["FBest"]*1000),
+                                        "FeBest":int(NextGen["FeBest"]*1000),
+                                        "FfBest":int(NextGen["FfBest"]*1000),
+                                        "FcBest":int(NextGen["FcBest"]*1000),
+                                        "FdBest":int(NextGen["FdBest"]*1000),
+                                        "Gen":gen})
                         with open(desfile,'w') as outfile:
                             json.dump(Results,outfile)
                     outfile.close()
@@ -430,10 +440,10 @@ def runGA(request):
                     form.running = 6
                     form.save()
                     context['message']="Analysis complete"
-            form.stop = 0
-            if desdata.optimal:
-                form.running = 6
-            form.save()
+        form.stop = 0
+        if not desdata.optimal is None:
+            form.running = 6
+        form.save()
 
         if request.POST.get("Download")=="Download optimal sequence":
             response = HttpResponse(form.optimal,content_type="text/plain")
