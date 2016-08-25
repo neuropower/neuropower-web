@@ -14,7 +14,7 @@ var yScale=d3.scale.linear()
   .range([height-margin.top,margin.bottom]);
 
 var xScale = d3.scale.linear()
-  .domain([0,100])
+  .domain([0,{{runs}}])
   .range([margin.left,width-margin.right]);
 
 var yAxis = d3.svg.axis()
@@ -25,23 +25,14 @@ var xAxis = d3.svg.axis()
   .orient("bottom")
   .scale(xScale);
 
-// colors
-
-var color = d3.scale.category10();
-
-// define lines
-
 // define frame
 
 var svg = d3.select("#magic").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom);
 
+// draw axes
 
-
-
-
-// where y-axis starts
 svg.append("g")
   .attr("transform", "translate("+margin.left+",0)")
   .call(yAxis)
@@ -49,8 +40,6 @@ svg.append("g")
   .attr("stroke-width", 1)
   .attr("fill", 'none');
 
-
-// where x-axis starts
 svg.append("g")
   .attr("transform", "translate(0," + (height-margin.top) + ")")
   .call(xAxis)
@@ -62,17 +51,6 @@ var numcycles = Number( {{ runs }} );
 
 var lineData = JSON.parse('{{ text | escapejs }}');
 
-// var cities = color.domain().map(function(name){
-// .attr("d", lineFunc(lineData))
-// //   name:name,
-// //   values:data.map(function(d){
-// //     return{date:d.Gen,Opt:+d[name]};
-// //   })
-// // };
-// // console.log(cities)
-//
-
-
 // Fe optimisation
 var lineFunc = d3.svg.line()
     .x(function(d) { return margin.left+d.Gen/numcycles*(width-margin.left-margin.right); })
@@ -82,7 +60,7 @@ var lineFunc = d3.svg.line()
 var lineGraph = svg.append("path")
                           .attr("d", lineFunc(lineData))
                           .attr("stroke", "green")
-                          .attr("stroke-width", 0.3)
+                          .attr("stroke-width", 1)
                           .attr("fill","none");
 
 // Fd optimisation
@@ -94,7 +72,7 @@ var lineFunc = d3.svg.line()
 var lineGraph = svg.append("path")
                           .attr("d", lineFunc(lineData))
                           .attr("stroke", "purple")
-                          .attr("stroke-width", 0.2)
+                          .attr("stroke-width", 1)
                           .attr("fill","none");
 
 // Fc optimisation
@@ -106,7 +84,7 @@ var lineFunc = d3.svg.line()
                           var lineGraph = svg.append("path")
                                                     .attr("d", lineFunc(lineData))
                                                     .attr("stroke", "orange")
-                                                    .attr("stroke-width", 0.3)
+                                                    .attr("stroke-width", 1)
                                                     .attr("fill","none");
 
 // Ff optimisation
@@ -118,7 +96,7 @@ var lineFunc = d3.svg.line()
 var lineGraph = svg.append("path")
                           .attr("d", lineFunc(lineData))
                           .attr("stroke", "red")
-                          .attr("stroke-width", 0.3)
+                          .attr("stroke-width", 1)
                           .attr("fill","none");
 
 // Main optimisation
@@ -132,6 +110,15 @@ var lineGraph = svg.append("path")
                           .attr("stroke", "steelblue")
                           .attr("stroke-width", 4)
                           .attr("fill","none");
+
+//legend
+// define frame
+
+var svg = d3.select("#legend").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
+
+
 
 
 </script>

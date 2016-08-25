@@ -212,18 +212,21 @@ class GeneticAlgorithm(object):
         Generation = self.GeneticAlgorithmCrossover(Generation)
         Generation = self.GeneticAlgorithmMutation(Generation)
         Generation = self.GeneticAlgorithmImmigration(Generation)
-
         Generation = self.GeneticAlgorithmConstraints(Generation)
+
+        if len(Generation['F'])==0:
+            Generation = self.GeneticAlgorithmAddOrder(Generation,[7,7,6])
 
         # To check overall improvement: save best design in Generation
         a = 2.1
         #Generation['Ft'] = [float(np.random.uniform(0,1,1)+1/(1+np.exp(-a*x))) for x in Generation['F']]
         Generation['Ft'] = [x for x in Generation['F']]
-        FBest = np.max(Generation['Ft'])
-        FeBest = np.max(Generation['Fe'])
-        FfBest = np.max(Generation['Ff'])
-        FcBest = np.max(Generation['Fc'])
-        FdBest = np.max(Generation['Fd'])
+        best = np.min(np.argmax(Generation['Ft']))
+        FBest = Generation['Ft'][best]
+        FeBest = Generation['Fe'][best]
+        FfBest = Generation['Ff'][best]
+        FcBest = Generation['Fc'][best]
+        FdBest = Generation['Fd'][best]
 
         # Select G best designs for Next Generation
         FCutOff = np.min(sorted(Generation['Ft'], reverse=True)[:self.G])
@@ -269,10 +272,8 @@ class GeneticAlgorithm(object):
 
         if self.maxrepeat or self.HardProb:
             IndRemove = IndMaxRep+IndHardProb
-            Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndRemove]
-            Generation['onsets'] = [x for ind, x in enumerate(Generation['onsets']) if not ind in IndRemove]
-            Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndRemove]
-            Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndRemove]
+            for key in Generation.keys():
+                Generation[key] = [x for ind, x in enumerate(Generation[key]) if not ind in IndRemove]
 
         return Generation
 
@@ -540,6 +541,7 @@ class GeneticAlgorithm(object):
 
         Design["X"] = X
         Design["Z"] = Z
+        Design["ts"] = tpS
 
         return Design
 

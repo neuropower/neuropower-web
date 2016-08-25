@@ -31,9 +31,9 @@ var lineFunc = d3.svg.line()
 
 var lineGraph = svg.append("path")
                           .attr("d", lineFunc(lineData))
-                          .attr("stroke", "blue")
-                          .attr("stroke-width", 10)
-                          .attr("fill", "red");
+                          .attr("stroke", "steelblue")
+                          .attr("stroke-width", 40)
+                          .attr("fill","none");
 
 var text = svg.append("text")
   .attr("x",20)

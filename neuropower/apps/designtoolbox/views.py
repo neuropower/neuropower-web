@@ -440,9 +440,9 @@ def runGA(request):
                     form.running = 6
                     form.save()
                     context['message']="Analysis complete"
-        form.stop = 0
-        if not desdata.optimal is None:
-            form.running = 6
+            form.stop = 0
+            if not desdata.optimal is None:
+                form.running = 6
         form.save()
 
         if request.POST.get("Download")=="Download optimal sequence":
