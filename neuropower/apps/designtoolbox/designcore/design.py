@@ -17,12 +17,14 @@ class GeneticAlgorithm(object):
 
     Parameters
     ----------
-        ITI: float
-            inter-trial interval
+        ITI: list of two floats
+            inter-trial interval min and max
         TR: float
             repetition time
         L: integer
             number of trials
+        duration: float
+            total duration (s)
         P: numpy.array with floats
             probability of each trialtype
         C: numpy array with floats
@@ -60,6 +62,7 @@ class GeneticAlgorithm(object):
 
     def __init__(self,ITI,TR,L,P,C,rho,weights,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None,HardProb=False):
         self.ITI = ITI
+        self.mnITI = np.mean(ITI)
         self.TR = TR
         self.L = L
         self.P = P
@@ -93,7 +96,7 @@ class GeneticAlgorithm(object):
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
-        self.duration = self.L*self.ITI #total duration (s)
+        self.duration = self.L*self.mnITI #total duration (s)
         self.tp = int(np.ceil(self.duration/self.TR)) # number of scans
 
         return self
@@ -144,6 +147,7 @@ class GeneticAlgorithm(object):
         OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
         self.opt = {
             'order':Generation['order'][OptInd],
+            'onsets':Generation['onsets'][OptInd],
             'F':Generation['F'][OptInd],
             'FScores':Best
             }
@@ -169,21 +173,29 @@ class GeneticAlgorithm(object):
 
         return NatSel
 
+    def GeneticAlgorithmCreateEmptyGeneration(self):
+        # Create empty generation
+        Generation = {
+            'order' : [],
+            'onsets': [],
+            'F' : [],
+            'Fd': [],
+            'Fe': [],
+            'Ff': [],
+            'Fc': [],
+            'ID' : []
+        }
+
+        return Generation
 
 
     def GeneticAlgorithmInitiate(self):
 
         # Compute maximum efficiency
         self.ComputeMaximumEfficiency()
-
         self.counter = 1
 
-        # Create empty generation
-        Generation = {
-            'order' : [],
-            'F' : [],
-            'ID' : []
-        }
+        Generation = self.GeneticAlgorithmCreateEmptyGeneration()
 
         self.GeneticAlgorithmCreateOrder()
 
@@ -200,6 +212,43 @@ class GeneticAlgorithm(object):
         Generation = self.GeneticAlgorithmCrossover(Generation)
         Generation = self.GeneticAlgorithmMutation(Generation)
         Generation = self.GeneticAlgorithmImmigration(Generation)
+
+        Generation = self.GeneticAlgorithmConstraints(Generation)
+
+        # To check overall improvement: save best design in Generation
+        a = 2.1
+        #Generation['Ft'] = [float(np.random.uniform(0,1,1)+1/(1+np.exp(-a*x))) for x in Generation['F']]
+        Generation['Ft'] = [x for x in Generation['F']]
+        FBest = np.max(Generation['Ft'])
+        FeBest = np.max(Generation['Fe'])
+        FfBest = np.max(Generation['Ff'])
+        FcBest = np.max(Generation['Fc'])
+        FdBest = np.max(Generation['Fd'])
+
+        # Select G best designs for Next Generation
+        FCutOff = np.min(sorted(Generation['Ft'], reverse=True)[:self.G])
+        OptIndLg = np.arange(len(Generation['Ft']))[Generation['Ft']>FCutOff]
+        needed = self.G-len(OptIndLg)
+        OptIndEq = np.arange(len(Generation['Ft']))[Generation['Ft']==FCutOff][:needed]
+        OptInd = np.concatenate([OptIndLg,OptIndEq])
+
+        NextGen = {}
+        for DictEl in Generation.keys():
+            NextGen[DictEl] = [Generation[DictEl][ind] for ind in OptInd]
+
+        # create output
+        out = {
+            "NextGen":NextGen,
+            "FBest":FBest,
+            'FeBest':FeBest,
+            'FfBest':FfBest,
+            'FcBest':FcBest,
+            'FdBest':FdBest
+        }
+
+        return out
+
+    def GeneticAlgorithmConstraints(self,Generation):
 
         # cutoff on number of repeats
         IndMaxRep = []
@@ -221,30 +270,23 @@ class GeneticAlgorithm(object):
         if self.maxrepeat or self.HardProb:
             IndRemove = IndMaxRep+IndHardProb
             Generation['order'] = [x for ind, x in enumerate(Generation['order']) if not ind in IndRemove]
+            Generation['onsets'] = [x for ind, x in enumerate(Generation['onsets']) if not ind in IndRemove]
             Generation['ID'] = [x for ind, x in enumerate(Generation['ID']) if not ind in IndRemove]
             Generation['F'] = [x for ind, x in enumerate(Generation['F']) if not ind in IndRemove]
 
-        # To check overall improvement: save best design in Generation
-        FBest = np.max(Generation['F'])
+        return Generation
 
-        # Select G best designs for Next Generation
-        FCutOff = np.min(sorted(Generation['F'], reverse=True)[:self.G])
-        OptIndLg = np.arange(len(Generation['F']))[Generation['F']>FCutOff]
-        needed = self.G-len(OptIndLg)
-        OptIndEq = np.arange(len(Generation['F']))[Generation['F']==FCutOff][:needed]
-        OptInd = np.concatenate([OptIndLg,OptIndEq])
+    def GeneticAlgorithmAddDestoGen(self,Generation,Design):
+        Generation['order'].append(Design['order'])
+        Generation['onsets'].append(Design['onsets'])
+        Generation['F'].append(Design['F'])
+        Generation['Fd'].append(Design['Fd'])
+        Generation['Fe'].append(Design['Fe'])
+        Generation['Fc'].append(Design['Fc'])
+        Generation['Ff'].append(Design['Ff'])
+        Generation['ID'].append(np.max(Generation['ID'])+1 if len(Generation['ID'])>0 else 1)
 
-        NextGen = {}
-        for DictEl in Generation.keys():
-            NextGen[DictEl] = [Generation[DictEl][ind] for ind in OptInd]
-
-        # create output
-        out = {
-            "NextGen":NextGen,
-            "FBest":FBest
-        }
-
-        return out
+        return Generation
 
     def GeneticAlgorithmCrossover(self,Generation): ## REPLACE OR ADD?
 
@@ -261,33 +303,34 @@ class GeneticAlgorithm(object):
             #create baby 1
             baby1_a = Generation['order'][couple[0]][:changepoint]
             baby1_b = Generation['order'][couple[1]][changepoint:]
-            baby1 = {'order':baby1_a+baby1_b}
+            baby1_A = Generation['onsets'][couple[0]][:changepoint]
+            baby1_B = Generation['onsets'][couple[1]][changepoint:]
+            baby1 = {'order':np.concatenate([baby1_a,baby1_b]),'onsets':np.concatenate([baby1_A,baby1_B])}
             baby1 = self.CreateDesignMatrix(baby1)
             baby1 = self.ComputeEfficiency(baby1)
 
             # add baby 1 to Generation
-            Generation['order'].append(baby1['order'])
-            Generation['F'].append(baby1['F'])
-            Generation['ID'].append(np.max(Generation['ID'])+1)
+            Generation = self.GeneticAlgorithmAddDestoGen(Generation,baby1)
 
             #create baby 2
             baby2_a = Generation['order'][couple[1]][:changepoint]
             baby2_b = Generation['order'][couple[0]][changepoint:]
-            baby2 = {'order':baby2_a+baby2_b}
+            baby2_A = Generation['onsets'][couple[1]][:changepoint]
+            baby2_B = Generation['onsets'][couple[0]][changepoint:]
+            baby2 = {'order':np.concatenate([baby2_a,baby2_b]),'onsets':np.concatenate([baby2_A,baby2_B])}
             baby2 = self.CreateDesignMatrix(baby2)
             baby2 = self.ComputeEfficiency(baby2)
 
             # add baby 2 to Generation
-            Generation['order'].append(baby2['order'])
-            Generation['F'].append(baby2['F'])
-            Generation['ID'].append(np.max(Generation['ID'])+1)
+            Generation = self.GeneticAlgorithmAddDestoGen(Generation,baby2)
+
         return Generation
 
     def GeneticAlgorithmMutation(self,Generation): ## REPLACE OR ADD?
 
         # loop over first G designs
         noparents = int(len(Generation['order'])/2.) #(assuming crossover was done before)
-        for order in Generation['order'][:noparents]:
+        for order,onsets in zip(Generation['order'][:noparents],Generation['onsets'][:noparents]):
 
             # randomly select the trials that will be mutated
             mutated = np.random.choice(self.L,int(round(self.L*self.q)),replace=False)
@@ -295,20 +338,19 @@ class GeneticAlgorithm(object):
             # replace mutated trials by a randomly chosen stimulus
             mutatedorder = [np.random.choice(self.stimtype,1)[0] if ind in mutated else value for ind,value in enumerate(order)]
             mutatedbaby = {'order':mutatedorder}
+            mutatedbaby['onsets'] = onsets
             mutatedbaby = self.CreateDesignMatrix(mutatedbaby)
             mutatedbaby = self.ComputeEfficiency(mutatedbaby)
 
             # add mutated designs to Generation
-            Generation['order'].append(mutatedbaby['order'])
-            Generation['F'].append(mutatedbaby['F'])
-            Generation['ID'].append(np.max(Generation['ID'])+1)
+            Generation = self.GeneticAlgorithmAddDestoGen(Generation,mutatedbaby)
 
         return Generation
 
     def GeneticAlgorithmImmigration(self,Generation):
 
         # equally distribute new immigrants (blocked, msequence, ...)
-        rp = [1/3,1/3,1/3]
+        rp = [1/3.,1/3.,1/3.]
         r = [int(np.ceil(x*self.I)) for x in rp]
         r = r[:self.I]
 
@@ -340,12 +382,15 @@ class GeneticAlgorithm(object):
         nMseq = r[1]
         nRandom = r[2]
 
-        iBlocked = np.random.choice(len(self.Designs['Blocked']),nBlocked,replace=False).tolist()
-        oBlocked = [self.Designs['Blocked'][i] for i in iBlocked]
-        iMseq = np.random.choice(len(self.Designs['Mseq']),nMseq,replace=False).tolist()
-        oMseq = [self.Designs['Mseq'][i] for i in iMseq]
-        iRandom = np.random.choice(len(self.Designs['Random']),nRandom,replace=False).tolist()
-        oRandom = [self.Designs['Random'][i] for i in iRandom]
+        iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=False).tolist()
+        oBlocked = [self.Designs['Blocked']['orders'][i] for i in iBlocked]
+        tBlocked = [self.Designs['Blocked']['onsets'][i] for i in iBlocked]
+        iMseq = np.random.choice(len(self.Designs['Mseq']['orders']),nMseq,replace=False).tolist()
+        oMseq = [self.Designs['Mseq']['orders'][i] for i in iMseq]
+        tMseq = [self.Designs['Mseq']['onsets'][i] for i in iMseq]
+        iRandom = np.random.choice(len(self.Designs['Random']['orders']),nRandom,replace=False).tolist()
+        oRandom = [self.Designs['Random']['orders'][i] for i in iRandom]
+        tRandom = [self.Designs['Random']['onsets'][i] for i in iRandom]
 
         oTotal = []
         for orders in [oBlocked,oMseq,oRandom]:
@@ -354,36 +399,61 @@ class GeneticAlgorithm(object):
             else:
                 oTotal.append(orders)
 
+        tTotal = []
+        for orders in [tBlocked,tMseq,tRandom]:
+            if isinstance(orders,list):
+                tTotal = tTotal+orders
+            else:
+                tTotal.append(orders)
+
         id = self.counter*100
-        for order in oTotal:
+        for order,onsets in zip(oTotal,tTotal):
             id = id+1
             NewDesign = {}
             NewDesign['order'] = order
+            NewDesign['onsets'] = onsets
             NewDesign = self.CreateDesignMatrix(NewDesign)
             NewDesign = self.ComputeEfficiency(NewDesign)
 
             # add new designs to Generation
-            Generation['order'].append(NewDesign['order'])
-            Generation['F'].append(NewDesign['F'])
-            Generation['ID'].append(id)
+            Generation = self.GeneticAlgorithmAddDestoGen(Generation,NewDesign)
 
         return Generation
 
     def GenerateOrderRandom(self,number):
         orders = []
+        onsets = []
         for ind in range(number):
             seed = np.random.randint(0,10**10)
             mult = np.random.multinomial(1,self.P,self.L)
             order = [x.tolist().index(1) for x in mult]
             orders.append(order)
+            shift = self.mnITI/2.
+            onset = [shift*2]*self.L
+            onset = np.cumsum(onset)-shift
+            jitter = np.random.uniform(-shift,shift,self.L)
+            onset = onset+jitter
+            onset = onset-np.min(onset)
+            onsets.append(onset)
 
-        return orders
+        return {"orders":orders,"onsets":onsets}
 
     def GenerateOrderMsequence(self):
         order = mseq.Msequence()
         order.GenMseq(mLen=self.L,stimtypeno=len(self.P))
+        orders = order.orders
 
-        return order.orders
+        onsets = []
+        for ind in range(len(orders)):
+            shift = self.mnITI/2.
+            onset = [shift*2]*self.L
+            onset = np.cumsum(onset)-shift
+            jitter = np.random.uniform(-shift,shift,self.L)
+            onset = onset+jitter
+            onset = onset-np.min(onset)
+            onsets.append(onset)
+
+        return {"orders":orders,"onsets":onsets}
 
     def GenerateOrderBlocked(self):
         numBlocks = np.array([1,2,3,4,5,10,15,20,25,30,40])
@@ -397,7 +467,17 @@ class GeneticAlgorithm(object):
                     order = order[:self.L]
                 orders.append(order)
 
-        return orders
+        onsets = []
+        for ind in range(len(orders)):
+            shift = np.mean(self.ITI)/2.
+            onset = [shift*2]*self.L
+            onset = np.cumsum(onset)-shift
+            jitter = np.random.uniform(-shift,shift,self.L)
+            onset = onset+jitter
+            onset = onset-np.min(onset)
+            onsets.append(onset)
+
+        return {"orders":orders,"onsets":onsets}
 
     '''
     ###############################
@@ -412,6 +492,7 @@ class GeneticAlgorithm(object):
         ----------
             Design: dictionary
                 Design['order']: dictionary with key 'order' generated by GenerateOrderXXX() functions or manual
+                Design['onsets']: dictionary with key 'onsets'
         Returns
         -------
             Design: dictionary
@@ -422,14 +503,18 @@ class GeneticAlgorithm(object):
         # upsample from trials to deciseconds
 
         tpX = int(self.duration/self.resolution) #total number of timepoints (upsampled)
+        tpS = np.arange(0,self.duration,self.resolution)
 
         # expand random order to timeseries
 
+        onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]
+        index = [int(np.where(tpS==y)[0]) for y in onsetX]
+
         X_X = np.zeros([tpX,self.stimtype]) #upsampled Xmatrix
-        XindStim = np.arange(0,tpX,self.ITI/self.resolution).astype(int) # index of stimuluspoints in upsampled Xmatrix
+        XindStim = np.arange(0,tpX,self.mnITI/self.resolution).astype(int) # index of stimuluspoints in upsampled Xmatrix
         for stimulus in range(self.stimtype):
             # fill
-            X_X[XindStim,int(stimulus)] = [1 if x==stimulus else 0 for x in Design["order"]]
+            X_X[XindStim,int(stimulus)] = [1 if z==stimulus else 0 for z in Design["order"]]
 
         # convolve design matrix
 
@@ -510,7 +595,8 @@ class GeneticAlgorithm(object):
 
     def ComputeMaximumEfficiency(self):
         nulorder = [np.argmin(self.P)]*self.L
-        NulDesign = {"order":nulorder}
+        nulonsets = [0]*self.L
+        NulDesign = {"order":nulorder,"onsets":nulonsets}
         NulDesign = self.CreateDesignMatrix(NulDesign)
         self.FfMax = self.FfCalc(NulDesign)['Ff']
         self.FcMax = self.FcCalc(NulDesign)['Fc']
@@ -519,7 +605,7 @@ class GeneticAlgorithm(object):
         if self.weights[0]>0:
             self.prerun = 'Fe'
             self.counter = 1
-            Generation = {'order':[],'F':[],'ID':[]}
+            Generation = self.GeneticAlgorithmCreateEmptyGeneration()
             self.GeneticAlgorithmCreateOrder()
             r = [7,7,6]
             Generation = self.GeneticAlgorithmAddOrder(Generation,r)
@@ -532,7 +618,7 @@ class GeneticAlgorithm(object):
         if self.weights[1]>0:
             self.prerun = 'Fd'
             self.counter = 1
-            Generation = {'order':[],'F':[],'ID':[]}
+            Generation = self.GeneticAlgorithmCreateEmptyGeneration()
             self.GeneticAlgorithmCreateOrder()
             r = [7,7,6]
             Generation = self.GeneticAlgorithmAddOrder(Generation,r)
