@@ -9,11 +9,12 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITI','TR','L','S','Clen','ConfoundOrder','MaxRepeat','W1','W2','W3','W4']
+        fields = ['ITImin','ITImax','TR','L','S','Clen','ConfoundOrder','MaxRepeat','W1','W2','W3','W4']
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
-        self.fields['ITI'].label = "Inter-trial interval (s)?"
+        self.fields['ITImin'].label = "Minimum ITI"
+        self.fields['ITImax'].label = "Maximum ITI"
         self.fields['TR'].label = "Scanner TR (s)"
         self.fields['S'].label = "Stimulus types"
         self.fields['L'].label = "Total number of trials"
@@ -28,8 +29,8 @@ class DesignMainForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(DesignMainForm,self).clean()
 
-        if cleaned_data.get("ITI")<0:
-            raise forms.ValidationError("ITI cannot be smaller than 0. Parameters not saved.")
+        # if cleaned_data.get("ITI")<0:
+        #     raise forms.ValidationError("ITI cannot be smaller than 0. Parameters not saved.")
 
         if cleaned_data.get("TR")<0 or cleaned_data.get("TR")>5:
             raise forms.ValidationError("Are you sure about that TR? Parameters not saved.")
@@ -54,11 +55,20 @@ class DesignMainForm(forms.ModelForm):
             'Design parameters',
             HTML("""<h5 style="margin-left: 15px">These parameters refer to your design and need your careful attention.</h><br><br>"""),
             Div(
-            Div(Field('ITI'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('TR'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('S'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('L'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('Clen'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            css_class='row-md-12 col-xs-12'
+            ),
+            HTML("""<br><br>""")
+            ),
+        Fieldset(
+            '',
+            HTML("""<h5 style="margin-left: 15px">In what range is the ITI?</h><br><br><p>For a fixed ITI, fill out two times the same ITI.</p>"""),
+            Div(
+            Div(Field('ITImin'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            Div(Field('ITImax'),css_class='col-md-4 col-sm-6 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             )
             ),
