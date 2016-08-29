@@ -1,0 +1,4 @@
+where I'm now:
+- figure of design during iterations
+- download zip with onsets when finished
+- rescale weights for optimisation

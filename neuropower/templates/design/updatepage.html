@@ -1,16 +1,15 @@
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="http://d3js.org/c3.v3.min.js" charset="utf-8"></script>
 
 {%block head %}
-<meta http-equiv="refresh" content="5" >
+<meta http-equiv="refresh" content="20" >
 {% endblock %}
 
 {% block content %}
-<div id="magic" class="col-md-8 col-xs-12"></div>
 <div id="legend" class="col-md-4 col-xs-12"></div>
 {% endblock %}
 
 {% block scripts %}
+{% include 'main/javascript.html' %}
 {% if refrun == "1" or refrun == "2" %}
 {% include 'design/prerun.js' %}
 {% endif %}

@@ -63,6 +63,7 @@ def weights_html(weights):
     return html_join
 
 def get_design_steps(template_page,sid):
+
     # template name, step class, and color
     pages = {"design/start.html": {"class":"overview","color":"#c9c4c5","enabled":"yes"},
              "design/input.html": {"class":"maininput","color":"#c9c4c5","enabled":"yes"},
@@ -71,6 +72,20 @@ def get_design_steps(template_page,sid):
              "design/options.html": {"class":"options","color":"#c9c4c5","enabled":"yes"},
              "design/runGA.html": {"class":"run","color":"#c9c4c5","enabled":"yes"}
              }
+
+    if not DesignModel.objects.filter(SID=sid):
+        pages["design/cons.html"]["enabled"] = 'no'
+        pages["design/review.html"]["enabled"] = 'no'
+        pages["design/options.html"]["enabled"] = 'no'
+        pages["design/runGA.html"]["enabled"] = 'no'
+    else:
+        desdata = DesignModel.objects.get(SID=sid)
+        if desdata.mainpars == False and desdata.conpars == False:
+            pages["design/cons.html"]["enabled"] = 'no'
+        if desdata.conpars == False:
+            pages["design/review.html"]["enabled"] = 'no'
+            pages["design/options.html"]["enabled"] = 'no'
+            pages["design/runGA.html"]["enabled"] = 'no'
 
 
     # Set the active page

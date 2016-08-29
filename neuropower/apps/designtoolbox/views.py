@@ -73,6 +73,7 @@ def maininput(request):
 
         form = inputform.save(commit=False)
         form.SID = sid
+        form.mainpars = True
         form.save()
 
         # get data and change parameters
@@ -103,16 +104,7 @@ def consinput(request):
     try:
         desdata = DesignModel.objects.get(SID=sid)
     except DesignModel.DoesNotExist:
-        desdata = None
-        inputform = DesignMainForm(request.POST or None, instance=desdata)
-        template = 'design/input.html'
-        message = "Before you can fill out the contrasts and trial probabilities, you'll first need to fill out this form with basic information about your design."
-        context = {
-            "inputform": inputform,
-            "message": message,
-            "steps":get_design_steps(template,sid)
-        }
-        return render(request,template,context)
+        return HttpResponseRedirect('../maininput/')
 
     # Define form
 
@@ -127,6 +119,7 @@ def consinput(request):
     else:
         form = consform.save(commit=False)
         form.SID = sid
+        form.conpars = True
         form.save()
 
         # get data and change parameters
@@ -157,16 +150,7 @@ def review(request):
     try:
         desdata = DesignModel.objects.get(SID=sid)
     except DesignModel.DoesNotExist:
-        desdata = None
-        inputform = DesignMainForm(request.POST or None, instance=desdata)
-        template = 'design/input.html'
-        message = "Before you can review your settings, you'll first need to fill out this form with basic information about your design."
-        context = {
-            "inputform": inputform,
-            "message": message,
-            "steps":get_design_steps(template,sid)
-        }
-        return render(request,template,context)
+        return HttpResponseRedirect('../maininput/')
 
     # Define form
 
@@ -214,16 +198,7 @@ def options(request):
     try:
         desdata = DesignModel.objects.get(SID=sid)
     except DesignModel.DoesNotExist:
-        desdata = None
-        inputform = DesignMainForm(request.POST or None, instance=desdata)
-        template = 'design/input.html'
-        message = "Before you can change the internal settings, you'll first need to fill out this form with basic information about your design."
-        context = {
-            "inputform": inputform,
-            "message": message,
-            "steps":get_design_steps(template,sid)
-        }
-        return render(request,template,context)
+        return HttpResponseRedirect('../maininput/')
 
     # Define form
 
@@ -258,16 +233,7 @@ def runGA(request):
     try:
         desdata = DesignModel.objects.get(SID=sid)
     except DesignModel.DoesNotExist:
-        desdata = None
-        inputform = DesignMainForm(request.POST or None, instance=desdata)
-        template = 'design/input.html'
-        message = "Before you can change the internal settings, you'll first need to fill out this form with basic information about your design."
-        context = {
-            "inputform": inputform,
-            "message": message,
-            "steps":get_design_steps(template,sid)
-        }
-        return render(request,template,context)
+        return HttpResponseRedirect('../maininput/')
 
     # Define form (Run or Stop)
 
@@ -277,7 +243,8 @@ def runGA(request):
     # Get parameters to GA
 
     matrices = probs_and_cons(sid)
-    desfile = os.path.join(settings.MEDIA_ROOT,"designs",str(sid)+".tsv")
+    desfile = os.path.join(settings.MEDIA_ROOT,"designs","design_"+str(sid)+".json")
+    genfile = os.path.join(settings.MEDIA_ROOT,"designs","generation_"+str(sid)+".json")
 
     des = design.GeneticAlgorithm(
         # design specific
@@ -299,7 +266,7 @@ def runGA(request):
         I = desdata.I,
         cycles = desdata.cycles,
         preruncycles = desdata.preruncycles,
-        write = desfile,
+        write = genfile,
         HardProb = desdata.HardProb
     )
     des.counter = 0
@@ -354,7 +321,7 @@ def runGA(request):
                     gens=[]
                     for gen in range(des.preruncycles):
                         gens.append({"Gen":gen})
-                        with open(desfile,'w') as outfile:
+                        with open(genfile,'w') as outfile:
                             json.dump(gens,outfile)
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
@@ -383,7 +350,7 @@ def runGA(request):
                     gens = []
                     for gen in range(des.preruncycles):
                         gens.append({"Gen":gen})
-                        with open(desfile,'w') as outfile:
+                        with open(genfile,'w') as outfile:
                             json.dump(gens,outfile)
                         des.counter = gen
                         desdata = DesignModel.objects.get(SID=sid)
@@ -414,6 +381,14 @@ def runGA(request):
                     Results = []
                     form.running = 5
                     form.save()
+
+                    Out = {"FBest":[],'FeBest':[],'FfBest':[],'FcBest':[],'FdBest':[],'Gen':[]}
+                    keys = ["Stimulus_"+str(i) for i in range(desdata.S)]
+                    Seq = {}
+                    for s in keys:
+                        Seq.update({s:[]})
+
+
                     for gen in range(desdata.cycles):
                         des.counter = gen
                         print("Generation: "+str(gen+1))
@@ -424,29 +399,44 @@ def runGA(request):
                             break
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
                         Generation = NextGen["NextGen"]
-                        OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
 
-                        Results.append({"FBest":int(NextGen["FBest"]*1000),
-                                        "FeBest":int(NextGen["FeBest"]*1000),
-                                        "FfBest":int(NextGen["FfBest"]*1000),
-                                        "FcBest":int(NextGen["FcBest"]*1000),
-                                        "FdBest":int(NextGen["FdBest"]*1000),
-                                        "Gen":gen})
-                        with open(desfile,'w') as outfile:
-                            json.dump(Results,outfile)
+                        # write away optimality criteria
+                        for key in ['FBest','FeBest','FfBest','FcBest','FdBest']:
+                            Out[key].append(NextGen[key])
+                        Out['Gen'].append(gen)
+                        with open(genfile,'w') as outfile:
+                            json.dump(Out,outfile)
+
+                        # write away best design
+                        for stim in range(desdata.S):
+                            Seq["Stimulus_"+str(stim)]=NextGen["Design"]["Z"][:,stim].tolist()
+                        Seq.update({"tps":NextGen["Design"]["ts"].tolist()})
+                        with open(desfile,'w') as out2file:
+                            json.dump(Seq,out2file)
+
+                    out2file.close()
                     outfile.close()
                     OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
-                    form.optimal = Generation['order'][OptInd]
+                    form.optimalorder = Generation['order'][OptInd]
+                    form.optimalonsets = Generation['onsets'][OptInd]
                     form.running = 6
                     form.save()
                     context['message']="Analysis complete"
             form.stop = 0
-            if not desdata.optimal is None:
+            if not desdata.optimalorder is None:
                 form.running = 6
         form.save()
 
         if request.POST.get("Download")=="Download optimal sequence":
-            response = HttpResponse(form.optimal,content_type="text/plain")
+            orders = desdata.optimalorder
+            onsets = [round(x/desdata.resolution)*desdata.resolution for x in desdata.optimalonsets]
+
+            X = []
+            for stimulus in range(desdata.S):
+                X.append([b if a==stimulus else None for a,b in zip(desdata.optimalorder,desdata.optimalonsets)])
+            print(X)
+
+            response = HttpResponse(onsets,content_type="text/plain")
             response['Content-Disposition'] = 'attachment; filename="design.txt"'
             return response
 
@@ -479,12 +469,21 @@ def runGA(request):
             context["downform"] = downform
             downform = downform.save(commit=False)
 
+        if os.path.isfile(genfile):
+            jsonfile = open(genfile).read()
+            try:
+                data = json.loads(jsonfile)
+                data = json.dumps(data)
+                context['text']=data
+            except ValueError:
+                pass
+
         if os.path.isfile(desfile):
             jsonfile = open(desfile).read()
             try:
                 data = json.loads(jsonfile)
                 data = json.dumps(data)
-                context['text']=data
+                context['design']=data
             except ValueError:
                 pass
 

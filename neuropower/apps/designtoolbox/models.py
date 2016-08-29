@@ -101,6 +101,9 @@ class DesignModel(models.Model):
     HardProb = models.BooleanField(default=False)
     stop = models.IntegerField(default=0)
     running = models.IntegerField(default=0)
-    optimal = PickledObjectField(default="")
+    optimalorder = PickledObjectField(default="")
+    optimalonsets = PickledObjectField(default="")
+    mainpars = models.BooleanField(default=False)
+    conpars = models.BooleanField(default=False)
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID

@@ -9,7 +9,7 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITImin','ITImax','TR','L','S','Clen','ConfoundOrder','MaxRepeat','W1','W2','W3','W4']
+        fields = ['ITImin','ITImax','TR','L','S','Clen','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars']
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
@@ -118,6 +118,7 @@ class DesignMainForm(forms.ModelForm):
         HTML("""<br><br><br><br><br>"""),
         ButtonHolder(Submit('Submit', 'Save', css_class='btn-black')),
         HTML("""<br><br><br><br><br>"""),
+        Div(Field('mainpars',type='hidden'),css_class='col-xs-12')
         )
     )
 
@@ -130,7 +131,7 @@ class DesignConsForm(forms.ModelForm):
         'C10','C11','C12','C13','C14','C15','C16','C17','C18','C19',
         'C20','C21','C22','C23','C24','C25','C26','C27','C28','C29',
         'C30','C31','C32','C33','C34','C35','C36','C37','C38','C39',
-        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb','G'
+        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb','G','conpars'
         ]
 
     def __init__(self,*args,**kwargs):
@@ -165,6 +166,10 @@ class DesignConsForm(forms.ModelForm):
             )
 
         self.helper.layout.append(
+            Div(Field("conpars",type='hidden'),css_class=cssclass)
+            )
+
+        self.helper.layout.append(
             HTML('<h5> What are the probabilities (or frequencies) for each stimulus type? </h5><br>')
             )
 
@@ -183,7 +188,7 @@ class DesignConsForm(forms.ModelForm):
             )
 
         self.helper.layout.append(
-            Div(Field("HardProb"),css_class='col-xs-1')
+            Div(Field("HardProb"),css_class='col-xs-1'),
             )
 
         # add layout: contrasts

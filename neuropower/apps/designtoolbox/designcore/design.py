@@ -228,13 +228,20 @@ class GeneticAlgorithm(object):
         FcBest = Generation['Fc'][best]
         FdBest = Generation['Fd'][best]
 
+        # Make design with best from Generation
+        Design = {
+            "order":Generation['order'][best],
+            'onsets':Generation['onsets'][best]}
+        Design = self.CreateDesignMatrix(Design)
+
         # Select G best designs for Next Generation
         FCutOff = np.min(sorted(Generation['Ft'], reverse=True)[:self.G])
         OptIndLg = np.arange(len(Generation['Ft']))[Generation['Ft']>FCutOff]
-        needed = self.G-len(OptIndLg)
+        needed = self.G-len(OptIndLg) #little trick for when multiple designs have the same fit
         OptIndEq = np.arange(len(Generation['Ft']))[Generation['Ft']==FCutOff][:needed]
         OptInd = np.concatenate([OptIndLg,OptIndEq])
 
+        # Copy best G designs from Generation to NextGen
         NextGen = {}
         for DictEl in Generation.keys():
             NextGen[DictEl] = [Generation[DictEl][ind] for ind in OptInd]
@@ -246,7 +253,8 @@ class GeneticAlgorithm(object):
             'FeBest':FeBest,
             'FfBest':FfBest,
             'FcBest':FcBest,
-            'FdBest':FdBest
+            'FdBest':FdBest,
+            'Design':Design
         }
 
         return out
