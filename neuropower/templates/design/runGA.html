@@ -7,7 +7,6 @@
 {% endblock %}
 
 {%block head %}
-<meta http-equiv="refresh" content="100" >
 {% endblock %}
 
 {% block navbar %}
@@ -34,7 +33,9 @@
   <div class="col-sm-9" id="magic">
   </div>
 
-{% include 'design/updatepage.html' with text=text refrun=refrun preruns=preruns runs=runs design=design %}
+  <div class="col-sm-12" id ="legend"></div>
+
+{% include 'design/updatepage.html' with optim=optim refrun=refrun preruns=preruns runs=runs design=design stim=stim %}
 </div>
 
 <div class="row">

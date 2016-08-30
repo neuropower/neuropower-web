@@ -22,7 +22,7 @@ svg.append("g")
   .attr("transform", "translate(0," + (height-margin.top) + ")")
   .call(xAxis);
 
-var lineData = JSON.parse('{{ text | escapejs }}');
+var lineData = JSON.parse('{{ optim | escapejs }}');
 console.log(lineData)
 var lineFunc = d3.svg.line()
     .x(function(d) { return margin.left+d.Gen/{{preruns}}*(width-margin.left-margin.right); })
