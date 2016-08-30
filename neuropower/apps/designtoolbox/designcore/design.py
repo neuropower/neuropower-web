@@ -62,6 +62,8 @@ class GeneticAlgorithm(object):
 
     def __init__(self,ITI,TR,L,P,C,rho,weights,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None,HardProb=False):
         self.ITI = ITI
+        self.ITImin = ITI[0]
+        self.ITImax = ITI[1]
         self.mnITI = np.mean(ITI)
         self.TR = TR
         self.L = L
@@ -265,7 +267,7 @@ class GeneticAlgorithm(object):
         IndMaxRep = []
         if self.maxrepeat:
             for ord in range(len(Generation['order'])):
-                RepCheck = ''.join(str(e) for e in [0]*(self.maxrepeat+1)) in ''.join(str(e) for e in Generation['order'][ord])
+                RepCheck = ''.join(str(e) for e in [0]*(self.maxrepeat)) in ''.join(str(e) for e in Generation['order'][ord])
                 if RepCheck:
                     IndMaxRep.append(ord)
 
@@ -312,18 +314,16 @@ class GeneticAlgorithm(object):
             #create baby 1
             baby1_a = Generation['order'][couple[0]][:changepoint]
             baby1_b = Generation['order'][couple[1]][changepoint:]
-            baby1_A = Generation['onsets'][couple[0]][:changepoint]
-            baby1_B = Generation['onsets'][couple[1]][changepoint:]
-            baby1 = {'order':np.concatenate([baby1_a,baby1_b]),'onsets':np.concatenate([baby1_A,baby1_B])}
+            baby1_O = Generation['onsets'][couple[0]]
+            baby1 = {'order':np.concatenate([baby1_a,baby1_b]),'onsets':baby1_O}
             baby1 = self.CreateDesignMatrix(baby1)
             baby1 = self.ComputeEfficiency(baby1)
 
             #create baby 2
             baby2_a = Generation['order'][couple[1]][:changepoint]
             baby2_b = Generation['order'][couple[0]][changepoint:]
-            baby2_A = Generation['onsets'][couple[1]][:changepoint]
-            baby2_B = Generation['onsets'][couple[0]][changepoint:]
-            baby2 = {'order':np.concatenate([baby2_a,baby2_b]),'onsets':np.concatenate([baby2_A,baby2_B])}
+            baby2_O = Generation['onsets'][couple[1]]
+            baby2 = {'order':np.concatenate([baby2_a,baby2_b]),'onsets':baby2_O}
             baby2 = self.CreateDesignMatrix(baby2)
             baby2 = self.ComputeEfficiency(baby2)
 
@@ -449,12 +449,13 @@ class GeneticAlgorithm(object):
             mult = np.random.multinomial(1,self.P,self.L)
             order = [x.tolist().index(1) for x in mult]
             orders.append(order)
-            shift = self.mnITI/2.
-            onset = [shift*2]*self.L
-            onset = np.cumsum(onset)-shift
-            jitter = np.random.uniform(-shift,shift,self.L)
+
+            onset = [self.mnITI]*self.L
+            jitmin = self.ITImin-self.mnITI
+            jitmax = self.ITImax-self.mnITI
+            jitter = np.random.uniform(jitmin,jitmax,self.L)
             onset = onset+jitter
-            onset = onset-np.min(onset)
+            onset = np.cumsum(onset)-onset[0]
             onsets.append(onset)
 
         return {"orders":orders,"onsets":onsets}
@@ -466,12 +467,12 @@ class GeneticAlgorithm(object):
 
         onsets = []
         for ind in range(len(orders)):
-            shift = self.mnITI/2.
-            onset = [shift*2]*self.L
-            onset = np.cumsum(onset)-shift
-            jitter = np.random.uniform(-shift,shift,self.L)
+            onset = [self.mnITI]*self.L
+            jitmin = self.ITImin-self.mnITI
+            jitmax = self.ITImax-self.mnITI
+            jitter = np.random.uniform(jitmin,jitmax,self.L)
             onset = onset+jitter
-            onset = onset-np.min(onset)
+            onset = np.cumsum(onset)-onset[0]
             onsets.append(onset)
 
         return {"orders":orders,"onsets":onsets}
@@ -490,12 +491,12 @@ class GeneticAlgorithm(object):
 
         onsets = []
         for ind in range(len(orders)):
-            shift = np.mean(self.ITI)/2.
-            onset = [shift*2]*self.L
-            onset = np.cumsum(onset)-shift
-            jitter = np.random.uniform(-shift,shift,self.L)
+            onset = [self.mnITI]*self.L
+            jitmin = self.ITImin-self.mnITI
+            jitmax = self.ITImax-self.mnITI
+            jitter = np.random.uniform(jitmin,jitmax,self.L)
             onset = onset+jitter
-            onset = onset-np.min(onset)
+            onset = np.cumsum(onset)-onset[0]
             onsets.append(onset)
 
         return {"orders":orders,"onsets":onsets}
@@ -521,18 +522,17 @@ class GeneticAlgorithm(object):
                 Design['Z']: numpy array representing convolved design matrix
         '''
 
-        # upsample from trials to deciseconds
+        # upsample from trials to resolution
 
         tpX = int(self.duration/self.resolution) #total number of timepoints (upsampled)
         tpS = np.arange(0,self.duration,self.resolution)
 
         # expand random order to timeseries
 
-        onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]
-        index = [int(np.where(tpS==y)[0]) for y in onsetX]
+        onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']] #onsets rounded to resolution
+        XindStim = [int(np.where(tpS==y)[0]) for y in onsetX] #find indices of timepoints of onsets
 
         X_X = np.zeros([tpX,self.stimtype]) #upsampled Xmatrix
-        XindStim = np.arange(0,tpX,self.mnITI/self.resolution).astype(int) # index of stimuluspoints in upsampled Xmatrix
         for stimulus in range(self.stimtype):
             # fill
             X_X[XindStim,int(stimulus)] = [1 if z==stimulus else 0 for z in Design["order"]]
