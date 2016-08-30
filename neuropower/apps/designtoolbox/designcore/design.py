@@ -318,9 +318,6 @@ class GeneticAlgorithm(object):
             baby1 = self.CreateDesignMatrix(baby1)
             baby1 = self.ComputeEfficiency(baby1)
 
-            # add baby 1 to Generation
-            Generation = self.GeneticAlgorithmAddDestoGen(Generation,baby1)
-
             #create baby 2
             baby2_a = Generation['order'][couple[1]][:changepoint]
             baby2_b = Generation['order'][couple[0]][changepoint:]
@@ -330,10 +327,18 @@ class GeneticAlgorithm(object):
             baby2 = self.CreateDesignMatrix(baby2)
             baby2 = self.ComputeEfficiency(baby2)
 
-            # add baby 2 to Generation
-            Generation = self.GeneticAlgorithmAddDestoGen(Generation,baby2)
+        # only keep best Design
+        OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
+        IndRemove = [x for x in range(len(Generation['F'])) if x != OptInd]
+        for key in Generation.keys():
+            Generation[key] = [x for ind, x in enumerate(Generation[key]) if not ind in IndRemove]
 
-        return Generation
+        # add babies to Generation
+        NextGeneration = Generation
+        NextGeneration = self.GeneticAlgorithmAddDestoGen(NextGeneration,baby1)
+        NextGeneration = self.GeneticAlgorithmAddDestoGen(NextGeneration,baby2)
+
+        return NextGeneration
 
     def GeneticAlgorithmMutation(self,Generation): ## REPLACE OR ADD?
 
@@ -351,10 +356,17 @@ class GeneticAlgorithm(object):
             mutatedbaby = self.CreateDesignMatrix(mutatedbaby)
             mutatedbaby = self.ComputeEfficiency(mutatedbaby)
 
-            # add mutated designs to Generation
-            Generation = self.GeneticAlgorithmAddDestoGen(Generation,mutatedbaby)
+        # only keep best Design
+        OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
+        IndRemove = [x for x in range(len(Generation['F'])) if x != OptInd]
+        for key in Generation.keys():
+            Generation[key] = [x for ind, x in enumerate(Generation[key]) if not ind in IndRemove]
 
-        return Generation
+        # add mutated designs to Generation
+        NextGeneration = Generation
+        NextGeneration = self.GeneticAlgorithmAddDestoGen(NextGeneration,mutatedbaby)
+
+        return NextGeneration
 
     def GeneticAlgorithmImmigration(self,Generation):
 
@@ -549,7 +561,7 @@ class GeneticAlgorithm(object):
 
         Design["X"] = X
         Design["Z"] = Z
-        Design["ts"] = tpS
+        Design["ts"] = tpS[XindScan]
 
         return Design
 
