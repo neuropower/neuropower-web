@@ -684,8 +684,8 @@ class GeneticAlgorithm(object):
         Qexp = np.zeros([self.stimtype,self.stimtype,self.ConfoundOrder])
         for si in range(self.stimtype):
             for sj in range(self.stimtype):
-                for r in range(self.ConfoundOrder):
-                    Qexp[si,sj,r] = self.P[si]*self.P[sj]*(self.L-r+1)
+                for r in np.arange(1,ConfoundOrder+1):
+                    Qexp[si,sj,r-1] = self.P[si]*self.P[sj]*(self.L-r+1)
         Qmatch = np.sum(abs(Q-Qexp))
         Design["Fc"] = Qmatch
         return Design
