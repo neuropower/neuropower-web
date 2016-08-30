@@ -82,7 +82,7 @@ def maininput(request):
         weightsform = DesignWeightsForm(None, instance=desdata)
         weightsform = weightsform.save(commit=False)
         W = np.array([desdata.W1,desdata.W2,desdata.W3,desdata.W4])
-        if np.sum(W)>1:
+        if np.sum(W) != 1:
             W = W/np.sum(W)
         weightsform.W = W
         weightsform.save()
@@ -407,12 +407,13 @@ def runGA(request):
                         with open(genfile,'w') as outfile:
                             json.dump(Out,outfile)
 
-                        # write away best design
-                        for stim in range(desdata.S):
-                            Seq["Stimulus_"+str(stim)]=NextGen["Design"]["Z"][:,stim].tolist()
-                        Seq.update({"tps":NextGen["Design"]["ts"].tolist()})
-                        with open(desfile,'w') as out2file:
-                            json.dump(Seq,out2file)
+                        if gen % 10 == 0: #only do this every 10 gens to save computing time
+                            # write away best design
+                            for stim in range(desdata.S):
+                                Seq["Stimulus_"+str(stim)]=NextGen["Design"]["Z"][:,stim].tolist()
+                            Seq.update({"tps":NextGen["Design"]["ts"].tolist()})
+                            with open(desfile,'w') as out2file:
+                                json.dump(Seq,out2file)
 
                     out2file.close()
                     outfile.close()
@@ -434,9 +435,8 @@ def runGA(request):
             X = []
             for stimulus in range(desdata.S):
                 X.append([b if a==stimulus else None for a,b in zip(desdata.optimalorder,desdata.optimalonsets)])
-            print(X)
 
-            response = HttpResponse(onsets,content_type="text/plain")
+            response = HttpResponse(orders,content_type="text/plain")
             response['Content-Disposition'] = 'attachment; filename="design.txt"'
             return response
 
@@ -474,7 +474,7 @@ def runGA(request):
             try:
                 data = json.loads(jsonfile)
                 data = json.dumps(data)
-                context['text']=data
+                context['optim']=data
             except ValueError:
                 pass
 
@@ -484,6 +484,7 @@ def runGA(request):
                 data = json.loads(jsonfile)
                 data = json.dumps(data)
                 context['design']=data
+                context['stim']=desdata.S
             except ValueError:
                 pass
 
