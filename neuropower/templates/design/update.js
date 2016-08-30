@@ -13,11 +13,11 @@ var FcBest = lineData.FcBest;
 var FdBest = lineData.FdBest;
 var FfBest = lineData.FfBest;
 
-var nopt = {{ runs }}/50
+var nopt = {{ runs }}/10
 var list =[];
-for (var i = 1; i != nopt; ++i) list.push(i * 50);
+for (var i = 1; i != 10; ++i) list.push(i * nopt);
 
-var chart = c3.generate({
+var chart1 = c3.generate({
   bindto:'#magic',
   size:{
     height:240,
@@ -53,8 +53,8 @@ var chart = c3.generate({
 
 // figure of best design
 var Tps = designData.tps;
-
-console.log(designData);
+var list =[];
+for (var i = 1; i != 10; ++i) list.push(i*100);
 
 var names = ['Stimulus_0','Stimulus_1','Stimulus_2','Stimulus_3','Stimulus_4','Stimulus_5','Stimulus_6','Stimulus_7','Stimulus_8','Stimulus_9'];
 
@@ -72,11 +72,10 @@ for (var i = 0; i != {{ stim }}+1; ++i){
   // console.log(["Stimulus_".join(i)]);
   // list.push("Stimulus_".join(var).concat(Stim))
 };
- console.log(outer);
 
 
 
-var chart = c3.generate({
+var chart2 = c3.generate({
   bindto:'#legend',
   size:{
     height:240,
@@ -88,6 +87,13 @@ var chart = c3.generate({
   },
   point:{
     show:false
+  },
+  axis:{
+    x:{
+      tick:{
+        values:list
+      }
+    }
   },
   color:{
     pattern:['#790808','#afd2ec','#afe3ec','#afecd4','#afbcec']

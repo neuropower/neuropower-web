@@ -30,12 +30,17 @@
       {% crispy runform %}
     </form>
   </div>
-  <div class="col-sm-9" id="magic">
+  <div class="col-sm-9">
+    <h4> Design optimisation scores </h4>
+    <div cass="row" id="magic"></div>
+    <div cass="row"><br><br><br><br><br><br><br></div>
+    <h4> Expected signal for optimal design </h4>
+    <div cass="row" id="legend"></div>
   </div>
+  {% include 'design/updatepage.html' with optim=optim refrun=refrun preruns=preruns runs=runs design=design stim=stim %}
+</div>
 
-  <div class="col-sm-12" id ="legend"></div>
-
-{% include 'design/updatepage.html' with optim=optim refrun=refrun preruns=preruns runs=runs design=design stim=stim %}
+<div class="row">
 </div>
 
 <div class="row">

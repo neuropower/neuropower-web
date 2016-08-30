@@ -20,41 +20,21 @@
     stroke: #000;
   }
 
-  //The div in which we append all the bars
-  .progress-bars {
-     width: 350px;
-     min-height: 100px;
-     margin-bottom: 50px;
-     padding: 25px 0 0 25px;
-     float: left;
+  #magic {
+      width: 150px;
+      height: 150px;
   }
 
-  //The actual bar with the progress
-  .bar {
-     display: block;
-     overflow: hidden;
-     height: 18px;
-     width: 0px;
-     border: 1px solid rgba(0, 0, 0, 0.5);
-     border-radius: 10px;
-     margin-bottom: 5px;
-     margin-left: 10px;
-     box-shadow: 1px 1px 1px #888888;
+  /* don't do anything fancy when hovering */
+  #magic .c3-defocused.c3-target {
+      opacity: 1 !important;
   }
 
-  //The pattern
-  .pattern {
-     height: 100%;
-     width: 100%;
-     background-image: url(../images/pattern.png);
-     background-color: #FB7457;
+  #magic text {
+      fill: #ccc;
   }
 
-  //Div to display the percentage
-  .percentage {
-     margin-left: 0px;
-     text-align: center;
-     font-family: "Verdana", sans-serif;
-     font-size: 0.8em;
-     line-height: 18px;
+  #magic .c3-chart-arcs-title {
+      fill: white;
+      font-size: 3em;
   }
