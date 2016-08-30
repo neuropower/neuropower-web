@@ -98,7 +98,7 @@ class GeneticAlgorithm(object):
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
-        self.duration = self.L*self.mnITI #total duration (s)
+        self.duration = self.L*self.ITImax #total duration (s)
         self.tp = int(np.ceil(self.duration/self.TR)) # number of scans
 
         return self
@@ -678,9 +678,9 @@ class GeneticAlgorithm(object):
     def FcCalc(self,Design):
         Q = np.zeros([self.stimtype,self.stimtype,self.ConfoundOrder])
         for n in range(self.L):
-            for r in range(self.ConfoundOrder):
+            for r in np.arange(1,self.ConfoundOrder+1):
                 if n>(r-1):
-                    Q[Design['order'][n],Design['order'][n-r],r] += 1
+                    Q[Design['order'][n],Design['order'][n-r],r-1] += 1
         Qexp = np.zeros([self.stimtype,self.stimtype,self.ConfoundOrder])
         for si in range(self.stimtype):
             for sj in range(self.stimtype):
