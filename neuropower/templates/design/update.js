@@ -74,6 +74,7 @@ for (var i = 0; i != {{ stim }}+1; ++i){
 };
 
 
+var ytx = [-0.5,0,0.5,1,1.5,2]
 
 var chart2 = c3.generate({
   bindto:'#legend',
@@ -92,6 +93,11 @@ var chart2 = c3.generate({
     x:{
       tick:{
         values:list
+      }
+    },
+    y:{
+      tick:{
+        values:ytx
       }
     }
   },

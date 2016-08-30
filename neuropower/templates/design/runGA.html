@@ -31,10 +31,10 @@
     </form>
   </div>
   <div class="col-sm-9">
-    <h4> Design optimisation scores </h4>
+    {% if refrun == "3" %}<h4> Design optimisation scores </h4>{% endif %}
     <div cass="row" id="magic"></div>
     <div cass="row"><br><br><br><br><br><br><br></div>
-    <h4> Expected signal for optimal design </h4>
+    {% if refrun == "3" %}<h4> Expected signal for optimal design </h4>{% endif %}
     <div cass="row" id="legend"></div>
   </div>
   {% include 'design/updatepage.html' with optim=optim refrun=refrun preruns=preruns runs=runs design=design stim=stim %}
