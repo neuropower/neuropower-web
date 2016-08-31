@@ -14,6 +14,10 @@ import numpy as np
 import time
 import json
 import pandas as pd
+import csv
+import zipfile
+import StringIO
+import shutil
 
 ## MAIN PAGE TEMPLATE PAGES
 
@@ -245,6 +249,7 @@ def runGA(request):
     matrices = probs_and_cons(sid)
     desfile = os.path.join(settings.MEDIA_ROOT,"designs","design_"+str(sid)+".json")
     genfile = os.path.join(settings.MEDIA_ROOT,"designs","generation_"+str(sid)+".json")
+    onsetsfolder = os.path.join(settings.MEDIA_ROOT,"designonsets",str(sid))
 
     des = design.GeneticAlgorithm(
         # design specific
@@ -414,12 +419,12 @@ def runGA(request):
                             Seq.update({"tps":NextGen["Design"]["ts"].tolist()})
                             with open(desfile,'w') as out2file:
                                 json.dump(Seq,out2file)
-
                     out2file.close()
                     outfile.close()
                     OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
                     form.optimalorder = Generation['order'][OptInd]
                     form.optimalonsets = Generation['onsets'][OptInd]
+
                     form.running = 6
                     form.save()
                     context['message']="Analysis complete"
@@ -431,14 +436,32 @@ def runGA(request):
         if request.POST.get("Download")=="Download optimal sequence":
             orders = desdata.optimalorder
             onsets = [round(x/desdata.resolution)*desdata.resolution for x in desdata.optimalonsets]
+            if os.path.exists(onsetsfolder):
+                shutil.rmtree(onsetsfolder)
+            os.mkdir(onsetsfolder)
+            # http://stackoverflow.com/questions/12881294/django-create-a-zip-of-multiple-files-and-make-it-downloadable
+            filenames = [os.path.join(onsetsfolder,"stimulus_"+str(stim)+".txt") for stim in range(desdata.S)]
+            for stim in range(desdata.S):
+                onsubsets = [str(x) for x in np.array(onsets)[np.array(orders)==stim]]
+                f = open(filenames[stim],'w+')
+                for line in onsubsets:
+                    f.write(line)
+                    f.write("\n")
+                f.close()
+            zip_subdir = "OptimalDesign"
+            zip_filename = "%s.zip" % zip_subdir
+            s = StringIO.StringIO()
+            zf = zipfile.ZipFile(s,"w")
+            for fpath in filenames:
+                fdir, fname = os.path.split(fpath)
+                zip_path = os.path.join(zip_subdir,fname)
+                zf.write(fpath,zip_path)
+            zf.close()
 
-            X = []
-            for stimulus in range(desdata.S):
-                X.append([b if a==stimulus else None for a,b in zip(desdata.optimalorder,desdata.optimalonsets)])
+            resp = HttpResponse(s.getvalue(), content_type = "application/x-zip-compressed")
+            resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
 
-            response = HttpResponse(orders,content_type="text/plain")
-            response['Content-Disposition'] = 'attachment; filename="design.txt"'
-            return response
+            return resp
 
     else:
         desdata = DesignModel.objects.get(SID=sid)
