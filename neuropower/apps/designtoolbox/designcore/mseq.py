@@ -31,7 +31,7 @@ class Msequence(object):
                     number of different stimulus types
     '''
 
-    def GenMseq(self,mLen,stimtypeno):
+    def GenMseq(self,mLen,stimtypeno,tapsfile):
         '''
         Function specific to generate a maximum number of msequences for genetic algorithm.
 
@@ -45,10 +45,10 @@ class Msequence(object):
 
         self.mLen = mLen
         self.stimtypeno = stimtypeno
+        self.tapsfile = tapsfile
 
         # read in taps file and count
-        tapsfile = os.path.join(settings.MEDIA_ROOT,"taps.p")
-        self.taps = pickle.load(open(tapsfile))
+        self.taps = pickle.load(open(self.tapsfile))
 
         # initate baseVal
         baseVal = self.stimtypeno

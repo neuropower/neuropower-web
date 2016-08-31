@@ -10,6 +10,9 @@ import itertools
 import scipy.linalg
 import json
 from collections import Counter
+import os
+import sys
+from django.conf import settings
 
 class GeneticAlgorithm(object):
     '''
@@ -60,7 +63,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None,HardProb=False):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None,HardProb=False):
         self.ITI = ITI
         self.ITImin = ITI[0]
         self.ITImax = ITI[1]
@@ -84,6 +87,13 @@ class GeneticAlgorithm(object):
         self.preruncycles = preruncycles
         self.maxrepeat = MaxRepeat
         self.HardProb = HardProb
+        self.tapsfile = tapsfile
+        self.counter = 0
+        self.prerun = None
+        self.FeMax = 1
+        self.FdMax = 1
+        self.FfMax = 1
+        self.FcMax = 1
         if write:
             self.write = write
 
@@ -107,7 +117,7 @@ class GeneticAlgorithm(object):
         # compute components for linear model (drift, autocorrelation, projection of drift)
 
         # drift
-        self.S = self.drift(np.arange(0,self.duration,self.TR)) #[tp x 1]
+        self.S = self.drift(np.arange(0,self.tp)) #[tp x 1]
         self.S = np.matrix(self.S)
 
         # square of the whitening matrix
@@ -116,10 +126,13 @@ class GeneticAlgorithm(object):
         self.V2[0,0] = 1
         self.V2[self.tp-1,self.tp-1] = 1
         self.V2 = np.matrix(self.V2)
-        self.V = scipy.linalg.sqrtm(self.V2)
-        P = t(self.S)*np.linalg.pinv(self.S*t(self.S))*self.S
+        #self.V = scipy.linalg.sqrtm(self.V2)
+        #P = t(self.S)*np.linalg.pinv(self.S*t(self.S))*self.S
+        #white = self.V2 - self.V2*self.S*np.linalg.pinv(self.S*self.V2*self.S)
 
-        self.white = t(self.V)*(np.eye(self.tp)-P)*self.V
+        self.white = self.V2 - self.V2*t(self.S)*np.linalg.pinv(self.S*self.V2*t(self.S))*self.S*self.V2
+
+        #self.white = t(self.V)*(np.eye(self.tp)-P)*self.V
 
         # orthogonal projection of whitened drift
         #VS = self.V*self.S
@@ -390,7 +403,7 @@ class GeneticAlgorithm(object):
         Designs = {}
         nRandom = 10000
         Designs['Blocked'] = self.GenerateOrderBlocked()
-        Designs['Mseq'] = self.GenerateOrderMsequence()
+        Designs['Mseq'] = self.GenerateOrderMsequence(tapsfile=self.tapsfile)
         Designs['Random'] = self.GenerateOrderRandom(nRandom)
         self.Designs = Designs
 
@@ -460,9 +473,9 @@ class GeneticAlgorithm(object):
 
         return {"orders":orders,"onsets":onsets}
 
-    def GenerateOrderMsequence(self):
+    def GenerateOrderMsequence(self,tapsfile):
         order = mseq.Msequence()
-        order.GenMseq(mLen=self.L,stimtypeno=len(self.P))
+        order.GenMseq(mLen=self.L,stimtypeno=len(self.P),tapsfile=self.tapsfile)
         orders = order.orders
 
         onsets = []
@@ -694,21 +707,43 @@ class GeneticAlgorithm(object):
     def FfCalc(self,Design):
         trialcount = Counter(Design['order'])
         Pobs = [x[1] for x in trialcount.items()]
-        Design["Ff"] = np.sum(abs(Pobs-self.L*self.P))
+        Design["Ff"] = np.sum(abs(np.array(Pobs)-np.array(self.L*np.array(self.P))))
         return Design
 
-    @staticmethod
-    def drift(s):
-        # second order Legendre polynomial
-        # arguments: s = seconds after start
-        ts = 1/2*(3*s**2-1)
-        return ts
+    # @staticmethod
+    # def drift(s):
+    #     # second order Legendre polynomial
+    #     # arguments: s = seconds after start
+    #     ts = 1/2*(3*s**2-1)
+    #     return ts
+
+    # @staticmethod
+    # def canonical(s,a1=6,a2=16,b1=1,b2=1,c=1/6,amplitude=1):
+    #     #Canonical HRF as defined here: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3318970/
+    #     # arguments: s seconds
+    #     gamma1 = (s**(a1-1)*b1**a1*np.exp(-b1*s))/gamma(a1)
+    #     gamma2 = (s**(a2-1)*b2**a2*np.exp(-b2*s))/gamma(a2)
+    #     tsConvoluted = amplitude*(gamma1-c*gamma2)
+    #     return tsConvoluted
 
     @staticmethod
-    def canonical(s,a1=6,a2=16,b1=1,b2=1,c=1/6,amplitude=1):
-        #Canonical HRF as defined here: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3318970/
-        # arguments: s seconds
-        gamma1 = (s**(a1-1)*b1**a1*np.exp(-b1*s))/gamma(a1)
-        gamma2 = (s**(a2-1)*b2**a2*np.exp(-b2*s))/gamma(a2)
-        tsConvoluted = amplitude*(gamma1-c*gamma2)
-        return tsConvoluted
+    def drift(s,deg=3):
+        S = np.ones([deg,len(s)])
+        s = np.array(s)
+        tmpt = np.array(2.*s/float(len(s)-1)-1)
+        S[1] = tmpt
+        for k in np.arange(2,deg):
+            S[k] = ((2.*k-1.)/k)*tmpt*S[k-1] - ((k-1)/float(k))*S[k-2]
+        return S
+
+    @staticmethod
+    def canonical(s,TR,p=[6,16,1,1,6,0,32]):
+        dt = RT/16.
+        hrf = spm_Gpdf(s,p[1]/p[3],dt/p[3]) - spm_Gpdf(s,p[2]/p[4],dt/p[4])/p[5]
+        return hrf
+
+    @staticmethod
+    def spm_Gpdf(s,h,l):
+        s = s[1:]
+        res = (h-1)*np.log(s) + h*np.log(l) - l*s - np.log(gamma(h))
+        return np.exp(res)
