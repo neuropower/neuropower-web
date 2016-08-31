@@ -272,7 +272,8 @@ def runGA(request):
         cycles = desdata.cycles,
         preruncycles = desdata.preruncycles,
         write = genfile,
-        HardProb = desdata.HardProb
+        HardProb = desdata.HardProb,
+        tapsfile = os.path.join(settings.MEDIA_ROOT,"taps.p")
     )
     des.counter = 0
 
@@ -312,12 +313,12 @@ def runGA(request):
                 des.FcMax = des.FcCalc(NulDesign)['Fc']
 
                 # prerun for FeMax #
-                if des.weights[0]>0 and desdata.stop==0:
+                if desdata.stop==0:
                     form.running = 2
                     form.save()
                     print("running maximum efficiency (Fe)")
                     des.prerun = 'Fe'
-                    Generation = {'order':[],'onsets':[],'F':[],'ID':[],'Fd':[],'Fe':[],'Fc':[],'Ff':[]}
+                    Generation = des.GeneticAlgorithmCreateEmptyGeneration()
                     des.GeneticAlgorithmCreateOrder()
                     weights = [0,0,1] if des.HardProb==True else [1/3.,1/3.,1/3.]
                     weights = [int(x) for x in np.array(weights)*des.G]
@@ -341,13 +342,13 @@ def runGA(request):
                         des.FeMax = Best[-1]
 
                 # prerun for FdMax #
-                if des.weights[1]>0 and desdata.stop==0:
+                if desdata.stop==0:
                     form.running = 3
                     form.save()
                     print("running maximum efficiency (Fd)")
                     des.prerun = 'Fd'
                     Generation = des.GeneticAlgorithmCreateEmptyGeneration()
-
+                    des.GeneticAlgorithmCreateOrder()
                     weights = [0,0,1.] if des.HardProb==True else [1/3.,1/3.,1/3.]
                     weights = [int(x) for x in np.array(weights)*des.G]
                     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)

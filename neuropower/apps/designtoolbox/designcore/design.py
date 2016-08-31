@@ -106,6 +106,11 @@ class GeneticAlgorithm(object):
     #########################################################################
     '''
 
+    # def canonical(self,s,p=[6,16,1,1,6,0,32]):
+    #     dt = self.TR/16.
+    #     hrf = self.spm_Gpdf(s,p[1]/p[3],dt/p[3]) - self.spm_Gpdf(s,p[2]/p[4],dt/p[4])/p[5]
+    #     return hrf
+
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
         self.duration = self.L*self.ITImax #total duration (s)
@@ -715,16 +720,16 @@ class GeneticAlgorithm(object):
     #     # second order Legendre polynomial
     #     # arguments: s = seconds after start
     #     ts = 1/2*(3*s**2-1)
-    #     return ts
+    #     retur n ts
 
-    # @staticmethod
-    # def canonical(s,a1=6,a2=16,b1=1,b2=1,c=1/6,amplitude=1):
-    #     #Canonical HRF as defined here: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3318970/
-    #     # arguments: s seconds
-    #     gamma1 = (s**(a1-1)*b1**a1*np.exp(-b1*s))/gamma(a1)
-    #     gamma2 = (s**(a2-1)*b2**a2*np.exp(-b2*s))/gamma(a2)
-    #     tsConvoluted = amplitude*(gamma1-c*gamma2)
-    #     return tsConvoluted
+    @staticmethod
+    def canonical(s,a1=6,a2=16,b1=1,b2=1,c=1/6,amplitude=1):
+        #Canonical HRF as defined here: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3318970/
+        # arguments: s seconds
+        gamma1 = (s**(a1-1)*b1**a1*np.exp(-b1*s))/gamma(a1)
+        gamma2 = (s**(a2-1)*b2**a2*np.exp(-b2*s))/gamma(a2)
+        tsConvoluted = amplitude*(gamma1-c*gamma2)
+        return tsConvoluted
 
     @staticmethod
     def drift(s,deg=3):
@@ -735,12 +740,6 @@ class GeneticAlgorithm(object):
         for k in np.arange(2,deg):
             S[k] = ((2.*k-1.)/k)*tmpt*S[k-1] - ((k-1)/float(k))*S[k-2]
         return S
-
-    @staticmethod
-    def canonical(s,TR,p=[6,16,1,1,6,0,32]):
-        dt = RT/16.
-        hrf = spm_Gpdf(s,p[1]/p[3],dt/p[3]) - spm_Gpdf(s,p[2]/p[4],dt/p[4])/p[5]
-        return hrf
 
     @staticmethod
     def spm_Gpdf(s,h,l):
