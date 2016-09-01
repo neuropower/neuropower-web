@@ -109,12 +109,14 @@ class GeneticAlgorithm(object):
     def canonical(self,RT):
         p=[6,16,1,1,6,0,32]
         dt = RT/16.
-        s = np.array(range(int(p[6]/dt)+1))
+        s = np.array(range(int(p[6]/dt+1)))
         hrf = self.spm_Gpdf(s,p[0]/p[2],dt/p[2]) - self.spm_Gpdf(s,p[1]/p[3],dt/p[3])/p[4]
         hrf = hrf[[int(x) for x in np.array(range(int(p[6]/RT+1)))*16.]]
         self.hrf = hrf/np.sum(hrf)
         self.hrf = self.hrf/np.max(self.hrf)
         self.basishrf = self.hrf[[int(x) for x in np.arange(0,len(self.hrf),self.resolution*10)]]
+        self.durhrf = 32.0
+        self.laghrf = int(1+np.floor(self.durhrf/self.resolution))
 
         return self
 
@@ -132,6 +134,9 @@ class GeneticAlgorithm(object):
 
         # hrf
         self.canonical(0.1)
+
+        # contrasts
+        self.CX = np.kron(self.C,np.eye(self.laghrf))
 
         # drift
         self.S = self.drift(np.arange(0,self.tpX)) #[tp x 1]
@@ -562,27 +567,22 @@ class GeneticAlgorithm(object):
             # fill
             X_X[XindStim,int(stimulus)] = [1 if z==stimulus else 0 for z in Design["order"]]
 
-        lagHRF = np.floor(self.duration/self.resolution)
-        deconvM = np.zeros([self.tpX,lagHRF*self.stimtype])
-        idx = [int(x) for x in np.arange(self.stimtype)*lagHRF]
+        deconvM = np.zeros([self.tpX,self.laghrf*self.stimtype])
+        idx = [int(x) for x in np.arange(self.stimtype)*self.laghrf]
         deconvM[:,idx] = X_X
-        for j in np.arange(1,lagHRF):
-            idx = [int(x+j) for x in np.arange(self.stimtype)*lagHRF]
+        for j in np.arange(1,self.laghrf):
+            idx = [int(x+j) for x in np.arange(self.stimtype)*self.laghrf]
             deconvM[j:,idx] = X_X[:(self.tpX-j),:]
 
         Xwhite = t(deconvM)*self.white*deconvM
 
         # convolve design matrix
+        X_Z = np.zeros([self.tpX,self.stimtype])
 
+        for stim in range(self.stimtype):
+            X_Z[:,stim] = np.dot(deconvM[:,(stim*self.laghrf):((stim+1)*self.laghrf)],self.basishrf)
 
-        designM = np.zeros([self.tpX,lagHRF*self.stimtype])
-        h0 = self.canonical(np.arange(0,self.duration,self.resolution))
-        for stim in range(deconvM.shape[1]):
-            Zinterim = np.convolve(deconvM[:,stimulus],h0)[range(self.tpX)]
-            ZinterimScaled = Zinterim/np.max(h0)
-            if self.saturation==True:
-                ZinterimScaled = [2 if x>2 else x for x in ZinterimScaled]
-            designM[:,stimulus] = ZinterimScaled
+        Zwhite = t(X_Z)*self.white*X_Z
 
         # Z_X = np.zeros([self.tpX,self.stimtype])
         # for stimulus in range(self.stimtype):
@@ -591,9 +591,6 @@ class GeneticAlgorithm(object):
         #     if self.saturation==True:
         #         ZinterimScaled = [2 if x>2 else x for x in ZinterimScaled]
         #     Z_X[:,stimulus] = ZinterimScaled
-
-        Zwhite = t(designM)*self.white*designM
-
         # # downsample from deciseconds to scans
         #
         # XindScan = np.arange(0,tpX,self.TR/self.resolution).astype(int) # stimulus points
