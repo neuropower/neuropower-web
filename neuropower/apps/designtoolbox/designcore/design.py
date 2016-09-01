@@ -114,6 +114,7 @@ class GeneticAlgorithm(object):
         hrf = hrf[[int(x) for x in np.array(range(int(p[6]/RT+1)))*16.]]
         self.hrf = hrf/np.sum(hrf)
         self.hrf = self.hrf/np.max(self.hrf)
+        self.basishrf = self.hrf[[int(x) for x in np.arange(0,len(self.hrf),self.resolution*10)]]
 
         return self
 
