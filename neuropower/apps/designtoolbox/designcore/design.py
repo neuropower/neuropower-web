@@ -106,30 +106,41 @@ class GeneticAlgorithm(object):
     #########################################################################
     '''
 
-    # def canonical(self,s,p=[6,16,1,1,6,0,32]):
-    #     dt = self.TR/16.
-    #     hrf = self.spm_Gpdf(s,p[1]/p[3],dt/p[3]) - self.spm_Gpdf(s,p[2]/p[4],dt/p[4])/p[5]
-    #     return hrf
+    def canonical(self,RT):
+        p=[6,16,1,1,6,0,32]
+        dt = RT/16.
+        s = np.array(range(int(p[6]/dt)+1))
+        hrf = self.spm_Gpdf(s,p[0]/p[2],dt/p[2]) - self.spm_Gpdf(s,p[1]/p[3],dt/p[3])/p[4]
+        hrf = hrf[[int(x) for x in np.array(range(int(p[6]/RT+1)))*16.]]
+        self.hrf = hrf/np.sum(hrf)
+        self.hrf = self.hrf/np.max(self.hrf)
+
+        return self
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
         self.duration = self.L*self.ITImax #total duration (s)
         self.tp = int(np.ceil(self.duration/self.TR)) # number of scans
+        self.tpX = int(self.duration/self.resolution) #total number of timepoints (upsampled)
+        self.tpS = np.arange(0,self.duration,self.resolution)
 
         return self
 
     def CreateLmComp(self):
         # compute components for linear model (drift, autocorrelation, projection of drift)
 
+        # hrf
+        self.canonical(0.1)
+
         # drift
-        self.S = self.drift(np.arange(0,self.tp)) #[tp x 1]
+        self.S = self.drift(np.arange(0,self.tpX)) #[tp x 1]
         self.S = np.matrix(self.S)
 
         # square of the whitening matrix
-        base = [1+self.rho**2,-1*self.rho]+[0]*(self.tp-2)
+        base = [1+self.rho**2,-1*self.rho]+[0]*(self.tpX-2)
         self.V2 = scipy.linalg.toeplitz(base)
         self.V2[0,0] = 1
-        self.V2[self.tp-1,self.tp-1] = 1
+        self.V2[self.tpX-1,self.tpX-1] = 1
         self.V2 = np.matrix(self.V2)
         #self.V = scipy.linalg.sqrtm(self.V2)
         #P = t(self.S)*np.linalg.pinv(self.S*t(self.S))*self.S
@@ -421,13 +432,13 @@ class GeneticAlgorithm(object):
         nMseq = r[1]
         nRandom = r[2]
 
-        iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=False).tolist()
+        iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=True).tolist()
         oBlocked = [self.Designs['Blocked']['orders'][i] for i in iBlocked]
         tBlocked = [self.Designs['Blocked']['onsets'][i] for i in iBlocked]
-        iMseq = np.random.choice(len(self.Designs['Mseq']['orders']),nMseq,replace=False).tolist()
+        iMseq = np.random.choice(len(self.Designs['Mseq']['orders']),nMseq,replace=True).tolist()
         oMseq = [self.Designs['Mseq']['orders'][i] for i in iMseq]
         tMseq = [self.Designs['Mseq']['onsets'][i] for i in iMseq]
-        iRandom = np.random.choice(len(self.Designs['Random']['orders']),nRandom,replace=False).tolist()
+        iRandom = np.random.choice(len(self.Designs['Random']['orders']),nRandom,replace=True).tolist()
         oRandom = [self.Designs['Random']['orders'][i] for i in iRandom]
         tRandom = [self.Designs['Random']['onsets'][i] for i in iRandom]
 
@@ -540,46 +551,62 @@ class GeneticAlgorithm(object):
                 Design['Z']: numpy array representing convolved design matrix
         '''
 
-        # upsample from trials to resolution
-
-        tpX = int(self.duration/self.resolution) #total number of timepoints (upsampled)
-        tpS = np.arange(0,self.duration,self.resolution)
-
         # expand random order to timeseries
 
         onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']] #onsets rounded to resolution
-        XindStim = [int(np.where(tpS==y)[0]) for y in onsetX] #find indices of timepoints of onsets
+        XindStim = [int(np.where(self.tpS==y)[0]) for y in onsetX] #find indices of timepoints of onsets
 
-        X_X = np.zeros([tpX,self.stimtype]) #upsampled Xmatrix
+        X_X = np.zeros([self.tpX,self.stimtype]) #upsampled Xmatrix
         for stimulus in range(self.stimtype):
             # fill
             X_X[XindStim,int(stimulus)] = [1 if z==stimulus else 0 for z in Design["order"]]
 
+        lagHRF = np.floor(self.duration/self.resolution)
+        deconvM = np.zeros([self.tpX,lagHRF*self.stimtype])
+        idx = [int(x) for x in np.arange(self.stimtype)*lagHRF]
+        deconvM[:,idx] = X_X
+        for j in np.arange(1,lagHRF):
+            idx = [int(x+j) for x in np.arange(self.stimtype)*lagHRF]
+            deconvM[j:,idx] = X_X[:(self.tpX-j),:]
+
+        Xwhite = t(deconvM)*self.white*deconvM
+
         # convolve design matrix
 
+
+        designM = np.zeros([self.tpX,lagHRF*self.stimtype])
         h0 = self.canonical(np.arange(0,self.duration,self.resolution))
-        Z_X = np.zeros([tpX,self.stimtype])
-        for stimulus in range(self.stimtype):
-            Zinterim = np.convolve(X_X[:,stimulus],h0)[range(tpX)]
+        for stim in range(deconvM.shape[1]):
+            Zinterim = np.convolve(deconvM[:,stimulus],h0)[range(self.tpX)]
             ZinterimScaled = Zinterim/np.max(h0)
             if self.saturation==True:
                 ZinterimScaled = [2 if x>2 else x for x in ZinterimScaled]
-            Z_X[:,stimulus] = ZinterimScaled
+            designM[:,stimulus] = ZinterimScaled
 
-        # downsample from deciseconds to scans
+        # Z_X = np.zeros([self.tpX,self.stimtype])
+        # for stimulus in range(self.stimtype):
+        #     Zinterim = np.convolve(X_X[:,stimulus],h0)[range(tpX)]
+        #     ZinterimScaled = Zinterim/np.max(h0)
+        #     if self.saturation==True:
+        #         ZinterimScaled = [2 if x>2 else x for x in ZinterimScaled]
+        #     Z_X[:,stimulus] = ZinterimScaled
 
-        XindScan = np.arange(0,tpX,self.TR/self.resolution).astype(int) # stimulus points
-        X = np.zeros([self.tp,self.stimtype])
-        Z = np.zeros([self.tp,self.stimtype])
-        for stimulus in range(self.stimtype):
-            X[:,stimulus] = X_X[XindScan,stimulus]
-            Z[:,stimulus] = Z_X[XindScan,stimulus]
+        Zwhite = t(designM)*self.white*designM
+
+        # # downsample from deciseconds to scans
+        #
+        # XindScan = np.arange(0,tpX,self.TR/self.resolution).astype(int) # stimulus points
+        # X = np.zeros([self.tp,self.stimtype])
+        # Z = np.zeros([self.tp,self.stimtype])
+        # for stimulus in range(self.stimtype):
+        #     X[:,stimulus] = X_white[XindScan,stimulus]
+        #     Z[:,stimulus] = Z_X[XindScan,stimulus]
 
         # downsample and save in dictionary
 
-        Design["X"] = X
-        Design["Z"] = Z
-        Design["ts"] = tpS[XindScan]
+        Design["X"] = Xwhite
+        Design["Z"] = Zwhite
+        Design["ts"] = self.tpS
 
         return Design
 
@@ -671,10 +698,10 @@ class GeneticAlgorithm(object):
         return self
 
     def FeCalc(self,Design):
-        W = Design['X']
-        X = t(W)*self.white*W
-        invM = scipy.linalg.pinv(X)
-        CMC = np.matrix(self.C)*invM*np.matrix(t(self.C))
+        invM = scipy.linalg.pinv(Design['X'])
+        lagHRF = np.floor(32/self.resolution)
+        Cexp = np.kron(np.matrix(self.C),np.eye(lagHRF))
+        CMC = np.matrix(Cexp)*invM*np.matrix(t(Cexp))
         if self.Aoptimality == True:
             Design["Fe"] = float(self.rc/np.matrix.trace(CMC))
         else:
@@ -683,10 +710,9 @@ class GeneticAlgorithm(object):
         return Design
 
     def FdCalc(self,Design):
-        W = np.matrix(Design['Z'])
-        X = t(W)*self.white*W
-        invM = scipy.linalg.pinv(X)
-        CMC = np.matrix(self.C)*invM*np.matrix(t(self.C))
+        invM = scipy.linalg.pinv(Design['Z'])
+        Cexp = np.kron(np.matrix(self.C),np.eye(lagHRF))
+        CMC = np.matrix(Cexp)*invM*np.matrix(t(Cexp))
         if self.Aoptimality == True:
             Design["Fd"] = float(self.rc/np.matrix.trace(CMC))
         else:
@@ -722,14 +748,14 @@ class GeneticAlgorithm(object):
     #     ts = 1/2*(3*s**2-1)
     #     retur n ts
 
-    @staticmethod
-    def canonical(s,a1=6,a2=16,b1=1,b2=1,c=1/6,amplitude=1):
-        #Canonical HRF as defined here: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3318970/
-        # arguments: s seconds
-        gamma1 = (s**(a1-1)*b1**a1*np.exp(-b1*s))/gamma(a1)
-        gamma2 = (s**(a2-1)*b2**a2*np.exp(-b2*s))/gamma(a2)
-        tsConvoluted = amplitude*(gamma1-c*gamma2)
-        return tsConvoluted
+    # @staticmethod
+    # def canonical(s,a1=6,a2=16,b1=1,b2=1,c=1/6,amplitude=1):
+    #     #Canonical HRF as defined here: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3318970/
+    #     # arguments: s seconds
+    #     gamma1 = (s**(a1-1)*b1**a1*np.exp(-b1*s))/gamma(a1)
+    #     gamma2 = (s**(a2-1)*b2**a2*np.exp(-b2*s))/gamma(a2)
+    #     tsConvoluted = amplitude*(gamma1-c*gamma2)
+    #     return tsConvoluted
 
     @staticmethod
     def drift(s,deg=3):
@@ -743,6 +769,6 @@ class GeneticAlgorithm(object):
 
     @staticmethod
     def spm_Gpdf(s,h,l):
-        s = s[1:]
+        s = np.array(s)
         res = (h-1)*np.log(s) + h*np.log(l) - l*s - np.log(gamma(h))
         return np.exp(res)
