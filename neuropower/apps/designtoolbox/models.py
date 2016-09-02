@@ -16,7 +16,10 @@ class DesignModel(models.Model):
     TR = models.FloatField(default=None, null=True, blank=True)
     L = models.IntegerField(null=True, blank=True)
     S = models.IntegerField(null=True, blank=True)
-    Clen = models.IntegerField(null=True, blank=True)
+    Call = models.BooleanField(default=False)
+    Clen = models.IntegerField(default=0,null=True, blank=True)
+    RestNum = models.IntegerField(default=0,null=True,blank=True)
+    RestDur = models.FloatField(default=None,null=True,blank=True)
     # contrasts and probabilities
     P0 = models.FloatField(default=None, null=True, blank=True)
     P1 = models.FloatField(default=None, null=True, blank=True)

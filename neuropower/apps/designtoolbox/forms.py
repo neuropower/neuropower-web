@@ -9,7 +9,7 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITImin','ITImax','TR','L','S','Clen','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars']
+        fields = ['ITImin','ITImax','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars']
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
@@ -18,7 +18,10 @@ class DesignMainForm(forms.ModelForm):
         self.fields['TR'].label = "Scanner TR (s)"
         self.fields['S'].label = "Stimulus types"
         self.fields['L'].label = "Total number of trials"
-        self.fields['Clen'].label = 'Number of contrasts'
+        self.fields['Call'].label = 'Include all pairwise contrasts'
+        self.fields['Clen'].label = 'Number of custom contrasts'
+        self.fields['RestNum'].label = 'How many trials between rest blocks'
+        self.fields['RestDur'].label = 'Duration of rest'
         self.fields['ConfoundOrder'].label = 'Order of confounding control'
         self.fields['MaxRepeat'].label = 'Max number of repeated stimulus types'
         self.fields['W1'].label = 'Design efficiency'
@@ -35,11 +38,14 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("TR")<0 or cleaned_data.get("TR")>5:
             raise forms.ValidationError("Are you sure about that TR? Parameters not saved.")
 
-        if cleaned_data.get("S")>10:
-            raise forms.ValidationError("Sorry, at the moment we can only model designs when there are at most 10 stimulus types. Parameters not saved.")
+        if cleaned_data.get("S")>5:
+            raise forms.ValidationError("Sorry, at the moment we can only model designs when there are at most 5 stimulus types. Parameters not saved.")
 
         if cleaned_data.get("Clen")>5:
             raise forms.ValidationError("Sorry, at the moment we can only model designs when there are at most 5 contrasts. Parameters not saved.")
+
+        if cleaned_data.get("Clen")==0 and cleaned_data.get("Call")==False:
+            raise forms.ValidationError("Either choose a number of contrasts to be tested or choose all pairwise contrasts.")
 
         if cleaned_data.get("ConfoundOrder")>10:
             raise forms.ValidationError("Sorry, at the moment we can only model designs with a confoundorder smaller than 10. Parameters not saved.")
@@ -58,17 +64,35 @@ class DesignMainForm(forms.ModelForm):
             Div(Field('TR'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('S'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('L'),css_class='col-md-4 col-sm-6 col-xs-12'),
-            Div(Field('Clen'),css_class='col-md-4 col-sm-6 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             ),
             HTML("""<br><br>""")
             ),
         Fieldset(
             '',
-            HTML("""<h5 style="margin-left: 15px">In what range is the ITI?</h><br><br><p>For a fixed ITI, fill out two times the same ITI.</p>"""),
+            HTML("""<h5 style="margin-left: 15px">How many contrasts do you want ot test?</h><br><br><p>You can choose to include all pairwise comparisons.  You can also add custom contrasts.  You can do both.</p><br>"""),
+            Div(
+            Div(Field('Clen'),css_class='col-sm-6 col-xs-12'),
+            Div(Field('Call'),css_class='col-lg-3 col-md-4 col-sm-6 col-xs-12'),
+            css_class='row-md-12 col-xs-12'
+            ),
+            ),
+        Fieldset(
+            '',
+            HTML("""<h5 style="margin-left: 15px">In what range is the ITI?</h><br><br><p>For a fixed ITI, fill out two times the same ITI.</p><br> """),
             Div(
             Div(Field('ITImin'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('ITImax'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            css_class='row-md-12 col-xs-12'
+            )
+            ),
+        HTML("<br><br><br>"),
+        Fieldset(
+            '',
+            HTML("""<h5 style="margin-left: 15px">Do you want to include rest blocks?</h><br><br><p>If not: leave these boxes empty.</p><br> """),
+            Div(
+            Div(Field('RestNum'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            Div(Field('RestDur'),css_class='col-md-4 col-sm-6 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             )
             ),
@@ -79,8 +103,8 @@ class DesignMainForm(forms.ModelForm):
             <ol>
             <li> Estimation efficiency (estimating the HRF)</li>
             <li> Detection power (activation detection)</li>
+            <li> Final frequencies of each trial type</li>
             <li> Avoiding psychological confounds</li>
-            <li> Final probabilities of each trial type</li>
             </ol>
             <p>Please provide the weights that you want to give to each of the design criteria.</p><br><br>"""),
             Div(
@@ -131,7 +155,7 @@ class DesignConsForm(forms.ModelForm):
         'C10','C11','C12','C13','C14','C15','C16','C17','C18','C19',
         'C20','C21','C22','C23','C24','C25','C26','C27','C28','C29',
         'C30','C31','C32','C33','C34','C35','C36','C37','C38','C39',
-        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb','G','conpars'
+        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb','G','conpars','I'
         ]
 
     def __init__(self,*args,**kwargs):
@@ -150,8 +174,11 @@ class DesignConsForm(forms.ModelForm):
         self.helper.layout = Layout(Fieldset("Contrasts and probabilities"))
 
         # define iterable fields and compute width of each box
+        if self.stim<6:
+            cssclass = "col-xs-"+str(int(np.floor(12/self.stim)))
+        else:
+            cssclass = "col-xs-"+str(int(np.floor(12/5)))
 
-        cssclass = "col-xs-"+str(int(np.floor(12/self.stim)))
         fields = [['C00','C01','C02','C03','C04','C05','C06','C07','C08','C09'],
             ['C10','C11','C12','C13','C14','C15','C16','C17','C18','C19'],
             ['C20','C21','C22','C23','C24','C25','C26','C27','C28','C29'],
@@ -162,7 +189,10 @@ class DesignConsForm(forms.ModelForm):
         # add layout: probabilities
 
         self.helper.layout.append(
-            Div(Field('G',type='hidden'),css_class=cssclass)
+            Div(
+            Field('G',type='hidden'),
+            Field('I',type='hidden'),
+            css_class=cssclass)
             )
 
         self.helper.layout.append(
@@ -170,7 +200,7 @@ class DesignConsForm(forms.ModelForm):
             )
 
         self.helper.layout.append(
-            HTML('<h5> What are the probabilities (or frequencies) for each stimulus type? </h5><br>')
+            HTML('<h5> What are the probabilities (or relative frequencies) for each stimulus type? </h5><br>')
             )
 
         for indf,field in enumerate(fieldsP):
@@ -193,12 +223,13 @@ class DesignConsForm(forms.ModelForm):
 
         # add layout: contrasts
 
-        self.helper.layout.append(
-            HTML('<br><br><br><br><br>')
-            )
-        self.helper.layout.append(
-            HTML('<h5> What are the specific contrasts that will be tested? </h5><br>')
-            )
+        if self.cons>0:
+            self.helper.layout.append(
+                HTML('<br><br><br><br><br>')
+                )
+            self.helper.layout.append(
+                HTML('<h5> What are the specific contrasts that will be tested? </h5><br>')
+                )
 
         for indl,line in enumerate(fields): # loop over lines (contrasts)
 

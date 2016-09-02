@@ -69,10 +69,11 @@ class GeneticAlgorithm(object):
         self.ITImax = ITI[1]
         self.mnITI = np.mean(ITI)
         self.TR = TR
-        self.L = L
+        self.n_trials = L
+        self.n_cons = C.shape[0]
+        self.n_stimuli = C.shape[1]
         self.P = P
         self.C = C
-        self.stimtype = C.shape[1]
         self.rho = rho
         self.Aoptimality = Aoptimality
         self.saturation = saturation
@@ -83,7 +84,6 @@ class GeneticAlgorithm(object):
         self.I = I
         self.cycles = cycles
         self.ConfoundOrder = ConfoundOrder
-        self.rc = C.shape[0]
         self.preruncycles = preruncycles
         self.maxrepeat = MaxRepeat
         self.HardProb = HardProb
@@ -94,6 +94,14 @@ class GeneticAlgorithm(object):
         self.FdMax = 1
         self.FfMax = 1
         self.FcMax = 1
+        self.CX = None
+        self.laghrf = None
+        self.basishrf = None
+        self.n_tp = None
+        self.n_scans = None
+        self.r_tp = None
+        self.r_scans = None
+
         if write:
             self.write = write
 
@@ -107,25 +115,32 @@ class GeneticAlgorithm(object):
     '''
 
     def canonical(self,RT):
+        # translated from spm_hrf
+
         p=[6,16,1,1,6,0,32]
         dt = RT/16.
         s = np.array(range(int(p[6]/dt+1)))
+        #HRF sampled at 0.1 s
         hrf = self.spm_Gpdf(s,p[0]/p[2],dt/p[2]) - self.spm_Gpdf(s,p[1]/p[3],dt/p[3])/p[4]
         hrf = hrf[[int(x) for x in np.array(range(int(p[6]/RT+1)))*16.]]
         self.hrf = hrf/np.sum(hrf)
         self.hrf = self.hrf/np.max(self.hrf)
-        self.basishrf = self.hrf[[int(x) for x in np.arange(0,len(self.hrf),self.resolution*10)]]
+        # HRF sampled at resolution
+        self.basishrf = self.hrf[[int(x) for x in np.arange(0,len(self.hrf)-1,self.resolution*10)]]
+        # duration of the HRF
         self.durhrf = 32.0
-        self.laghrf = int(1+np.floor(self.durhrf/self.resolution))
+        # length of the HRF parameters in resolution scale
+        self.laghrf = int(np.ceil(self.durhrf/self.resolution))
 
         return self
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
-        self.duration = self.L*self.ITImax #total duration (s)
-        self.tp = int(np.ceil(self.duration/self.TR)) # number of scans
-        self.tpX = int(self.duration/self.resolution) #total number of timepoints (upsampled)
-        self.tpS = np.arange(0,self.duration,self.resolution)
+        self.duration = self.n_trials*self.ITImax #total duration (s)
+        self.n_scans = int(np.ceil(self.duration/self.TR)) # number of scans
+        self.n_tp = int(np.ceil(self.duration/self.resolution)) #number of timepoints (in resolution)
+        self.r_scans = np.arange(0,self.duration,self.TR)
+        self.r_tp = np.arange(0,self.duration,self.resolution)
 
         return self
 
@@ -136,29 +151,21 @@ class GeneticAlgorithm(object):
         self.canonical(0.1)
 
         # contrasts
+        # expand contrasts to resolution of HRF (?)
         self.CX = np.kron(self.C,np.eye(self.laghrf))
 
         # drift
-        self.S = self.drift(np.arange(0,self.tpX)) #[tp x 1]
+        self.S = self.drift(np.arange(0,self.n_scans)) #[tp x 1]
         self.S = np.matrix(self.S)
 
         # square of the whitening matrix
-        base = [1+self.rho**2,-1*self.rho]+[0]*(self.tpX-2)
+        base = [1+self.rho**2,-1*self.rho]+[0]*(self.n_scans-2)
         self.V2 = scipy.linalg.toeplitz(base)
         self.V2[0,0] = 1
-        self.V2[self.tpX-1,self.tpX-1] = 1
         self.V2 = np.matrix(self.V2)
-        #self.V = scipy.linalg.sqrtm(self.V2)
-        #P = t(self.S)*np.linalg.pinv(self.S*t(self.S))*self.S
-        #white = self.V2 - self.V2*self.S*np.linalg.pinv(self.S*self.V2*self.S)
+        np.fill_diagonal(self.V2,1)
 
         self.white = self.V2 - self.V2*t(self.S)*np.linalg.pinv(self.S*self.V2*t(self.S))*self.S*self.V2
-
-        #self.white = t(self.V)*(np.eye(self.tp)-P)*self.V
-
-        # orthogonal projection of whitened drift
-        #VS = self.V*self.S
-        #self.Pvs = reduce(np.dot,[VS,np.linalg.pinv(np.dot(t(VS),VS)),t(VS)])
 
         return self
 
@@ -344,7 +351,7 @@ class GeneticAlgorithm(object):
         for couple in CouplingRnd:
 
             # randomly select a timepoint for cross-over
-            changepoint = np.random.choice(self.L,1)[0]
+            changepoint = np.random.choice(self.n_trials,1)[0]
 
             #create baby 1
             baby1_a = Generation['order'][couple[0]][:changepoint]
@@ -382,10 +389,10 @@ class GeneticAlgorithm(object):
         for order,onsets in zip(Generation['order'][:noparents],Generation['onsets'][:noparents]):
 
             # randomly select the trials that will be mutated
-            mutated = np.random.choice(self.L,int(round(self.L*self.q)),replace=False)
+            mutated = np.random.choice(self.n_trials,int(round(self.n_trials*self.q)),replace=False)
 
             # replace mutated trials by a randomly chosen stimulus
-            mutatedorder = [np.random.choice(self.stimtype,1)[0] if ind in mutated else value for ind,value in enumerate(order)]
+            mutatedorder = [np.random.choice(self.n_stimuli,1)[0] if ind in mutated else value for ind,value in enumerate(order)]
             mutatedbaby = {'order':mutatedorder}
             mutatedbaby['onsets'] = onsets
             mutatedbaby = self.CreateDesignMatrix(mutatedbaby)
@@ -405,10 +412,15 @@ class GeneticAlgorithm(object):
 
     def GeneticAlgorithmImmigration(self,Generation):
 
+        missing = 20 - len(Generation['F'])
+        if missing>0:
+            add = missing+self.I
+        else:
+            add = self.I
         # equally distribute new immigrants (blocked, msequence, ...)
         rp = [1/3.,1/3.,1/3.]
-        r = [int(np.ceil(x*self.I)) for x in rp]
-        r = r[:self.I]
+        r = [int(np.ceil(x*add)) for x in rp]
+        r = r[:add]
 
         # add random orders according to types
         Generation = self.GeneticAlgorithmAddOrder(Generation,r)
@@ -481,14 +493,14 @@ class GeneticAlgorithm(object):
         onsets = []
         for ind in range(number):
             seed = np.random.randint(0,10**10)
-            mult = np.random.multinomial(1,self.P,self.L)
+            mult = np.random.multinomial(1,self.P,self.n_trials)
             order = [x.tolist().index(1) for x in mult]
             orders.append(order)
 
-            onset = [self.mnITI]*self.L
+            onset = [self.mnITI]*self.n_trials
             jitmin = self.ITImin-self.mnITI
             jitmax = self.ITImax-self.mnITI
-            jitter = np.random.uniform(jitmin,jitmax,self.L)
+            jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
             onset = onset+jitter
             onset = np.cumsum(onset)-onset[0]
             onsets.append(onset)
@@ -497,15 +509,15 @@ class GeneticAlgorithm(object):
 
     def GenerateOrderMsequence(self,tapsfile):
         order = mseq.Msequence()
-        order.GenMseq(mLen=self.L,stimtypeno=len(self.P),tapsfile=self.tapsfile)
+        order.GenMseq(mLen=self.n_trials,stimtypeno=len(self.P),tapsfile=self.tapsfile)
         orders = order.orders
 
         onsets = []
         for ind in range(len(orders)):
-            onset = [self.mnITI]*self.L
+            onset = [self.mnITI]*self.n_trials
             jitmin = self.ITImin-self.mnITI
             jitmax = self.ITImax-self.mnITI
-            jitter = np.random.uniform(jitmin,jitmax,self.L)
+            jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
             onset = onset+jitter
             onset = np.cumsum(onset)-onset[0]
             onsets.append(onset)
@@ -513,23 +525,24 @@ class GeneticAlgorithm(object):
         return {"orders":orders,"onsets":onsets}
 
     def GenerateOrderBlocked(self):
-        numBlocks = np.array([1,2,3,4,5,10,15,20,25,30,40])
+        #numBlocks = np.array([1,2,3,4,5,10,15,20,25,30,40])
+        numBlocks = np.array([1,2,3,4,5,6,7,8])
         orders = []
         for blocks in numBlocks:
-            BlockSize = int(np.ceil(self.L/(blocks*self.stimtype)))
-            perms = list(itertools.permutations(range(self.stimtype)))
+            BlockSize = int(np.ceil(self.n_trials/(blocks*self.n_stimuli)))
+            perms = list(itertools.permutations(range(self.n_stimuli)))
             for permut in perms:
                 order = np.tile(np.repeat(list(permut),BlockSize),blocks).tolist()
-                if len(order) > self.L:
-                    order = order[:self.L]
+                if len(order) > self.n_trials:
+                    order = order[:self.n_trials]
                 orders.append(order)
 
         onsets = []
         for ind in range(len(orders)):
-            onset = [self.mnITI]*self.L
+            onset = [self.mnITI]*self.n_trials
             jitmin = self.ITImin-self.mnITI
             jitmax = self.ITImax-self.mnITI
-            jitter = np.random.uniform(jitmin,jitmax,self.L)
+            jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
             onset = onset+jitter
             onset = np.cumsum(onset)-onset[0]
             onsets.append(onset)
@@ -557,54 +570,52 @@ class GeneticAlgorithm(object):
                 Design['Z']: numpy array representing convolved design matrix
         '''
 
-        # expand random order to timeseries
+        # round onsets to resolution
+        onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]
 
-        onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']] #onsets rounded to resolution
-        XindStim = [int(np.where(self.tpS==y)[0]) for y in onsetX] #find indices of timepoints of onsets
+        # find indices in resolution scale of stimuli
+        XindStim = [int(np.where(self.r_tp==y)[0]) for y in onsetX]
 
-        X_X = np.zeros([self.tpX,self.stimtype]) #upsampled Xmatrix
-        for stimulus in range(self.stimtype):
-            # fill
+        # create design matrix in resolution scale (=deltasM in Kao toolbox)
+        X_X = np.zeros([self.n_tp,self.n_stimuli])
+        for stimulus in range(self.n_stimuli):
             X_X[XindStim,int(stimulus)] = [1 if z==stimulus else 0 for z in Design["order"]]
 
-        deconvM = np.zeros([self.tpX,self.laghrf*self.stimtype])
-        idx = [int(x) for x in np.arange(self.stimtype)*self.laghrf]
-        deconvM[:,idx] = X_X
-        for j in np.arange(1,self.laghrf):
-            idx = [int(x+j) for x in np.arange(self.stimtype)*self.laghrf]
-            deconvM[j:,idx] = X_X[:(self.tpX-j),:]
+        # compute TR in resolution units
+        TRT = self.TR / self.resolution
 
-        Xwhite = t(deconvM)*self.white*deconvM
+        # hrf lag in TR units
+        maxlag = int(np.ceil(self.laghrf/TRT))
+
+        # deconvolved matrix in resolution units
+        deconvM = np.zeros([self.n_tp,int(self.laghrf*self.n_stimuli)])
+        for stim in range(self.n_stimuli):
+            for j in range(int(self.durhrf)):
+                deconvM[j:,self.laghrf*stim+int(j/self.resolution)] = X_X[:(self.n_tp-j),stim]
+
+        # downsample to TR
+        idx = [int(x) for x in np.arange(0,self.n_tp,self.TR/self.resolution)]
+        Design['deconvM'] = deconvM[idx,:]
+        Xwhite = t(Design['deconvM'])*self.white*Design['deconvM']
 
         # convolve design matrix
-        X_Z = np.zeros([self.tpX,self.stimtype])
+        X_Z = np.zeros([self.n_tp,self.n_stimuli])
 
-        for stim in range(self.stimtype):
-            X_Z[:,stim] = np.dot(deconvM[:,(stim*self.laghrf):((stim+1)*self.laghrf)],self.basishrf)
+        for stim in range(self.n_stimuli):
+             X_Z[:,stim] = np.dot(deconvM[:,(stim*self.laghrf):((stim+1)*self.laghrf)],self.basishrf)
 
+        if self.saturation==True:
+            X_Z[X_Z>2] = 2
+
+        # downsample to TR
+        idx = [int(x) for x in np.arange(0,self.n_tp,self.TR/self.resolution)]
+        X_Z = X_Z[idx,:]
         Zwhite = t(X_Z)*self.white*X_Z
-
-        # Z_X = np.zeros([self.tpX,self.stimtype])
-        # for stimulus in range(self.stimtype):
-        #     Zinterim = np.convolve(X_X[:,stimulus],h0)[range(tpX)]
-        #     ZinterimScaled = Zinterim/np.max(h0)
-        #     if self.saturation==True:
-        #         ZinterimScaled = [2 if x>2 else x for x in ZinterimScaled]
-        #     Z_X[:,stimulus] = ZinterimScaled
-        # # downsample from deciseconds to scans
-        #
-        # XindScan = np.arange(0,tpX,self.TR/self.resolution).astype(int) # stimulus points
-        # X = np.zeros([self.tp,self.stimtype])
-        # Z = np.zeros([self.tp,self.stimtype])
-        # for stimulus in range(self.stimtype):
-        #     X[:,stimulus] = X_white[XindScan,stimulus]
-        #     Z[:,stimulus] = Z_X[XindScan,stimulus]
-
-        # downsample and save in dictionary
 
         Design["X"] = Xwhite
         Design["Z"] = Zwhite
-        Design["ts"] = self.tpS
+        Design["Xconv"] = X_Z
+        Design["ts"] = self.r_scans
 
         return Design
 
@@ -623,8 +634,8 @@ class GeneticAlgorithm(object):
             Design: dictionary
                 Design['Fe']: estimation efficiency
                 Design['Fd']: detection power
-                Design['Ff']: efficiency against psychological confounds
-                Design['Fc']: optimality of probability of trials
+                Design['Ff']: optimality of probability of trials
+                Design['Fc']: efficiency against psychological confounds
         '''
         Design['Fe'] = 0
         Design['Fd'] = 0
@@ -637,7 +648,6 @@ class GeneticAlgorithm(object):
             weightsFnc = [0,1,0,0]
         else:
             weightsFnc = self.weights
-
 
         if weightsFnc[0]>0:
             FeMax = 1 if self.prerun else self.FeMax
@@ -659,8 +669,10 @@ class GeneticAlgorithm(object):
         return Design
 
     def ComputeMaximumEfficiency(self):
-        nulorder = [np.argmin(self.P)]*self.L
-        nulonsets = [0]*self.L
+        nulorder = [np.argmin(self.P)]*self.n_trials
+        nulonsets = [self.mnITI]*self.n_trials
+        nulonsets = np.cumsum(onsets)-onset[0]
+
         NulDesign = {"order":nulorder,"onsets":nulonsets}
         NulDesign = self.CreateDesignMatrix(NulDesign)
         self.FfMax = self.FfCalc(NulDesign)['Ff']
@@ -697,37 +709,34 @@ class GeneticAlgorithm(object):
 
     def FeCalc(self,Design):
         invM = scipy.linalg.pinv(Design['X'])
-        lagHRF = np.floor(32/self.resolution)
-        Cexp = np.kron(np.matrix(self.C),np.eye(lagHRF))
-        CMC = np.matrix(Cexp)*invM*np.matrix(t(Cexp))
+        CMC = np.matrix(self.CX)*invM*np.matrix(t(self.CX))
         if self.Aoptimality == True:
-            Design["Fe"] = float(self.rc/np.matrix.trace(CMC))
+            Design["Fe"] = float(self.n_cons/np.matrix.trace(CMC))
         else:
-            Design["Fe"] = float(np.linalg.det(CMC)**(-1/self.rc))
+            Design["Fe"] = float(np.linalg.det(CMC)**(-1/self.n_cons))
 
         return Design
 
     def FdCalc(self,Design):
         invM = scipy.linalg.pinv(Design['Z'])
-        Cexp = np.kron(np.matrix(self.C),np.eye(lagHRF))
-        CMC = np.matrix(Cexp)*invM*np.matrix(t(Cexp))
+        CMC = np.matrix(self.C)*invM*np.matrix(t(self.C))
         if self.Aoptimality == True:
-            Design["Fd"] = float(self.rc/np.matrix.trace(CMC))
+            Design["Fd"] = float(self.n_cons/np.matrix.trace(CMC))
         else:
-            Design["Fd"] = float(np.linalg.det(CMC)**(-1/self.rc))
+            Design["Fd"] = float(np.linalg.det(CMC)**(-1/self.n_cons))
         return Design
 
     def FcCalc(self,Design):
-        Q = np.zeros([self.stimtype,self.stimtype,self.ConfoundOrder])
-        for n in range(self.L):
+        Q = np.zeros([self.n_stimuli,self.n_stimuli,self.ConfoundOrder])
+        for n in range(self.n_trials):
             for r in np.arange(1,self.ConfoundOrder+1):
                 if n>(r-1):
                     Q[Design['order'][n],Design['order'][n-r],r-1] += 1
-        Qexp = np.zeros([self.stimtype,self.stimtype,self.ConfoundOrder])
-        for si in range(self.stimtype):
-            for sj in range(self.stimtype):
+        Qexp = np.zeros([self.n_stimuli,self.n_stimuli,self.ConfoundOrder])
+        for si in range(self.n_stimuli):
+            for sj in range(self.n_stimuli):
                 for r in np.arange(1,self.ConfoundOrder+1):
-                    Qexp[si,sj,r-1] = self.P[si]*self.P[sj]*(self.L-r+1)
+                    Qexp[si,sj,r-1] = self.P[si]*self.P[sj]*(self.n_trials-r+1)
         Qmatch = np.sum(abs(Q-Qexp))
         Design["Fc"] = Qmatch
         return Design
@@ -736,7 +745,7 @@ class GeneticAlgorithm(object):
     def FfCalc(self,Design):
         trialcount = Counter(Design['order'])
         Pobs = [x[1] for x in trialcount.items()]
-        Design["Ff"] = np.sum(abs(np.array(Pobs)-np.array(self.L*np.array(self.P))))
+        Design["Ff"] = np.sum(abs(np.array(Pobs)-np.array(self.n_trials*np.array(self.P))))
         return Design
 
     # @staticmethod

@@ -135,6 +135,7 @@ def consinput(request):
         consform.C = matrices['C']
         if desdata.HardProb==True:
             consform.G = 200
+            consform.I = 100
         consform.save()
 
         return HttpResponseRedirect('../review/')
@@ -174,6 +175,12 @@ def review(request):
     context["Whtml"] = weights_html(desdata.W)
     context["order"] = desdata.ConfoundOrder
     context["repeat"] = desdata.MaxRepeat
+
+    context["message"] = ""
+    if desdata.HardProb==True:
+        context["message"] = context["message"]+"<p><b>Warning:</b> Because of the hard limit on the frequencies, we increased the size of the generation and the number of random designs per generation.  This might slow down the optimisation.  </p>"
+    if desdata.MaxRepeat<10 and desdata.S==2:
+        context["message"] = context["message"]+"<p><b>Warning:</b> With only 2 stimuli, many random designs have repetitions larger dan "+str(desdata.MaxRepeat)+".  We increased the number of random designs per generation, but this might slow down the optimisation.  </p>"
 
     # If page was result of POST: show summary
     # Else: go to next page
@@ -301,19 +308,21 @@ def runGA(request):
 
             else:
                 form.running = 1
+                form.stop = 0
                 form.save()
 
                 # Compute maximum efficiency
+                desdata = DesignModel.objects.get(SID=sid)
                 print("running maximum efficiency (Ff and Fc)")
-                nulorder = [np.argmin(des.P)]*des.L
-                nulonsets = [0]*des.L
+                nulorder = [np.argmin(des.P)]*des.n_trials
+                nulonsets = [0]*des.n_trials
                 NulDesign = {"order":nulorder,"onsets":nulonsets}
                 NulDesign = des.CreateDesignMatrix(NulDesign)
                 des.FfMax = des.FfCalc(NulDesign)['Ff']
                 des.FcMax = des.FcCalc(NulDesign)['Fc']
 
                 # prerun for FeMax #
-                if desdata.stop==0:
+                if desdata.stop==0 and desdata.W1>0:
                     form.running = 2
                     form.save()
                     print("running maximum efficiency (Fe)")
@@ -342,7 +351,7 @@ def runGA(request):
                         des.FeMax = Best[-1]
 
                 # prerun for FdMax #
-                if desdata.stop==0:
+                if desdata.stop==0 and desdata.W2>0:
                     form.running = 3
                     form.save()
                     print("running maximum efficiency (Fd)")
@@ -403,6 +412,14 @@ def runGA(request):
                             form.running = 0
                             form.save()
                             break
+                        # check for convergence
+                        last = len(Out['FBest'])-1
+                        earlier = int(last - 100)
+                        if gen>120 and (Out['FBest'][last] - Out['FBest'][earlier])<10**(-6):
+                            form.running = 0
+                            form.save()
+                            convergence = True
+                            break
                         NextGen = des.GeneticAlgorithmGeneration(Generation)
                         Generation = NextGen["NextGen"]
 
@@ -416,7 +433,7 @@ def runGA(request):
                         if gen % 10 == 0: #only do this every 10 gens to save computing time
                             # write away best design
                             for stim in range(desdata.S):
-                                Seq["Stimulus_"+str(stim)]=NextGen["Design"]["Z"][:,stim].tolist()
+                                Seq["Stimulus_"+str(stim)]=NextGen["Design"]["Xconv"][:,stim].tolist()
                             Seq.update({"tps":NextGen["Design"]["ts"].tolist()})
                             with open(desfile,'w') as out2file:
                                 json.dump(Seq,out2file)
@@ -426,9 +443,14 @@ def runGA(request):
                     form.optimalorder = Generation['order'][OptInd]
                     form.optimalonsets = Generation['onsets'][OptInd]
 
-                    form.running = 6
-                    form.save()
+                    desdata = DesignModel.objects.get(SID=sid)
+                    if desdata.running==5:
+                        form.running = 6
+                        form.save()
                     context['message']="Analysis complete"
+                    if convergence:
+                        context['message']="Convergence reached: analysis complete"
+
             form.stop = 0
             if not desdata.optimalorder is None:
                 form.running = 6

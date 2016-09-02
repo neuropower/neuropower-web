@@ -18,6 +18,10 @@
 <div class="row">
   {% if message %}
   <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
+  <div>
+    {% if refrun == "0" %}<p>Please refresh the page once after initialising the genetic algorithm.  You'll be able to follow the progress. (I have to figure out how to do this automatically)</p>{% endif %}
+    <p>During the optimisation, you can check settings in the other tabs.  The analysis will continue running.  However, changing parameters will not affect the ongoing process.</p>
+  </div>
   {% endif %}
 </div>
 
