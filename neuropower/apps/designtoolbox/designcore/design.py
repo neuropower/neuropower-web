@@ -63,7 +63,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None,HardProb=False):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,restnum=0,restlength=0,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=None,HardProb=False):
         self.ITI = ITI
         self.ITImin = ITI[0]
         self.ITImax = ITI[1]
@@ -75,6 +75,8 @@ class GeneticAlgorithm(object):
         self.P = P
         self.C = C
         self.rho = rho
+        self.restnum = restnum
+        self.restlength = restlength
         self.Aoptimality = Aoptimality
         self.saturation = saturation
         self.resolution = resolution
@@ -571,6 +573,8 @@ class GeneticAlgorithm(object):
         '''
 
         # ITIs to onsets
+        # if self.restnum>0:
+        #     restorder = for ind,val in enumerate[order]
         Design['onsets'] = np.cumsum(Design['ITIs'])-Design['ITIs'][0]
 
         # round onsets to resolution
