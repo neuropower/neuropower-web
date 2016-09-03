@@ -66,8 +66,8 @@ class DesignMainForm(forms.ModelForm):
             Div(Field('L'),css_class='col-md-4 col-sm-6 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             ),
-            HTML("""<br><br>""")
             ),
+        HTML("<br><br><br>"),
         Fieldset(
             '',
             HTML("""<h5 style="margin-left: 15px">How many contrasts do you want ot test?</h><br><br><p>You can choose to include all pairwise comparisons.  You can also add custom contrasts.  You can do both.</p><br>"""),
@@ -77,6 +77,7 @@ class DesignMainForm(forms.ModelForm):
             css_class='row-md-12 col-xs-12'
             ),
             ),
+        HTML("<br><br><br>"),
         Fieldset(
             '',
             HTML("""<h5 style="margin-left: 15px">In what range is the ITI?</h><br><br><p>For a fixed ITI, fill out two times the same ITI.</p><br> """),
@@ -89,7 +90,7 @@ class DesignMainForm(forms.ModelForm):
         HTML("<br><br><br>"),
         Fieldset(
             '',
-            HTML("""<h5 style="margin-left: 15px">Do you want to include rest blocks?</h><br><br><p>If not: leave these boxes empty.</p><br> """),
+            HTML("""<h5 style="margin-left: 15px">Do you want to include rest blocks?</h><br><br><p style="color:red"><b>Function not working at the moment.</b></p><p>If not: leave these boxes empty.</p><br> """),
             Div(
             Div(Field('RestNum'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('RestDur'),css_class='col-md-4 col-sm-6 col-xs-12'),

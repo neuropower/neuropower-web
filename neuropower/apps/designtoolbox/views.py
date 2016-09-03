@@ -314,9 +314,11 @@ def runGA(request):
                 # Compute maximum efficiency
                 desdata = DesignModel.objects.get(SID=sid)
                 print("running maximum efficiency (Ff and Fc)")
+
                 nulorder = [np.argmin(des.P)]*des.n_trials
-                nulonsets = [0]*des.n_trials
-                NulDesign = {"order":nulorder,"onsets":nulonsets}
+                nulitis = [des.mnITI]*des.n_trials
+
+                NulDesign = {"order":nulorder,"ITIs":nulitis}
                 NulDesign = des.CreateDesignMatrix(NulDesign)
                 des.FfMax = des.FfCalc(NulDesign)['Ff']
                 des.FcMax = des.FcCalc(NulDesign)['Fc']

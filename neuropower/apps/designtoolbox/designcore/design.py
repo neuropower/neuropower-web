@@ -222,6 +222,7 @@ class GeneticAlgorithm(object):
         Generation = {
             'order' : [],
             'onsets': [],
+            'ITIs': [],
             'F' : [],
             'Fd': [],
             'Fe': [],
@@ -258,9 +259,6 @@ class GeneticAlgorithm(object):
         Generation = self.GeneticAlgorithmImmigration(Generation)
         Generation = self.GeneticAlgorithmConstraints(Generation)
 
-        if len(Generation['F'])==0:
-            Generation = self.GeneticAlgorithmAddOrder(Generation,[7,7,6])
-
         # To check overall improvement: save best design in Generation
         a = 2.1
         #Generation['Ft'] = [float(np.random.uniform(0,1,1)+1/(1+np.exp(-a*x))) for x in Generation['F']]
@@ -275,6 +273,7 @@ class GeneticAlgorithm(object):
         # Make design with best from Generation
         Design = {
             "order":Generation['order'][best],
+            "ITIs":Generation['ITIs'][best],
             'onsets':Generation['onsets'][best]}
         Design = self.CreateDesignMatrix(Design)
 
@@ -332,6 +331,7 @@ class GeneticAlgorithm(object):
     def GeneticAlgorithmAddDestoGen(self,Generation,Design):
         Generation['order'].append(Design['order'])
         Generation['onsets'].append(Design['onsets'])
+        Generation['ITIs'].append(Design['ITIs'])
         Generation['F'].append(Design['F'])
         Generation['Fd'].append(Design['Fd'])
         Generation['Fe'].append(Design['Fe'])
@@ -356,16 +356,16 @@ class GeneticAlgorithm(object):
             #create baby 1
             baby1_a = Generation['order'][couple[0]][:changepoint]
             baby1_b = Generation['order'][couple[1]][changepoint:]
-            baby1_O = Generation['onsets'][couple[0]]
-            baby1 = {'order':np.concatenate([baby1_a,baby1_b]),'onsets':baby1_O}
+            baby1_O = Generation['ITIs'][couple[0]]
+            baby1 = {'order':np.concatenate([baby1_a,baby1_b]),'ITIs':baby1_O}
             baby1 = self.CreateDesignMatrix(baby1)
             baby1 = self.ComputeEfficiency(baby1)
 
             #create baby 2
             baby2_a = Generation['order'][couple[1]][:changepoint]
             baby2_b = Generation['order'][couple[0]][changepoint:]
-            baby2_O = Generation['onsets'][couple[1]]
-            baby2 = {'order':np.concatenate([baby2_a,baby2_b]),'onsets':baby2_O}
+            baby2_O = Generation['ITIs'][couple[1]]
+            baby2 = {'order':np.concatenate([baby2_a,baby2_b]),'ITIs':baby2_O}
             baby2 = self.CreateDesignMatrix(baby2)
             baby2 = self.ComputeEfficiency(baby2)
 
@@ -386,7 +386,7 @@ class GeneticAlgorithm(object):
 
         # loop over first G designs
         noparents = int(len(Generation['order'])/2.) #(assuming crossover was done before)
-        for order,onsets in zip(Generation['order'][:noparents],Generation['onsets'][:noparents]):
+        for order,ITIs in zip(Generation['order'][:noparents],Generation['ITIs'][:noparents]):
 
             # randomly select the trials that will be mutated
             mutated = np.random.choice(self.n_trials,int(round(self.n_trials*self.q)),replace=False)
@@ -394,7 +394,7 @@ class GeneticAlgorithm(object):
             # replace mutated trials by a randomly chosen stimulus
             mutatedorder = [np.random.choice(self.n_stimuli,1)[0] if ind in mutated else value for ind,value in enumerate(order)]
             mutatedbaby = {'order':mutatedorder}
-            mutatedbaby['onsets'] = onsets
+            mutatedbaby['ITIs'] = ITIs
             mutatedbaby = self.CreateDesignMatrix(mutatedbaby)
             mutatedbaby = self.ComputeEfficiency(mutatedbaby)
 
@@ -412,7 +412,7 @@ class GeneticAlgorithm(object):
 
     def GeneticAlgorithmImmigration(self,Generation):
 
-        missing = 20 - len(Generation['F'])
+        missing = self.G - len(Generation['F'])
         if missing>0:
             add = missing+self.I
         else:
@@ -452,13 +452,13 @@ class GeneticAlgorithm(object):
 
         iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=True).tolist()
         oBlocked = [self.Designs['Blocked']['orders'][i] for i in iBlocked]
-        tBlocked = [self.Designs['Blocked']['onsets'][i] for i in iBlocked]
+        tBlocked = [self.Designs['Blocked']['ITIs'][i] for i in iBlocked]
         iMseq = np.random.choice(len(self.Designs['Mseq']['orders']),nMseq,replace=True).tolist()
         oMseq = [self.Designs['Mseq']['orders'][i] for i in iMseq]
-        tMseq = [self.Designs['Mseq']['onsets'][i] for i in iMseq]
+        tMseq = [self.Designs['Mseq']['ITIs'][i] for i in iMseq]
         iRandom = np.random.choice(len(self.Designs['Random']['orders']),nRandom,replace=True).tolist()
         oRandom = [self.Designs['Random']['orders'][i] for i in iRandom]
-        tRandom = [self.Designs['Random']['onsets'][i] for i in iRandom]
+        tRandom = [self.Designs['Random']['ITIs'][i] for i in iRandom]
 
         oTotal = []
         for orders in [oBlocked,oMseq,oRandom]:
@@ -468,18 +468,18 @@ class GeneticAlgorithm(object):
                 oTotal.append(orders)
 
         tTotal = []
-        for orders in [tBlocked,tMseq,tRandom]:
+        for itis in [tBlocked,tMseq,tRandom]:
             if isinstance(orders,list):
-                tTotal = tTotal+orders
+                tTotal = tTotal+itis
             else:
-                tTotal.append(orders)
+                tTotal.append(itis)
 
         id = self.counter*100
-        for order,onsets in zip(oTotal,tTotal):
+        for order,ITIs in zip(oTotal,tTotal):
             id = id+1
             NewDesign = {}
             NewDesign['order'] = order
-            NewDesign['onsets'] = onsets
+            NewDesign['ITIs'] = ITIs
             NewDesign = self.CreateDesignMatrix(NewDesign)
             NewDesign = self.ComputeEfficiency(NewDesign)
 
@@ -490,39 +490,39 @@ class GeneticAlgorithm(object):
 
     def GenerateOrderRandom(self,number):
         orders = []
-        onsets = []
+        ITIs = []
         for ind in range(number):
             seed = np.random.randint(0,10**10)
             mult = np.random.multinomial(1,self.P,self.n_trials)
             order = [x.tolist().index(1) for x in mult]
             orders.append(order)
 
-            onset = [self.mnITI]*self.n_trials
+            ITI = [self.mnITI]*self.n_trials
             jitmin = self.ITImin-self.mnITI
             jitmax = self.ITImax-self.mnITI
             jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
-            onset = onset+jitter
-            onset = np.cumsum(onset)-onset[0]
-            onsets.append(onset)
+            ITI = ITI+jitter
+            #onset = np.cumsum(ITIs)-ITIs[0]
+            ITIs.append(ITI)
 
-        return {"orders":orders,"onsets":onsets}
+        return {"orders":orders,"ITIs":ITIs}
 
     def GenerateOrderMsequence(self,tapsfile):
         order = mseq.Msequence()
         order.GenMseq(mLen=self.n_trials,stimtypeno=len(self.P),tapsfile=self.tapsfile)
         orders = order.orders
 
-        onsets = []
+        ITIs = []
         for ind in range(len(orders)):
-            onset = [self.mnITI]*self.n_trials
+            ITI = [self.mnITI]*self.n_trials
             jitmin = self.ITImin-self.mnITI
             jitmax = self.ITImax-self.mnITI
             jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
-            onset = onset+jitter
-            onset = np.cumsum(onset)-onset[0]
-            onsets.append(onset)
+            ITI = ITI+jitter
+            #onset = np.cumsum(ITIs)-ITIs[0]
+            ITIs.append(ITI)
 
-        return {"orders":orders,"onsets":onsets}
+        return {"orders":orders,"ITIs":ITIs}
 
     def GenerateOrderBlocked(self):
         #numBlocks = np.array([1,2,3,4,5,10,15,20,25,30,40])
@@ -537,17 +537,17 @@ class GeneticAlgorithm(object):
                     order = order[:self.n_trials]
                 orders.append(order)
 
-        onsets = []
+        ITIs = []
         for ind in range(len(orders)):
-            onset = [self.mnITI]*self.n_trials
+            ITI = [self.mnITI]*self.n_trials
             jitmin = self.ITImin-self.mnITI
             jitmax = self.ITImax-self.mnITI
             jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
-            onset = onset+jitter
-            onset = np.cumsum(onset)-onset[0]
-            onsets.append(onset)
+            ITI = ITI+jitter
+            #onset = np.cumsum(ITIs)-ITIs[0]
+            ITIs.append(ITI)
 
-        return {"orders":orders,"onsets":onsets}
+        return {"orders":orders,"ITIs":ITIs}
 
     '''
     ###############################
@@ -562,13 +562,16 @@ class GeneticAlgorithm(object):
         ----------
             Design: dictionary
                 Design['order']: dictionary with key 'order' generated by GenerateOrderXXX() functions or manual
-                Design['onsets']: dictionary with key 'onsets'
+                Design['ITIs']: dictionary with key 'ITIs'
         Returns
         -------
             Design: dictionary
                 Design['X']: numpy array representing design matrix
                 Design['Z']: numpy array representing convolved design matrix
         '''
+
+        # ITIs to onsets
+        Design['onsets'] = np.cumsum(Design['ITIs'])-Design['ITIs'][0]
 
         # round onsets to resolution
         onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]
@@ -670,10 +673,9 @@ class GeneticAlgorithm(object):
 
     def ComputeMaximumEfficiency(self):
         nulorder = [np.argmin(self.P)]*self.n_trials
-        nulonsets = [self.mnITI]*self.n_trials
-        nulonsets = np.cumsum(onsets)-onset[0]
+        nulitis = [self.mnITI]*self.n_trials
 
-        NulDesign = {"order":nulorder,"onsets":nulonsets}
+        NulDesign = {"order":nulorder,"ITIs":nulitis}
         NulDesign = self.CreateDesignMatrix(NulDesign)
         self.FfMax = self.FfCalc(NulDesign)['Ff']
         self.FcMax = self.FcCalc(NulDesign)['Fc']
