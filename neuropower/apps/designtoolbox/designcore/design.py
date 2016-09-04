@@ -140,7 +140,10 @@ class GeneticAlgorithm(object):
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
-        self.duration = self.n_trials*self.ITImax+(np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
+        if self.restnum>0:
+            self.duration = self.n_trials*self.ITImax+(np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
+        else:
+            self.duration = self.n_trials*self.ITImax #total duration (s)
         self.n_scans = int(np.ceil(self.duration/self.TR)) # number of scans
         self.n_tp = int(np.ceil(self.duration/self.resolution)) #number of timepoints (in resolution)
         self.r_scans = np.arange(0,self.duration,self.TR)
@@ -439,7 +442,7 @@ class GeneticAlgorithm(object):
 
     def GeneticAlgorithmCreateOrder(self):
         Designs = {}
-        nRandom = 10000
+        nRandom = 1000
         Designs['Blocked'] = self.GenerateOrderBlocked()
         Designs['Mseq'] = self.GenerateOrderMsequence(tapsfile=self.tapsfile)
         Designs['Random'] = self.GenerateOrderRandom(nRandom)

@@ -418,3 +418,29 @@ class DesignDownloadForm(forms.ModelForm):
     helper.layout = Layout(
         ButtonHolder(Submit('Download', 'Download optimal sequence', css_class='btn-black')),
         )
+
+class ContactForm(forms.Form):
+    contact_name = forms.CharField(required=True)
+    contact_email = forms.EmailField(required=True)
+    content = forms.CharField(
+        required=True,
+        widget=forms.Textarea
+    )
+
+    def __init__(self,*args,**kwargs):
+        super(ContactForm,self).__init__(*args,**kwargs)
+
+    def clean(self):
+        cleaned_data = super(ContactForm,self).clean()
+        return cleaned_data
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        'contact_name',
+        'contact_email',
+        'content',
+        ButtonHolder(Submit('Submit', 'Send feedback', css_class='btn-black'))
+    )

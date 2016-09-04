@@ -3,11 +3,12 @@ import sys
 sys.path = sys.path[1:]
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, render_to_response
+from django.core.mail import send_mail
 from django.conf import settings
 from scipy.stats import norm, t
 import os
 from utils import get_session_id, probs_and_cons, get_design_steps, weights_html
-from .forms import DesignMainForm,DesignConsForm,DesignReviewForm,DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm
+from .forms import DesignMainForm,DesignConsForm,DesignReviewForm,DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm,ContactForm
 from .models import DesignModel
 from designcore import design
 import numpy as np
@@ -41,6 +42,21 @@ def start(request):
 
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template,sid)
+
+    #forms
+
+    fbform = ContactForm(request.POST or None)
+    context["form"] = fbform
+
+    if request.method=="POST":
+        if fbform.is_valid():
+            subject = "feedback neurodesign"
+            sender = fbform.cleaned_data['contact_name']
+            sendermail = fbform.cleaned_data['contact_email']
+            message = fbform.cleaned_data['content']
+            recipient = ['joke.durnez@gmail.com']
+            send_mail(subject,message,sendermail,recipient)
+            context['thanks']=True
 
     return render(request,template,context)
 
@@ -310,7 +326,6 @@ def runGA(request):
 
             else:
                 form.running = 1
-                form.stop = 0
                 form.save()
 
                 # Compute maximum efficiency

@@ -18,11 +18,15 @@
 <div class="row">
   {% if message %}
   <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
-  <div>
-    {% if refrun == "0" %}<p>Please refresh the page once after initialising the genetic algorithm.  You'll be able to follow the progress. (I have to figure out how to do this automatically)</p>{% endif %}
-    <p>During the optimisation, you can check settings in the other tabs.  The analysis will continue running.  However, changing parameters will not affect the ongoing process.</p>
-  </div>
   {% endif %}
+  <div>
+    <h5>Some notes:</h5>
+    <ul>
+    <li>Please refresh the page once after initialising the genetic algorithm.  You'll be able to follow the progress. (I have to figure out how to do this automatically)</li>
+    <li>During the optimisation, you can check settings in the other tabs.  The analysis will continue running.  However, changing parameters will not affect the ongoing process.</li>
+    <li>The optimisation can take a while.  What's mostly impacting the duration of the GA is the inversion of the estimation matrix (that is, if you've set the weights for estimation optimisation > 0).  The longer the duration of the experiment (more trials, longer ITI's, more rest,...), the longer the optimisation will take.  Other factors impacting the optimisation: the size of the generation and the number of immigrants per generation (can be changed in the options).</li>
+  </ul>
+  </div>
 </div>
 
 <div class="row">
@@ -35,10 +39,10 @@
     </form>
   </div>
   <div class="col-sm-9">
-    {% if refrun == "3" %}<h4> Design optimisation scores </h4>{% endif %}
+    {% if refrun == "3" %}<h5> Design optimisation scores </h5>{% endif %}
     <div cass="row" id="magic"></div>
     <div cass="row"><br><br><br><br><br><br><br></div>
-    {% if refrun == "3" %}<h4> Expected signal for optimal design </h4>{% endif %}
+    {% if refrun == "3" %}<h5> Expected signal for optimal design in this generation </h5>{% endif %}
     <div cass="row" id="legend"></div>
   </div>
   {% include 'design/updatepage.html' with optim=optim refrun=refrun preruns=preruns runs=runs design=design stim=stim %}
