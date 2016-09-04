@@ -44,6 +44,8 @@ class GeneticAlgorithm(object):
         resolution: float, default 0.1
             maximum resolution of design matrix
             has an impact of preciseness of convolved design with HRF
+        restnum
+        restlength
         G: integer, default 20
             number of designs that are transmitted to the next generation
         q: float (0<x<1), default 0.01
@@ -138,7 +140,7 @@ class GeneticAlgorithm(object):
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
-        self.duration = self.n_trials*self.ITImax #total duration (s)
+        self.duration = self.n_trials*self.ITImax+(np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
         self.n_scans = int(np.ceil(self.duration/self.TR)) # number of scans
         self.n_tp = int(np.ceil(self.duration/self.resolution)) #number of timepoints (in resolution)
         self.r_scans = np.arange(0,self.duration,self.TR)
@@ -573,9 +575,16 @@ class GeneticAlgorithm(object):
         '''
 
         # ITIs to onsets
-        # if self.restnum>0:
-        #     restorder = for ind,val in enumerate[order]
-        Design['onsets'] = np.cumsum(Design['ITIs'])-Design['ITIs'][0]
+        if self.restnum>0:
+            orderli = list(Design['order'])
+            ITIli = list(Design['ITIs'])
+            for x in np.arange(0,self.n_trials,self.restnum)[1:][::-1]:
+                orderli.insert(x,"R")
+                ITIli.insert(x,self.restlength)
+            onsets = np.cumsum(ITIli)-ITIli[0]
+            Design['onsets'] = [y for x,y in zip(orderli,onsets) if not x == "R"]
+        else:
+            Design['onsets'] = np.cumsum(Design['ITIs'])-Design['ITIs'][0]
 
         # round onsets to resolution
         onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]

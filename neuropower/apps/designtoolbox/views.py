@@ -268,6 +268,8 @@ def runGA(request):
         weights = desdata.W,
         ConfoundOrder = desdata.ConfoundOrder,
         MaxRepeat = desdata.MaxRepeat,
+        restnum = desdata.RestNum,
+        restlength = desdata.RestDur,
         # general/defaulted
         rho = desdata.rho,
         Aoptimality = True if desdata.Aoptimality==1 else False,
