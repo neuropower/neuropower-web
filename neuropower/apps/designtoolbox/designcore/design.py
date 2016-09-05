@@ -600,17 +600,11 @@ class GeneticAlgorithm(object):
         for stimulus in range(self.n_stimuli):
             X_X[XindStim,int(stimulus)] = [1 if z==stimulus else 0 for z in Design["order"]]
 
-        # compute TR in resolution units
-        TRT = self.TR / self.resolution
-
-        # hrf lag in TR units
-        maxlag = int(np.ceil(self.laghrf/TRT))
-
         # deconvolved matrix in resolution units
         deconvM = np.zeros([self.n_tp,int(self.laghrf*self.n_stimuli)])
         for stim in range(self.n_stimuli):
-            for j in range(int(self.durhrf)):
-                deconvM[j:,self.laghrf*stim+int(j/self.resolution)] = X_X[:(self.n_tp-j),stim]
+            for j in range(int(self.laghrf)):
+                deconvM[j:,self.laghrf*stim+j] = X_X[:(self.n_tp-j),stim]
 
         # downsample to TR
         idx = [int(x) for x in np.arange(0,self.n_tp,self.TR/self.resolution)]
@@ -765,22 +759,6 @@ class GeneticAlgorithm(object):
         Pobs = [x[1] for x in trialcount.items()]
         Design["Ff"] = np.sum(abs(np.array(Pobs)-np.array(self.n_trials*np.array(self.P))))
         return Design
-
-    # @staticmethod
-    # def drift(s):
-    #     # second order Legendre polynomial
-    #     # arguments: s = seconds after start
-    #     ts = 1/2*(3*s**2-1)
-    #     retur n ts
-
-    # @staticmethod
-    # def canonical(s,a1=6,a2=16,b1=1,b2=1,c=1/6,amplitude=1):
-    #     #Canonical HRF as defined here: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3318970/
-    #     # arguments: s seconds
-    #     gamma1 = (s**(a1-1)*b1**a1*np.exp(-b1*s))/gamma(a1)
-    #     gamma2 = (s**(a2-1)*b2**a2*np.exp(-b2*s))/gamma(a2)
-    #     tsConvoluted = amplitude*(gamma1-c*gamma2)
-    #     return tsConvoluted
 
     @staticmethod
     def drift(s,deg=3):
