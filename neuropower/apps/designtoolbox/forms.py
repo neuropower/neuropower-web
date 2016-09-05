@@ -26,8 +26,8 @@ class DesignMainForm(forms.ModelForm):
         self.fields['MaxRepeat'].label = 'Max number of repeated stimulus types'
         self.fields['W1'].label = 'Design efficiency'
         self.fields['W2'].label = 'Detection power'
-        self.fields['W3'].label = 'Psychological confounds'
-        self.fields['W4'].label = 'Trial probabilities'
+        self.fields['W3'].label = 'Trial probabilities'
+        self.fields['W4'].label = 'Psychological confounds'
 
     def clean(self):
         cleaned_data = super(DesignMainForm,self).clean()
