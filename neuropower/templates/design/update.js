@@ -28,10 +28,10 @@ var chart1 = c3.generate({
     columns: [
       ['x'].concat(Gen),
       ['Overall Fit'].concat(FBest),
-      ['Fe'].concat(FeBest),
-      ['Ff'].concat(FfBest),
-      ['Fd'].concat(FdBest),
-      ['Fc'].concat(FcBest)
+      ['Estimation efficiency'].concat(FeBest),
+      ['Stimulus frequencies'].concat(FfBest),
+      ['Detection power'].concat(FdBest),
+      ['Psychological confounding'].concat(FcBest)
     ]
   },
   point:{

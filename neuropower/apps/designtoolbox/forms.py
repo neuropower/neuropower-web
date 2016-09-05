@@ -215,7 +215,7 @@ class DesignConsForm(forms.ModelForm):
 
         # hard limit
         self.helper.layout.append(
-            HTML('<h5> Do you want a hard limit on those probabilities? </h5><br><p>Check if you want to preserve the probabilities exactly.  This largely restricts the possibilities to search over, so you might want to change the number of cycles in the settings.</p>')
+            HTML('<h5> Do you want a hard limit on those probabilities? </h5><br><p>Check if you want to preserve the probabilities exactly.  This largely restricts the possibilities to search over, so the optimisation will take (a lot) longer.</p>')
             )
 
         self.helper.layout.append(

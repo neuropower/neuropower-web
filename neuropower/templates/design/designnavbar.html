@@ -5,12 +5,6 @@
         <a class="btn btn-default" id="consandprobs" href="{% url 'DConsInput' %}">Contrasts and Probabilities</a>
         <a class="btn btn-default" id="review" href="{% url 'DReview' %}">Review</a>
         <a class="btn btn-default" id="run" href="{% url 'DRunGA' %}">Genetic Algorithm Status</a>
-
-        <!-- If viewer has just ended session, disable button
-        {% if message %}
-        <a class="btn btn-danger disabled" href="{% url 'end_session' %}">RESET</a>
-        {% else %}
-        <a class="btn btn-danger" href="{% url 'end_session' %}">RESET</a>
-        {% endif %} -->
+        <a class="btn btn-danger" href="{% url 'DReset' %}">RESET</a>
     </div>
 </div>

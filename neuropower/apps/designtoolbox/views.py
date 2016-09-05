@@ -22,6 +22,22 @@ import shutil
 
 ## MAIN PAGE TEMPLATE PAGES
 
+def end_session(request):
+    # Get the session ID and database entry
+
+    sid = get_session_id(request)
+
+    '''ends a session so the user can start a new one.'''
+    try:
+        request.session.flush()
+    except KeyError:
+        pass
+    try:
+        DesignModel.objects.filter(SID=sid).delete()
+    except KeyError:
+        pass
+    return maininput(request,end_session=True)
+
 def FAQ(request):
     return render(request,"design/FAQ.html",{})
 
@@ -60,7 +76,7 @@ def start(request):
 
     return render(request,template,context)
 
-def maininput(request):
+def maininput(request,end_session=False):
 
     # Get the template/step status
 
@@ -83,6 +99,9 @@ def maininput(request):
 
     # If page was result of POST or not valid: show form with db entries
     # Else: go to next page
+
+    if end_session == True:
+        context["message"] = "Session has been successfully reset."
 
     if not request.method=="POST" or not inputform.is_valid():
         context["inputform"] = inputform
@@ -433,7 +452,7 @@ def runGA(request):
                             break
                         # check for convergence
                         last = len(Out['FBest'])-1
-                        earlier = int(last - 100)
+                        earlier = int(last - 200)
                         if gen>120 and (Out['FBest'][last] - Out['FBest'][earlier])<10**(-6):
                             form.running = 0
                             form.save()
@@ -557,15 +576,3 @@ def runGA(request):
 
 def updatepage(request):
     return render(request,"design/updatepage.html",{})
-
-
-
-### SESSION CONTROL
-
-def end_session(request):
-    '''ends a session so the user can start a new one.'''
-    try:
-        request.session.flush()
-    except KeyError:
-        pass
-    return neuropowerinput(request,end_session=True)
