@@ -431,7 +431,7 @@ def runGA(request):
                 # Run !
                 if desdata.stop==0:
                     print("running genetic algorithm")
-                    convergence = False
+                    convergence=False
                     Results = []
                     form.running = 5
                     form.save()
