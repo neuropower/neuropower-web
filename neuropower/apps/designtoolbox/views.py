@@ -166,6 +166,10 @@ def consinput(request):
         consform = DesignProbsForm(None, instance=desdata)
         consform = consform.save(commit=False)
         matrices = probs_and_cons(sid)
+        if matrices['empty']==True:
+            context['message']="Please fill out all probabilities and contrasts"
+            context["consform"] = DesignConsForm(request.POST or None,instance=desdata,stim=desdata.S,cons=desdata.Clen)
+            return render(request,"design/cons.html",context)
         consform.P = matrices['P']
         consform.C = matrices['C']
         if desdata.HardProb==True:
