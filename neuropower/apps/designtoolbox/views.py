@@ -71,7 +71,11 @@ def start(request):
             sendermail = fbform.cleaned_data['contact_email']
             message = fbform.cleaned_data['content']
             recipient = ['joke.durnez@gmail.com']
-            send_mail(subject,message,sendermail,recipient)
+            key = settings.MAILGUN_KEY
+
+            command = "curl -s --user '"+key+"' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='"+sender+" <"+sendermail+">' -F to='joke.durnez@gmail.com' -F subject='design toolbox feedback' -F text='"+message+"'"
+            os.system(command)
+
             context['thanks']=True
 
     return render(request,template,context)
