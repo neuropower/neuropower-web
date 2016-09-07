@@ -4,7 +4,7 @@ from django.contrib import admin
 import django.views.defaults
 
 urlpatterns = [
-    url(r'^FAQ/$',views.FAQ,name='npFAQ'),
+    url(r'^neuropowerFAQ/$',views.npFAQ,name='npFAQ'),
     url(r'^tutorial/$',views.tutorial,name='npTutorial'),
     url(r'^methods/$',views.methods,name='npMethods'),
     url(r'^end/$',views.end_session,name='end_session'),

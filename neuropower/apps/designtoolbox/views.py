@@ -38,8 +38,8 @@ def end_session(request):
         pass
     return maininput(request,end_session=True)
 
-def FAQ(request):
-    return render(request,"design/FAQ.html",{})
+def DFAQ(request):
+    return render(request,"design/DFAQ.html",{})
 
 def tutorial(request):
     return render(request,"design/tutorial.html",{})
