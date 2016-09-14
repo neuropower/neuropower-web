@@ -59,7 +59,7 @@ def start(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template,sid)
 
-    #forms
+    #initiate
 
     fbform = ContactForm(request.POST or None)
     context["form"] = fbform

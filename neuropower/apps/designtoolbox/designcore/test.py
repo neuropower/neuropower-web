@@ -31,7 +31,8 @@ des = design.GeneticAlgorithm(
     preruncycles = 0,
     write = False,
     HardProb = None,
-    tapsfile = tapsfile
+    tapsfile = tapsfile,
+    gui_sid=2233
 )
 
 
