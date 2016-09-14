@@ -20,8 +20,6 @@ import zipfile
 import StringIO
 import shutil
 
-## MAIN PAGE TEMPLATE PAGES
-
 def end_session(request):
     # Get the session ID and database entry
 
@@ -57,14 +55,14 @@ def start(request):
     # Get the session ID and database entry
 
     sid = get_session_id(request)
-    context["steps"] = get_design_steps(template,sid)
+    context["steps"] = get_design_steps(template, sid)
 
-    #initiate
+    # initiate
 
     fbform = ContactForm(request.POST or None)
     context["form"] = fbform
 
-    if request.method=="POST":
+    if request.method == "POST":
         if fbform.is_valid():
             subject = "feedback neurodesign"
             sender = fbform.cleaned_data['contact_name']
@@ -73,12 +71,13 @@ def start(request):
             recipient = ['joke.durnez@gmail.com']
             key = settings.MAILGUN_KEY
 
-            command = "curl -s --user '"+key+"' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='"+sender+" <"+sendermail+">' -F to='joke.durnez@gmail.com' -F subject='design toolbox feedback' -F text='"+message+"'"
+            command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
+                " <" + sendermail + ">' -F to='joke.durnez@gmail.com' -F subject='design toolbox feedback' -F text='" + message + "'"
             os.system(command)
 
-            context['thanks']=True
+            context['thanks'] = True
 
-    return render(request,template,context)
+    return render(request, template, context)
 
 def maininput(request,end_session=False):
 
