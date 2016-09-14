@@ -12,7 +12,6 @@ import json
 from collections import Counter
 import os
 import sys
-from django.conf import settings
 
 class GeneticAlgorithm(object):
     '''
@@ -65,7 +64,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,restnum=0,restlength=0,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=False,HardProb=False):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,restnum=0,restlength=0,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=False,HardProb=False,gui_sid=False):
         self.ITI = ITI
         self.ITImin = ITI[0]
         self.ITImax = ITI[1]
@@ -106,6 +105,12 @@ class GeneticAlgorithm(object):
         self.r_tp = None
         self.r_scans = None
         self.write = write
+        self.gui_sid=gui_sid
+
+        if self.gui_sid:
+            print("ole")
+            from apps.designtoolbox.models import DesignModel
+            self.DesignModel = DesignModel
 
         self.CreateTsComp()
         self.CreateLmComp()
@@ -216,6 +221,7 @@ class GeneticAlgorithm(object):
         return self
 
     def GeneticAlgorithmNaturalSelection(self,cycles):
+        # sid is a parameter for monitoring
 
         Generation = self.GeneticAlgorithmCreateEmptyGeneration()
 
@@ -229,6 +235,10 @@ class GeneticAlgorithm(object):
 
         Best = []
         for gen in xrange(cycles):
+            if self.gui_sid:
+                desdata = self.DesignModel.objects.get(SID=self.gui_sid)
+                if desdata.stop==1:
+                    break
             self.counter = self.counter + 1
             print("Generation: "+str(gen+1))
             NextGen = self.GeneticAlgorithmGeneration(Generation)

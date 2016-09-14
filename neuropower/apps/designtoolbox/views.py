@@ -325,7 +325,8 @@ def runGA(request):
         preruncycles = desdata.preruncycles,
         write = genfile,
         HardProb = desdata.HardProb,
-        tapsfile = os.path.join(settings.MEDIA_ROOT,"taps.p")
+        tapsfile = os.path.join(settings.MEDIA_ROOT,"taps.p"),
+        gui_sid=sid
     )
     des.counter = 0
 
@@ -355,148 +356,180 @@ def runGA(request):
                 form.running = 1
                 form.save()
 
-                # Compute maximum efficiency
+                # Create first generation
+                des.GeneticAlgorithmInitiate()
+
+                # Maximise Fe
+                if des.weights[0]>0 and des.preruncycles>0:
+                    print("PRERUN FOR EFFICIENCY")
+                    des.prerun='Fe'
+                    NatSel = des.GeneticAlgorithmNaturalSelection(cycles=des.preruncycles)
+
+                # Maximise Fd
+                if des.weights[1]>0 and des.preruncycles>0:
+                    print("PRERUN FOR DETECTION POWER")
+                    des.prerun='Fd'
+                    NatSel = des.GeneticAlgorithmNaturalSelection(cycles=des.preruncycles)
+
+                # Natural selection
+                des.prerun=None
+                NatSel = des.GeneticAlgorithmNaturalSelection(cycles=des.cycles)
+
+                # Select optimal design
+                Generation = NatSel['Generation']
+                Best = NatSel['Best']
+
+                OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
+                des.opt = {
+                    'order':Generation['order'][OptInd],
+                    'onsets':Generation['onsets'][OptInd],
+                    'F':Generation['F'][OptInd],
+                    'FScores':Best
+                    }
+
+
+                # # Compute maximum efficiency
+                # desdata = DesignModel.objects.get(SID=sid)
+                # print("running maximum efficiency (Ff and Fc)")
+                #
+                # nulorder = [np.argmin(des.P)]*des.n_trials
+                # nulitis = [des.mnITI]*des.n_trials
+                #
+                # NulDesign = {"order":nulorder,"ITIs":nulitis}
+                # NulDesign = des.CreateDesignMatrix(NulDesign)
+                # des.FfMax = des.FfCalc(NulDesign)['Ff']
+                # des.FcMax = des.FcCalc(NulDesign)['Fc']
+                #
+                # # prerun for FeMax #
+                # if desdata.stop==0 and desdata.W1>0:
+                #     form.running = 2
+                #     form.save()
+                #     print("running maximum efficiency (Fe)")
+                #     des.prerun = 'Fe'
+                #     Generation = des.GeneticAlgorithmCreateEmptyGeneration()
+                #     des.GeneticAlgorithmCreateOrder()
+                #     weights = [0,0,1] if des.HardProb==True else [1/3.,1/3.,1/3.]
+                #     weights = [int(x) for x in np.array(weights)*des.G]
+                #     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
+                #     Best = []
+                #     gens=[]
+                #     for gen in range(des.preruncycles):
+                #         gens.append({"Gen":gen})
+                #         with open(genfile,'w') as outfile:
+                #             json.dump(gens,outfile)
+                #         des.counter = gen
+                #         desdata = DesignModel.objects.get(SID=sid)
+                #         if desdata.stop == 1:
+                #             form.running = 0
+                #             form.save()
+                #             break
+                #         print("Generation: "+str(gen+1))
+                #         NextGen = des.GeneticAlgorithmGeneration(Generation)
+                #         Generation = NextGen["NextGen"]
+                #         Best.append(NextGen['FBest'])
+                #         des.FeMax = Best[-1]
+                #
+                # # prerun for FdMax #
+                # if desdata.stop==0 and desdata.W2>0:
+                #     form.running = 3
+                #     form.save()
+                #     print("running maximum efficiency (Fd)")
+                #     des.prerun = 'Fd'
+                #     Generation = des.GeneticAlgorithmCreateEmptyGeneration()
+                #     des.GeneticAlgorithmCreateOrder()
+                #     weights = [0,0,1.] if des.HardProb==True else [1/3.,1/3.,1/3.]
+                #     weights = [int(x) for x in np.array(weights)*des.G]
+                #     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
+                #     Best = []
+                #     gens = []
+                #     for gen in range(des.preruncycles):
+                #         gens.append({"Gen":gen})
+                #         with open(genfile,'w') as outfile:
+                #             json.dump(gens,outfile)
+                #         des.counter = gen
+                #         desdata = DesignModel.objects.get(SID=sid)
+                #         if desdata.stop == 1:
+                #             form.running = 0
+                #             form.save()
+                #             break
+                #         print("Generation: "+str(gen+1))
+                #         NextGen = des.GeneticAlgorithmGeneration(Generation)
+                #         Generation = NextGen["NextGen"]
+                #         Best.append(NextGen['FBest'])
+                #         des.FdMax = Best[-1]
+                #
+                # # Initiate !
+                # des.prerun = None
+                # if desdata.stop==0:
+                #     form.running = 4
+                #     form.save()
+                #     des.GeneticAlgorithmCreateOrder()
+                #     Generation = des.GeneticAlgorithmCreateEmptyGeneration()
+                #     weights = [0,0,1] if des.HardProb==True else [1./3,1./3,1./3]
+                #     weights = [int(x) for x in np.array(weights)*des.G]
+                #     Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
+                #
+                # # Run !
+                # if desdata.stop==0:
+                #     print("running genetic algorithm")
+                #     convergence=False
+                #     Results = []
+                #     form.running = 5
+                #     form.save()
+                #
+                #     Out = {"FBest":[],'FeBest':[],'FfBest':[],'FcBest':[],'FdBest':[],'Gen':[]}
+                #     keys = ["Stimulus_"+str(i) for i in range(desdata.S)]
+                #     Seq = {}
+                #     for s in keys:
+                #         Seq.update({s:[]})
+                #
+                #
+                #     for gen in range(desdata.cycles):
+                #         des.counter = gen
+                #         print("Generation: "+str(gen+1))
+                #         desdata = DesignModel.objects.get(SID=sid)
+                #         if desdata.stop == 1:
+                #             form.running = 0
+                #             form.save()
+                #             break
+                #         # check for convergence
+                #         last = len(Out['FBest'])-1
+                #         earlier = int(last - 200)
+                #         if gen>120 and (Out['FBest'][last] - Out['FBest'][earlier])<10**(-6):
+                #             form.running = 0
+                #             form.save()
+                #             convergence = True
+                #             break
+                #         NextGen = des.GeneticAlgorithmGeneration(Generation)
+                #         Generation = NextGen["NextGen"]
+                #
+                #         # write away optimality criteria
+                #         for key in ['FBest','FeBest','FfBest','FcBest','FdBest']:
+                #             Out[key].append(NextGen[key])
+                #         Out['Gen'].append(gen)
+                #         with open(genfile,'w') as outfile:
+                #             json.dump(Out,outfile)
+                #
+                #         if gen % 10 == 0: #only do this every 10 gens to save computing time
+                #             # write away best design
+                #             for stim in range(desdata.S):
+                #                 Seq["Stimulus_"+str(stim)]=NextGen["Design"]["Xconv"][:,stim].tolist()
+                #             Seq.update({"tps":NextGen["Design"]["ts"].tolist()})
+                #             with open(desfile,'w') as out2file:
+                #                 json.dump(Seq,out2file)
+                    # out2file.close()
+                    # outfile.close()
+                OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
+                form.optimalorder = Generation['order'][OptInd]
+                form.optimalonsets = Generation['onsets'][OptInd]
+
                 desdata = DesignModel.objects.get(SID=sid)
-                print("running maximum efficiency (Ff and Fc)")
-
-                nulorder = [np.argmin(des.P)]*des.n_trials
-                nulitis = [des.mnITI]*des.n_trials
-
-                NulDesign = {"order":nulorder,"ITIs":nulitis}
-                NulDesign = des.CreateDesignMatrix(NulDesign)
-                des.FfMax = des.FfCalc(NulDesign)['Ff']
-                des.FcMax = des.FcCalc(NulDesign)['Fc']
-
-                # prerun for FeMax #
-                if desdata.stop==0 and desdata.W1>0:
-                    form.running = 2
+                if desdata.running==5:
+                    form.running = 6
                     form.save()
-                    print("running maximum efficiency (Fe)")
-                    des.prerun = 'Fe'
-                    Generation = des.GeneticAlgorithmCreateEmptyGeneration()
-                    des.GeneticAlgorithmCreateOrder()
-                    weights = [0,0,1] if des.HardProb==True else [1/3.,1/3.,1/3.]
-                    weights = [int(x) for x in np.array(weights)*des.G]
-                    Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
-                    Best = []
-                    gens=[]
-                    for gen in range(des.preruncycles):
-                        gens.append({"Gen":gen})
-                        with open(genfile,'w') as outfile:
-                            json.dump(gens,outfile)
-                        des.counter = gen
-                        desdata = DesignModel.objects.get(SID=sid)
-                        if desdata.stop == 1:
-                            form.running = 0
-                            form.save()
-                            break
-                        print("Generation: "+str(gen+1))
-                        NextGen = des.GeneticAlgorithmGeneration(Generation)
-                        Generation = NextGen["NextGen"]
-                        Best.append(NextGen['FBest'])
-                        des.FeMax = Best[-1]
-
-                # prerun for FdMax #
-                if desdata.stop==0 and desdata.W2>0:
-                    form.running = 3
-                    form.save()
-                    print("running maximum efficiency (Fd)")
-                    des.prerun = 'Fd'
-                    Generation = des.GeneticAlgorithmCreateEmptyGeneration()
-                    des.GeneticAlgorithmCreateOrder()
-                    weights = [0,0,1.] if des.HardProb==True else [1/3.,1/3.,1/3.]
-                    weights = [int(x) for x in np.array(weights)*des.G]
-                    Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
-                    Best = []
-                    gens = []
-                    for gen in range(des.preruncycles):
-                        gens.append({"Gen":gen})
-                        with open(genfile,'w') as outfile:
-                            json.dump(gens,outfile)
-                        des.counter = gen
-                        desdata = DesignModel.objects.get(SID=sid)
-                        if desdata.stop == 1:
-                            form.running = 0
-                            form.save()
-                            break
-                        print("Generation: "+str(gen+1))
-                        NextGen = des.GeneticAlgorithmGeneration(Generation)
-                        Generation = NextGen["NextGen"]
-                        Best.append(NextGen['FBest'])
-                        des.FdMax = Best[-1]
-
-                # Initiate !
-                des.prerun = None
-                if desdata.stop==0:
-                    form.running = 4
-                    form.save()
-                    des.GeneticAlgorithmCreateOrder()
-                    Generation = des.GeneticAlgorithmCreateEmptyGeneration()
-                    weights = [0,0,1] if des.HardProb==True else [1./3,1./3,1./3]
-                    weights = [int(x) for x in np.array(weights)*des.G]
-                    Generation = des.GeneticAlgorithmAddOrder(Generation,weights)
-
-                # Run !
-                if desdata.stop==0:
-                    print("running genetic algorithm")
-                    convergence=False
-                    Results = []
-                    form.running = 5
-                    form.save()
-
-                    Out = {"FBest":[],'FeBest':[],'FfBest':[],'FcBest':[],'FdBest':[],'Gen':[]}
-                    keys = ["Stimulus_"+str(i) for i in range(desdata.S)]
-                    Seq = {}
-                    for s in keys:
-                        Seq.update({s:[]})
-
-
-                    for gen in range(desdata.cycles):
-                        des.counter = gen
-                        print("Generation: "+str(gen+1))
-                        desdata = DesignModel.objects.get(SID=sid)
-                        if desdata.stop == 1:
-                            form.running = 0
-                            form.save()
-                            break
-                        # check for convergence
-                        last = len(Out['FBest'])-1
-                        earlier = int(last - 200)
-                        if gen>120 and (Out['FBest'][last] - Out['FBest'][earlier])<10**(-6):
-                            form.running = 0
-                            form.save()
-                            convergence = True
-                            break
-                        NextGen = des.GeneticAlgorithmGeneration(Generation)
-                        Generation = NextGen["NextGen"]
-
-                        # write away optimality criteria
-                        for key in ['FBest','FeBest','FfBest','FcBest','FdBest']:
-                            Out[key].append(NextGen[key])
-                        Out['Gen'].append(gen)
-                        with open(genfile,'w') as outfile:
-                            json.dump(Out,outfile)
-
-                        if gen % 10 == 0: #only do this every 10 gens to save computing time
-                            # write away best design
-                            for stim in range(desdata.S):
-                                Seq["Stimulus_"+str(stim)]=NextGen["Design"]["Xconv"][:,stim].tolist()
-                            Seq.update({"tps":NextGen["Design"]["ts"].tolist()})
-                            with open(desfile,'w') as out2file:
-                                json.dump(Seq,out2file)
-                    out2file.close()
-                    outfile.close()
-                    OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
-                    form.optimalorder = Generation['order'][OptInd]
-                    form.optimalonsets = Generation['onsets'][OptInd]
-
-                    desdata = DesignModel.objects.get(SID=sid)
-                    if desdata.running==5:
-                        form.running = 6
-                        form.save()
-                    context['message']="Analysis complete"
-                    if convergence:
-                        context['message']="Convergence reached: analysis complete"
+                context['message']="Analysis complete"
+                if convergence:
+                    context['message']="Convergence reached: analysis complete"
 
             form.stop = 0
             if not desdata.optimalorder is None:
