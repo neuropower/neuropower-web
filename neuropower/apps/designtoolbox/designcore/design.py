@@ -64,11 +64,11 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,restnum=0,restlength=0,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write=False,HardProb=False,gui_sid=False):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,restnum=0,restlength=0,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=200):
         self.ITI = ITI
         self.ITImin = ITI[0]
-        self.ITImax = ITI[1]
-        self.mnITI = np.mean(ITI)
+        self.mnITI = ITI[1]
+        self.ITImax = ITI[2]
         self.TR = TR
         self.n_trials = L
         self.n_cons = C.shape[0]
@@ -104,11 +104,12 @@ class GeneticAlgorithm(object):
         self.n_scans = None
         self.r_tp = None
         self.r_scans = None
-        self.write = write
+        self.write_score = write_score
+        self.write_design = write_design
         self.gui_sid=gui_sid
+        self.convergence=convergence
 
         if self.gui_sid:
-            print("ole")
             from apps.designtoolbox.models import DesignModel
             self.DesignModel = DesignModel
 
@@ -233,22 +234,60 @@ class GeneticAlgorithm(object):
 
         self.counter = 0
 
+        if self.write_score:
+            Out = {"FBest": [], 'FeBest': [], 'FfBest': [],
+                   'FcBest': [], 'FdBest': [], 'Gen': []}
+
         Best = []
+        conv=False
         for gen in xrange(cycles):
+
+            # if gui: read stop signal
             if self.gui_sid:
                 desdata = self.DesignModel.objects.get(SID=self.gui_sid)
                 if desdata.stop==1:
                     break
+
+            # start loop
             self.counter = self.counter + 1
             print("Generation: "+str(gen+1))
             NextGen = self.GeneticAlgorithmGeneration(Generation)
             Generation = NextGen["NextGen"]
+
+            # write away best
             Best.append(NextGen['FBest'])
-            if self.write:
-                with open(self.write,'w') as fp:
-                    json.dump(Generation,fp)
+
+            # check for convergence
+            if self.convergence:
+                last = len(Best)-1
+                earlier = int(last-self.convergence)
+                if self.counter>self.convergence:
+                    conv = (Best[last]-Best[earlier])<10**(-6)
+                    if conv:
+                        break
+
+            # write scores
+            if self.write_score:
+                for key in ['FBest','FeBest','FfBest','FcBest','FdBest']:
+                    Out[key].append(NextGen[key])
+                Out['Gen'].append(gen)
+                with open(self.write_score,'w') as fp:
+                    json.dump(Out,fp)
+
+            # write design
+            if self.write_design:
+                keys = ["Stimulus_"+str(i) for i in range(desdata.S)]
+                Seq = {}
+                for s in keys:
+                    Seq.update({s:[]})
+                for stim in range(self.n_stimuli):
+                    Seq["Stimulus_"+str(stim)]=NextGen["Design"]["Xconv"][:,stim].tolist()
+                Seq.update({"tps":NextGen["Design"]["ts"].tolist()})
+                with open(self.write_design,'w') as out2file:
+                    json.dump(Seq,out2file)
 
         NatSel = {"Best":Best,
+               "convergence": conv,
                "Generation":Generation}
 
         return NatSel
@@ -515,12 +554,7 @@ class GeneticAlgorithm(object):
             order = [x.tolist().index(1) for x in mult]
             orders.append(order)
 
-            ITI = [self.mnITI]*self.n_trials
-            jitmin = self.ITImin-self.mnITI
-            jitmax = self.ITImax-self.mnITI
-            jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
-            ITI = ITI+jitter
-            #onset = np.cumsum(ITIs)-ITIs[0]
+            ITI = self.smpl_ITI(self.n_trials,self.ITImin,self.ITImax,self.ITImax)
             ITIs.append(ITI)
 
         return {"orders":orders,"ITIs":ITIs}
@@ -532,18 +566,12 @@ class GeneticAlgorithm(object):
 
         ITIs = []
         for ind in xrange(len(orders)):
-            ITI = [self.mnITI]*self.n_trials
-            jitmin = self.ITImin-self.mnITI
-            jitmax = self.ITImax-self.mnITI
-            jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
-            ITI = ITI+jitter
-            #onset = np.cumsum(ITIs)-ITIs[0]
+            ITI = self.smpl_ITI(self.n_trials,self.ITImin,self.ITImax,self.ITImax)
             ITIs.append(ITI)
 
         return {"orders":orders,"ITIs":ITIs}
 
     def GenerateOrderBlocked(self):
-        #numBlocks = np.array([1,2,3,4,5,10,15,20,25,30,40])
         numBlocks = np.array([1,2,3,4,5,6,7,8])
         orders = []
         for blocks in numBlocks:
@@ -557,12 +585,7 @@ class GeneticAlgorithm(object):
 
         ITIs = []
         for ind in xrange(len(orders)):
-            ITI = [self.mnITI]*self.n_trials
-            jitmin = self.ITImin-self.mnITI
-            jitmax = self.ITImax-self.mnITI
-            jitter = np.random.uniform(jitmin,jitmax,self.n_trials)
-            ITI = ITI+jitter
-            #onset = np.cumsum(ITIs)-ITIs[0]
+            ITI = self.smpl_ITI(self.n_trials,self.ITImin,self.ITImax,self.ITImax)
             ITIs.append(ITI)
 
         return {"orders":orders,"ITIs":ITIs}
@@ -716,7 +739,10 @@ class GeneticAlgorithm(object):
         return Design
 
     def FdCalc(self,Design):
-        invM = scipy.linalg.inv(Design['Z'])
+        try:
+            invM = scipy.linalg.inv(Design['Z'])
+        except np.linalg.linalg.LinAlgError:
+            invM = scipy.linalg.pinv(Design['Z'])
         CMC = np.matrix(self.C)*invM*np.matrix(t(self.C))
         if self.Aoptimality == True:
             Design["Fd"] = float(self.C.shape[0]/np.matrix.trace(CMC))
@@ -760,3 +786,17 @@ class GeneticAlgorithm(object):
         s = np.array(s)
         res = (h-1)*np.log(s) + h*np.log(l) - l*s - np.log(gamma(h))
         return np.exp(res)
+
+    @staticmethod
+    def smpl_ITI(n,min,mean,max):
+        if min == max:
+            smp = np.random.uniform(min,max,n)
+        else:
+            mn_pos = (mean + min)/2
+            mn_neg = (max + mean)/2
+            a = (mn_pos-mean)/(mn_pos-mn_neg)
+            b = 1-a
+            s1 = np.random.uniform(min,mean,n*a)
+            s2 = np.random.uniform(mean,max,n*b)
+            smp = np.concatenate((s1,s2))[:n]
+        return smp
