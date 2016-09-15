@@ -43,7 +43,15 @@ var chart1 = c3.generate({
         values:list
       },
       max:{{ runs }}
+    },
+    y:{
+      tick:{
+        values:ytx
+      },
+      min: 0,
+      max: 1
     }
+
   },
   color:{
     pattern:['#790808','#afd2ec','#afe3ec','#afecd4','#afbcec']
@@ -86,6 +94,9 @@ var chart2 = c3.generate({
     x: 'x',
     columns: outer
   },
+  zoom: {
+        enabled: true
+    },
   point:{
     show:false
   },

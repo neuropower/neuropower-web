@@ -9,19 +9,20 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITImin','ITImax','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars']
+        fields = ['ITImin','ITImax','ITImean','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars']
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
-        self.fields['ITImin'].label = "Minimum ITI"
-        self.fields['ITImax'].label = "Maximum ITI"
-        self.fields['TR'].label = "Scanner TR (s)"
+        self.fields['ITImin'].label = "Minimum ITI (seconds)"
+        self.fields['ITImean'].label = "Average ITI (seconds)"
+        self.fields['ITImax'].label = "Maximum ITI (seconds)"
+        self.fields['TR'].label = "Scanner TR (seconds)"
         self.fields['S'].label = "Stimulus types"
         self.fields['L'].label = "Total number of trials"
         self.fields['Call'].label = 'Include all pairwise contrasts'
         self.fields['Clen'].label = 'Number of custom contrasts'
         self.fields['RestNum'].label = 'How many trials between rest blocks'
-        self.fields['RestDur'].label = 'Duration of rest'
+        self.fields['RestDur'].label = 'Duration of rest (seconds)'
         self.fields['ConfoundOrder'].label = 'Order of confounding control'
         self.fields['MaxRepeat'].label = 'Max number of repeated stimulus types'
         self.fields['W1'].label = 'Design efficiency'
@@ -49,6 +50,44 @@ class DesignMainForm(forms.ModelForm):
 
         if cleaned_data.get("ConfoundOrder")>10:
             raise forms.ValidationError("Sorry, at the moment we can only model designs with a confoundorder smaller than 10. Parameters not saved.")
+
+        smaller = [
+            cleaned_data.get("TR")<0,
+            cleaned_data.get("ITImin")<0,
+            cleaned_data.get("ITImean")<0,
+            cleaned_data.get("ITImax")<0,
+            cleaned_data.get("S")<0,
+            cleaned_data.get("L")<0,
+            cleaned_data.get("Clen")<0,
+            cleaned_data.get("RestNum")<0,
+            cleaned_data.get("RestDur")<0,
+            cleaned_data.get("ConfoundOrder")<0,
+            cleaned_data.get("MaxRepeat")<0,
+            cleaned_data.get("W1")<0,
+            cleaned_data.get("W2")<0,
+            cleaned_data.get("W3")<0,
+            cleaned_data.get("W4")<0,
+        ]
+        snone = [
+            cleaned_data.get("TR")==None,
+            cleaned_data.get("ITImin")==None,
+            cleaned_data.get("ITImean")==None,
+            cleaned_data.get("ITImax")==None,
+            cleaned_data.get("S")==None,
+            cleaned_data.get("L")==None,
+            cleaned_data.get("Clen")==None,
+            cleaned_data.get("RestNum")==None,
+            cleaned_data.get("RestDur")==None,
+            cleaned_data.get("ConfoundOrder")==None,
+            cleaned_data.get("MaxRepeat")==None,
+            cleaned_data.get("W1")==None,
+            cleaned_data.get("W2")==None,
+            cleaned_data.get("W3")==None,
+            cleaned_data.get("W4")==None,
+        ]
+        svalid = [True if a and not b else False for a,b in zip(smaller,snone)]
+        if any(svalid):
+            raise forms.ValidationError("Some values are smaller than zero.  Please check for errors or typo's.")
 
         return cleaned_data
 
@@ -80,9 +119,10 @@ class DesignMainForm(forms.ModelForm):
         HTML("<br><br><br>"),
         Fieldset(
             '',
-            HTML("""<h5 style="margin-left: 15px">In what range is the ITI?</h><br><br><p>For a fixed ITI, fill out two times the same ITI.</p><br> """),
+            HTML("""<h5 style="margin-left: 15px">In what range is the ITI?</h><br><br><p>For a fixed ITI, only fill out the average ITI.  For equally spaced ITI, only fill out minimum and maximum ITI.</p><br> """),
             Div(
             Div(Field('ITImin'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            Div(Field('ITImean'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('ITImax'),css_class='col-md-4 col-sm-6 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             )
@@ -107,7 +147,8 @@ class DesignMainForm(forms.ModelForm):
             <li> Final frequencies of each trial type</li>
             <li> Avoiding psychological confounds</li>
             </ol>
-            <p>Please provide the weights that you want to give to each of the design criteria.</p><br><br>"""),
+            <p>Please provide the weights that you want to give to each of the design criteria.</p>
+            <p> Ideally, the weights sum to 1.  If not, they will be rescaled as such. <br><br>"""),
             Div(
             Div(Field('W1'),css_class='col-md-3 col-sm-6 col-xs-12'),
             Div(Field('W2'),css_class='col-md-3 col-sm-6 col-xs-12'),
@@ -134,7 +175,7 @@ class DesignMainForm(forms.ModelForm):
             css_class='row-md-12 col-xs-12'
             ),
             HTML("""<br><br><br><br><h5 style="margin-left: 15px">Trial blockedness</h><br><br>"""),
-            HTML('''<p>To prevent predictability of the design, you can control the number of times a stimulus type is repeated.</p>
+            HTML('''<p>To prevent predictability of the design, you can control the number of times a stimulus type is repeated. </p>
             '''),
             Div(
             Div(Field('MaxRepeat'),css_class='col-xs-12'),
@@ -218,9 +259,6 @@ class DesignConsForm(forms.ModelForm):
             HTML('<h5> Do you want a hard limit on those probabilities? </h5><br><p>Check if you want to preserve the probabilities exactly.  This largely restricts the possibilities to search over, so the optimisation will take (a lot) longer.</p>')
             )
 
-        self.helper.layout.append(
-            Div(Field("HardProb"),css_class='col-xs-1'),
-            )
 
         # add layout: contrasts
 
@@ -229,7 +267,18 @@ class DesignConsForm(forms.ModelForm):
                 HTML('<br><br><br><br><br>')
                 )
             self.helper.layout.append(
-                HTML('<h5> What are the specific contrasts that will be tested? </h5><br>')
+                HTML('''<h5> What are the specific contrasts that will be tested? </h5><br>
+                <p>If the contrast sums to 0, you will model the difference between stimuli.  Examples with 3 stimulus types:</p>
+                <ul>
+                <li>The contrast [1 0 -1] will model the difference between stimulus type 1 and stimulus type 3.</li>
+                <li>The contrast [1 -0.5 -0.5] will model the difference between stimulus type 1 and the average of stimulus type 2 and 3.</li>
+                </ul>
+                <p>If the contrast sums to 1, you will model the main effect of a certain stimulus.  Examples with 3 stimulus types:</p>
+                <ul>
+                <li>The contrast [1 0 0] will model the main effect of stimulus type 1 (vs. baseline). </li>
+                <li>The contrast [0.33,0.33,0.33] will model the average effect of all stimulus types versus baseline.  (don't worry that they don't exactly sum to 1, this will be rescaled)</li>
+                </ul><br><br><br>
+                ''')
                 )
 
         for indl,line in enumerate(fields): # loop over lines (contrasts)

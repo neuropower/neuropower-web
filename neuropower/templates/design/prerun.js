@@ -3,7 +3,8 @@
 <script type="text/javascript">
 
 var lineData = JSON.parse('{{ optim | escapejs }}');
-var percentage = Object.keys(lineData).length / {{preruns}};
+var percentage = Object.keys(lineData.Gen).length / {{preruns}};
+console.log(percentage);
 
 var chart = c3.generate({
   bindto:'#magic',

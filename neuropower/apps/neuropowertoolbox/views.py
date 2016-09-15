@@ -22,8 +22,8 @@ temp_dir = tempfile.gettempdir()
 
 ## MAIN PAGE TEMPLATE PAGES
 
-def FAQ(request):
-    return render(request,"neuropower/FAQ.html",{})
+def npFAQ(request):
+    return render(request,"neuropower/neuropowerFAQ.html",{})
 
 def tutorial(request):
     return render(request,"neuropower/tutorial.html",{})

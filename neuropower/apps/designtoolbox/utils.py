@@ -16,6 +16,7 @@ def get_session_id(request):
 
 def probs_and_cons(sid):
     desdata = DesignModel.objects.get(SID=sid)
+    empty = False
 
     # contrasts
     if desdata.Clen > 0:
@@ -29,12 +30,16 @@ def probs_and_cons(sid):
             ]
         )
         Ccustom = Ccustom[:desdata.Clen,:desdata.S]
-        for line in range(Ccustom.shape[0]):
-            if not np.sum(Ccustom[line,:])==0:
-                cor = np.sum(Ccustom[line,:])
-            else:
-                cor = np.sum(Ccustom[line,:][Ccustom[line,:]>0])-np.sum(Ccustom[line,:][Ccustom[line,:]<0])
-            Ccustom[line,:] = Ccustom[line,:]/cor
+        if np.any(np.equal(Ccustom,None)):
+            empty = True
+        if empty == False:
+            # correct for scale
+            for line in range(Ccustom.shape[0]):
+                if not np.sum(Ccustom[line,:])==0:
+                    cor = np.sum(Ccustom[line,:])
+                else:
+                    cor = np.sum(Ccustom[line,:][Ccustom[line,:]>0])-np.sum(Ccustom[line,:][Ccustom[line,:]<0])
+                Ccustom[line,:] = Ccustom[line,:]/cor
 
     if desdata.Call == True:
         Cfull = np.zeros([(desdata.S*(desdata.S-1)/2),desdata.S])
@@ -58,15 +63,19 @@ def probs_and_cons(sid):
     [desdata.P0,desdata.P1,desdata.P2,desdata.P3,desdata.P4,desdata.P5,desdata.P6,desdata.P7,desdata.P8,desdata.P9]
     )
     P = P[:desdata.S]
-    P = P/np.sum(P)
-    P = np.around(P.astype(np.double),2)
+    if np.any(np.equal(P,None)):
+        empty = True
+    if empty == False:
+        # correct for scale
+        P = P/np.sum(P)
+        P = np.around(P.astype(np.double),2)
 
     ## to html
 
     Phtml = "".join(["<tr><td>Stimulus "+str(d+1)+":&emsp;</td><td>"+str(P[d])+"</td></tr>" for d in range(len(P))])
     Chtml = "".join(["<tr><td>Contrast "+str(c)+":&emsp;</td>"+"".join(["<td>"+str(C[c][d])+"&emsp;</td>" for d in range(len(C[c]))])+"</tr>" for c in range(C.shape[0])])
 
-    return {"C":C,"P":P,"Phtml":Phtml,"Chtml":Chtml}
+    return {"C":C,"P":P,"Phtml":Phtml,"Chtml":Chtml,"empty":empty}
 
 def weights_html(weights):
     html = [
