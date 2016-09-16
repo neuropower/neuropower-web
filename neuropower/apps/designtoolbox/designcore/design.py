@@ -64,7 +64,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,restnum=0,restlength=0,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=200):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,stim_duration,restnum=0,restlength=0,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=1000):
         self.ITI = ITI
         self.ITImin = ITI[0]
         self.mnITI = ITI[1]
@@ -73,6 +73,7 @@ class GeneticAlgorithm(object):
         self.n_trials = L
         self.n_cons = C.shape[0]
         self.n_stimuli = C.shape[1]
+        self.stim_duration = stim_duration
         self.P = P
         self.C = C
         self.rho = rho
