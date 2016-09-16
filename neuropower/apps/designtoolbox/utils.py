@@ -62,13 +62,22 @@ def probs_and_cons(sid):
     P = np.array(
     [desdata.P0,desdata.P1,desdata.P2,desdata.P3,desdata.P4,desdata.P5,desdata.P6,desdata.P7,desdata.P8,desdata.P9]
     )
+    PG = np.array(
+    [desdata.PG0,desdata.PG1,desdata.PG2,desdata.PG3,desdata.PG4,desdata.PG5,desdata.PG6,desdata.PG7,desdata.PG8,desdata.PG9]
+    )
     P = P[:desdata.S]
     if np.any(np.equal(P,None)):
         empty = True
     if empty == False:
         # correct for scale
-        P = P/np.sum(P)
-        P = np.around(P.astype(np.double),2)
+        if desdata.nested:
+            for cl in xrange(desdata.nest_classes):
+                ind = np.where(np.array(desdata.nest_structure)==(cl+1))[0].tolist()
+                P = [val*PG[cl] if id in ind else val for id,val in enumerate(P)]
+
+        else:
+            P = P/np.sum(P)
+            P = np.around(P.astype(np.double),2)
 
     ## to html
 
@@ -76,6 +85,25 @@ def probs_and_cons(sid):
     Chtml = "".join(["<tr><td>Contrast "+str(c)+":&emsp;</td>"+"".join(["<td>"+str(C[c][d])+"&emsp;</td>" for d in range(len(C[c]))])+"</tr>" for c in range(C.shape[0])])
 
     return {"C":C,"P":P,"Phtml":Phtml,"Chtml":Chtml,"empty":empty}
+
+def combine_nested(sid):
+    desdata = DesignModel.objects.get(SID=sid)
+    empty = False
+
+    G = np.array(
+    [desdata.G0,desdata.G1,desdata.G2,desdata.G3,desdata.G4,desdata.G5,desdata.G6,desdata.G7,desdata.G8,desdata.G9]
+    )
+    G = G[:desdata.S]
+    if np.any(np.equal(G,None)):
+        empty = True
+
+    ## to html
+
+    Ghtml = "".join(["<tr><td>Stimulus "+str(d+1)+":&emsp;</td><td>"+str(G[d])+"</td></tr>" for d in range(len(G))])
+
+    return {"G":G,"Ghtml":Ghtml,"empty":empty}
+
+
 
 def weights_html(weights):
     html = [
@@ -91,6 +119,7 @@ def get_design_steps(template_page,sid):
     # template name, step class, and color
     pages = {"design/start.html": {"class":"overview","color":"#c9c4c5","enabled":"yes"},
              "design/input.html": {"class":"maininput","color":"#c9c4c5","enabled":"yes"},
+             "design/nested.html": {"class":"nested","color":"#c9c4c5","enabled":"yes"},
              "design/cons.html": {"class":"consandprobs","color":"#c9c4c5","enabled":"yes"},
              "design/review.html": {"class":"review","color":"#c9c4c5","enabled":"yes"},
              "design/options.html": {"class":"options","color":"#c9c4c5","enabled":"yes"},
@@ -98,18 +127,25 @@ def get_design_steps(template_page,sid):
              }
 
     if not DesignModel.objects.filter(SID=sid):
+        pages["design/nested.html"]["enabled"] = 'no'
         pages["design/cons.html"]["enabled"] = 'no'
         pages["design/review.html"]["enabled"] = 'no'
         pages["design/options.html"]["enabled"] = 'no'
         pages["design/runGA.html"]["enabled"] = 'no'
     else:
         desdata = DesignModel.objects.get(SID=sid)
-        if desdata.mainpars == False and desdata.conpars == False:
+        if desdata.mainpars == False:
+            pages["design/cons.html"]["enabled"] = 'no'
+            pages["design/nested.html"]["enabled"] = 'no'
+        if desdata.nestpars == False and desdata.nested == True:
             pages["design/cons.html"]["enabled"] = 'no'
         if desdata.conpars == False:
             pages["design/review.html"]["enabled"] = 'no'
             pages["design/options.html"]["enabled"] = 'no'
             pages["design/runGA.html"]["enabled"] = 'no'
+        if desdata.nested == False:
+            pages["design/nested.html"]["enabled"] = 'no'
+
 
 
     # Set the active page

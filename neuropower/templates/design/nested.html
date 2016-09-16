@@ -20,7 +20,7 @@
     <form id="inputform" method='POST' action='.' enctype="multipart/form-data">
       {% csrf_token %}
       {% load crispy_forms_tags %}
-      {% crispy inputform %}
+      {% crispy nestedform %}
     </form>
   </div>
 </div>

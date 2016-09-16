@@ -196,12 +196,14 @@ class GeneticAlgorithm(object):
             print("PRERUN FOR EFFICIENCY")
             self.prerun='Fe'
             NatSel = self.GeneticAlgorithmNaturalSelection(cycles=self.preruncycles)
+            self.FeMax = NatSel['Best']
 
         # Maximise Fd
         if self.weights[1]>0 and self.preruncycles>0:
             print("PRERUN FOR DETECTION POWER")
             self.prerun='Fd'
             NatSel = self.GeneticAlgorithmNaturalSelection(cycles=self.preruncycles)
+            self.FdMax = NatSel['Best']
 
         # Natural selection
         self.prerun=None
@@ -227,7 +229,10 @@ class GeneticAlgorithm(object):
         Generation = self.GeneticAlgorithmCreateEmptyGeneration()
 
         # number of designs to be added
-        rp = [1/4.,2/4.,1/4.]
+        if not self.n_stimuli == 6:
+            rp = [1/4.,2/4.,1/4.]
+        else:
+            rp = [2/4.,0,2/4.]
         r = [int(np.ceil(x*self.G)) for x in rp]
         r[2] = r[2]-int(np.sum(r)-self.G)
         Generation = self.GeneticAlgorithmAddOrder(Generation,r)
@@ -309,7 +314,6 @@ class GeneticAlgorithm(object):
         return Generation
 
     def GeneticAlgorithmInitiate(self):
-
         self.GeneticAlgorithmCreateOrder()
 
         nulorder = [np.argmin(self.P)]*self.n_trials
@@ -477,7 +481,10 @@ class GeneticAlgorithm(object):
         else:
             add = self.I
         # equally distribute new immigrants (blocked, msequence, ...)
-        rp = [1/4.,2/4.,1/4.]
+        if not self.n_stimuli == 6:
+            rp = [1/4.,2/4.,1/4.]
+        else:
+            rp = [2/4.,0,2/4.]
         r = [int(np.ceil(x*add)) for x in rp]
         r[2] = r[2]-int(np.sum(r)-add)
 
@@ -496,7 +503,8 @@ class GeneticAlgorithm(object):
         Designs = {}
         nRandom = 1000
         Designs['Blocked'] = self.GenerateOrderBlocked()
-        Designs['Mseq'] = self.GenerateOrderMsequence(tapsfile=self.tapsfile)
+        if not self.n_stimuli == 6:
+            Designs['Mseq'] = self.GenerateOrderMsequence(tapsfile=self.tapsfile)
         Designs['Random'] = self.GenerateOrderRandom(nRandom)
         self.Designs = Designs
 
@@ -512,22 +520,25 @@ class GeneticAlgorithm(object):
         iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=True).tolist()
         oBlocked = [self.Designs['Blocked']['orders'][i] for i in iBlocked]
         tBlocked = [self.Designs['Blocked']['ITIs'][i] for i in iBlocked]
-        iMseq = np.random.choice(len(self.Designs['Mseq']['orders']),nMseq,replace=True).tolist()
-        oMseq = [self.Designs['Mseq']['orders'][i] for i in iMseq]
-        tMseq = [self.Designs['Mseq']['ITIs'][i] for i in iMseq]
+        if not self.n_stimuli == 6:
+            iMseq = np.random.choice(len(self.Designs['Mseq']['orders']),nMseq,replace=True).tolist()
+            oMseq = [self.Designs['Mseq']['orders'][i] for i in iMseq]
+            tMseq = [self.Designs['Mseq']['ITIs'][i] for i in iMseq]
         iRandom = np.random.choice(len(self.Designs['Random']['orders']),nRandom,replace=True).tolist()
         oRandom = [self.Designs['Random']['orders'][i] for i in iRandom]
         tRandom = [self.Designs['Random']['ITIs'][i] for i in iRandom]
 
         oTotal = []
-        for orders in [oBlocked,oMseq,oRandom]:
+        ors = [oBlocked,oMseq,oRandom] if not self.n_stimuli == 6 else [oBlocked,oRandom]
+        for orders in ors:
             if isinstance(orders,list):
                 oTotal = oTotal+orders
             else:
                 oTotal.append(orders)
 
         tTotal = []
-        for itis in [tBlocked,tMseq,tRandom]:
+        trs = [tBlocked,tMseq,tRandom] if not self.n_stimuli == 6 else [tBlocked,tRandom]
+        for itis in trs:
             if isinstance(orders,list):
                 tTotal = tTotal+itis
             else:
@@ -572,7 +583,7 @@ class GeneticAlgorithm(object):
         return {"orders":orders,"ITIs":ITIs}
 
     def GenerateOrderBlocked(self):
-        numBlocks = np.array([1,2,3,4,5,6,7,8])
+        numBlocks = np.arange(3,self.maxrepeat)
         orders = []
         for blocks in numBlocks:
             BlockSize = int(np.ceil(self.n_trials/(blocks*self.n_stimuli)))
@@ -707,13 +718,16 @@ class GeneticAlgorithm(object):
 
         if weightsFnc[0]>0:
             Design = self.FeCalc(Design)
-            if np.max(Design['Fe'])>self.FeMax or self.FeMax==1:
-                self.FeMax = np.max(Design['Fe'])
-            Design['FeNorm']=Design['Fe']/self.FeMax
+            if self.prerun=="Fe":
+                Design['FeNorm']=Design['Fe']
+            else:
+                Design['FeNorm']=Design['Fe']/self.FeMax
         if weightsFnc[1]>0:
             Design = self.FdCalc(Design)
-            if np.max(Design['Fd'])>self.FdMax or self.FdMax==1:
-                self.FdMax = np.max(Design['Fd'])
+            if self.prerun=="Fd":
+                Design['FdNorm']=Design['Fd']
+            else:
+                Design['FdNorm']=Design['Fd']/self.FeMax
             Design['FdNorm']=Design['Fd']/self.FdMax
         if weightsFnc[2]>0:
             Design = self.FfCalc(Design)
@@ -728,9 +742,9 @@ class GeneticAlgorithm(object):
 
     def FeCalc(self,Design):
         try:
-            invM = scipy.linalg.inv(Design['X'])
+            invM = np.linalg.inv(Design['X'])
         except np.linalg.linalg.LinAlgError:
-            invM  = scipy.linalg.pinv(Design['X'])
+            invM  = np.linalg.pinv(Design['X'])
         CMC = np.matrix(self.CX)*invM*np.matrix(t(self.CX))
         if self.Aoptimality == True:
             Design["Fe"] = float(self.CX.shape[0]/np.matrix.trace(CMC))
@@ -740,9 +754,9 @@ class GeneticAlgorithm(object):
 
     def FdCalc(self,Design):
         try:
-            invM = scipy.linalg.inv(Design['Z'])
-        except np.linalg.linalg.LinAlgError:
-            invM = scipy.linalg.pinv(Design['Z'])
+            invM = np.linalg.inv(Design['Z'])
+        except np.linalg.LinAlgError:
+            invM = np.linalg.pinv(Design['Z'])
         CMC = np.matrix(self.C)*invM*np.matrix(t(self.C))
         if self.Aoptimality == True:
             Design["Fd"] = float(self.C.shape[0]/np.matrix.trace(CMC))

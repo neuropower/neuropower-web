@@ -4,12 +4,15 @@ from __future__ import division
 # reload(design)
 import time
 
+import scipy.sparse as sps
+import scipy.sparse.linalg as spsl
+
 tapsfile = "/Users/Joke/Documents/Onderzoek/ProjectsOngoing/Neuropower/neuropower-web/neuropower/media/taps.p"
 
 
 des = design.GeneticAlgorithm(
     # design specific
-    ITI = [0.5,4],
+    ITI = [0.5,1,4],
     TR = 0.68,
     L = 242,
     P = [1/2,1/2],
@@ -29,10 +32,9 @@ des = design.GeneticAlgorithm(
     I = 4,
     cycles = 1000,
     preruncycles = 0,
-    write = False,
     HardProb = None,
     tapsfile = tapsfile,
-    gui_sid=2233
+    gui_sid=None
 )
 
 
@@ -42,9 +44,56 @@ Design = des.CreateDesignMatrix(Design)
 
 
 start_time = time.time()
-des.GeneticAlgorithm()
-print("--- %s seconds ---" % (time.time()-start_time))
+a=scipy.linalg.solve(Design['X'],np.identity(Design['X'].shape[0],dtype=Design['X'].dtype))
+atime = time.time()-start_time
 
+start_time = time.time()
+b=scipy.linalg.inv(Design['X'])
+btime = time.time()-start_time
+
+start_time = time.time()
+c=scipy.linalg.pinv(Design['X'])
+ctime = time.time()-start_time
+
+start_time = time.time()
+d1 = sps.coo_matrix(Design['X'])
+d=spsl.inv(d1)
+dtime = time.time()-start_time
+
+start_time = time.time()
+d1 = sps.coo_matrix(Design['X'])
+d=spsl.inv(d1)
+dtime = time.time()-start_time
+
+
+print("--- solve: %s seconds ---" % (atime))
+print("--- inv: %s seconds ---" % (btime))
+print("--- pinv: %s seconds ---" % (ctime))
+print("--- splu: %s seconds ---" % (dtime))
+print("--- map: %s seconds ---" % (etime))
+
+from numpy.linalg.lapack import lapack_lite
+lapack_routine = lapack_lite.dgesv
+
+def faster_inverse(A):
+    b = np.identity(A.shape[2], dtype=A.dtype)
+    n_eq = A.shape[1]
+    n_rhs = A.shape[2]
+    pivots = zeros(n_eq, np.intc)
+    identity  = np.eye(n_eq)
+    def lapack_inverse(a):
+        b = np.copy(identity)
+        pivots = zeros(n_eq, np.intc)
+        results = lapack_lite.dgesv(n_eq, n_rhs, a, n_eq, pivots, b, n_eq, 0)
+        if results['info'] > 0:
+            raise LinAlgError('Singular matrix')
+        return b
+
+
+
+
+
+    return array([lapack_inverse(a) for a in A])
 
 
 

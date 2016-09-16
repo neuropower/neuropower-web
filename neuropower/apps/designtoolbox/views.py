@@ -7,8 +7,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from scipy.stats import norm, t
 import os
-from utils import get_session_id, probs_and_cons, get_design_steps, weights_html
-from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm
+from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested
+from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm
 from .models import DesignModel
 from designcore import design
 import numpy as np
@@ -115,6 +115,7 @@ def maininput(request, end_session=False):
     if not request.method == "POST" or not inputform.is_valid():
         context["inputform"] = inputform
         return render(request, template, context)
+
     else:
 
         # initial save
@@ -146,7 +147,72 @@ def maininput(request, end_session=False):
             weightsform.ITImean = (desdata.ITImin+desdata.ITImax)/2
         weightsform.save()
 
+        if desdata.nested and desdata.nest_classes == None:
+            context['message'] = "For a nested design, please specify the number of classes."
+            context["inputform"] = inputform
+            return render(request, "design/input.html", context)
+
+        if desdata.nested:
+            return HttpResponseRedirect('../nested/')
+        else:
+            return HttpResponseRedirect('../consinput/')
+
+
+def nested(request):
+
+    # Get the template/step status
+
+    template = "design/nested.html"
+    context = {}
+
+    # Get the session ID and database entry
+
+    sid = get_session_id(request)
+    context["steps"] = get_design_steps(template, sid)
+
+    try:
+        desdata = DesignModel.objects.get(SID=sid)
+    except DesignModel.DoesNotExist:
+        return HttpResponseRedirect('../maininput/')
+
+    # Define form
+
+    nestedform = DesignNestedForm(
+        request.POST or None, instance=desdata, stim=desdata.S)
+    inputform = DesignMainForm(request.POST or None, instance=desdata)
+
+    # If page was result of POST or not valid: show form with db entries
+    # Else: go to next page
+
+    if not request.method == "POST" or not nestedform.is_valid():
+        context["nestedform"] = nestedform
+        return render(request, template, context)
+    else:
+        form = nestedform.save(commit=False)
+        form.SID = sid
+        form.nestpars = True
+        form.save()
+
+        # get data and change parameters
+
+        matrices = combine_nested(sid)
+        if matrices['empty'] == True:
+            context['message'] = "Please fill out all stimuli"
+            context["nestedform"] = DesignNestedForm(
+                request.POST or None, instance=desdata, stim=desdata.S)
+            return render(request, "design/nested.html", context)
+        if np.max(matrices['G']) > desdata.nest_classes:
+            context['message'] = "There are more classes than was specified in the previous screen."
+            context["nestedform"] = DesignNestedForm(
+                request.POST or None, instance=desdata, stim=desdata.S)
+            return render(request, "design/nested.html", context)
+
+
+        form.nest_structure = matrices['G']
+        form.save()
+
         return HttpResponseRedirect('../consinput/')
+
 
 
 def consinput(request):
@@ -168,13 +234,20 @@ def consinput(request):
 
     # Define form
 
-    consform = DesignConsForm(
-        request.POST or None, instance=desdata, stim=desdata.S, cons=desdata.Clen)
-
     # If page was result of POST or not valid: show form with db entries
     # Else: go to next page
 
-    if not request.method == "POST" or not consform.is_valid():
+    if desdata.nested == True:
+        a = np.array(['P0','P1','P2','P3','P4','P5','P6','P7','P8','P9'])
+        b = np.array(desdata.nest_structure)
+        Pmat = [a[b==(i+1)].tolist() for i in xrange(desdata.nest_classes)]
+        consform = DesignNestedConsForm(
+            request.POST or None, instance=desdata, stim=desdata.S, cons=desdata.Clen, structure=Pmat, classes=desdata.nest_structure)
+    else:
+        consform = DesignConsForm(
+            request.POST or None, instance=desdata, stim=desdata.S, cons=desdata.Clen)
+
+    if not request.method == "POST":
         context["consform"] = consform
         return render(request, template, context)
     else:
@@ -405,6 +478,7 @@ def runGA(request):
                     des.prerun = 'Fe'
                     NatSel = des.GeneticAlgorithmNaturalSelection(
                         cycles=des.preruncycles)
+                    des.FeMax = np.max(NatSel['Best'])
 
                 # Maximise Fd
                 if des.weights[1] > 0 and des.preruncycles > 0:
@@ -413,6 +487,7 @@ def runGA(request):
                     des.prerun = 'Fd'
                     NatSel = des.GeneticAlgorithmNaturalSelection(
                         cycles=des.preruncycles)
+                    des.FdMax = np.max(NatSel['Best'])
 
                 # Natural selection
                 des.prerun = None
