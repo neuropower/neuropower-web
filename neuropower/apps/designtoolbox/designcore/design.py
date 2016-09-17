@@ -64,7 +64,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,stim_duration,restnum=0,restlength=0,Aoptimality=True,saturation=True,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=1000):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,stim_duration,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=1000):
         self.ITI = ITI
         self.ITImin = ITI[0]
         self.mnITI = ITI[1]
@@ -133,7 +133,7 @@ class GeneticAlgorithm(object):
         hrf = self.spm_Gpdf(s,p[0]/p[2],dt/p[2]) - self.spm_Gpdf(s,p[1]/p[3],dt/p[3])/p[4]
         hrf = hrf[[int(x) for x in np.array(xrange(int(p[6]/RT+1)))*16.]]
         self.hrf = hrf/np.sum(hrf)
-        self.hrf = self.hrf/np.max(self.hrf)
+        #self.hrf = self.hrf/np.max(self.hrf)
         # HRF sampled at resolution
         self.basishrf = self.hrf[[int(x) for x in np.arange(0,len(self.hrf)-1,self.resolution*10)]]
         # duration of the HRF
@@ -145,10 +145,12 @@ class GeneticAlgorithm(object):
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
+        ITIdur = self.n_trials*self.ITImax
+        STIMdur = self.n_trials*self.stim_duration
+        self.duration = ITIdur+STIMdur
         if self.restnum>0:
-            self.duration = self.n_trials*self.ITImax+(np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
-        else:
-            self.duration = self.n_trials*self.ITImax #total duration (s)
+            resdur = (np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
+            self.duration = self.duration+resdur
         self.n_scans = int(np.ceil(self.duration/self.TR)) # number of scans
         self.n_tp = int(np.ceil(self.duration/self.resolution)) #number of timepoints (in resolution)
         self.r_scans = np.arange(0,self.duration,self.TR)
@@ -639,10 +641,12 @@ class GeneticAlgorithm(object):
             for x in np.arange(0,self.n_trials,self.restnum)[1:][::-1]:
                 orderli.insert(x,"R")
                 ITIli.insert(x,self.restlength)
+            ITIli = np.array(ITIli)+self.stim_duration
             onsets = np.cumsum(ITIli)-ITIli[0]
             Design['onsets'] = [y for x,y in zip(orderli,onsets) if not x == "R"]
         else:
-            Design['onsets'] = np.cumsum(Design['ITIs'])-Design['ITIs'][0]
+            ITIli = np.array(Design['ITIs'])+self.stim_duration
+            Design['onsets'] = np.cumsum(ITIli)-ITIli[0]
 
         # round onsets to resolution
         onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]
@@ -652,8 +656,10 @@ class GeneticAlgorithm(object):
 
         # create design matrix in resolution scale (=deltasM in Kao toolbox)
         X_X = np.zeros([self.n_tp,self.n_stimuli])
+        stim_duration_tp = int(self.stim_duration/self.resolution)
         for stimulus in xrange(self.n_stimuli):
-            X_X[XindStim,int(stimulus)] = [1 if z==stimulus else 0 for z in Design["order"]]
+            for dur in xrange(stim_duration_tp):
+                X_X[np.array(XindStim)+dur,int(stimulus)] = [1 if z==stimulus else 0 for z in Design["order"]]
 
         # deconvolved matrix in resolution units
         deconvM = np.zeros([self.n_tp,int(self.laghrf*self.n_stimuli)])
@@ -674,15 +680,18 @@ class GeneticAlgorithm(object):
 
         if self.saturation==True:
             X_Z[X_Z>2] = 2
+            X_Z[X_Z<-0.1778] = -0.1778
 
         # downsample to TR
         idx = [int(x) for x in np.arange(0,self.n_tp,self.TR/self.resolution)]
         X_Z = X_Z[idx,:]
+        X_X = X_X[idx,:]
         Zwhite = t(X_Z)*self.white*X_Z
 
         Design["X"] = Xwhite
         Design["Z"] = Zwhite
         Design["Xconv"] = X_Z
+        Design['Xnonconv'] = X_X
         Design["ts"] = self.r_scans
 
         return Design

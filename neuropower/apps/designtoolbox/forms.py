@@ -9,7 +9,7 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITImin','ITImax','ITImean','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','nested','nest_classes']
+        fields = ['ITImin','ITImax','ITImean','stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','nested','nest_classes']
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
@@ -18,6 +18,7 @@ class DesignMainForm(forms.ModelForm):
         self.fields['ITImax'].label = "Maximum ITI (seconds)"
         self.fields['TR'].label = "Scanner TR (seconds)"
         self.fields['S'].label = "Stimulus types"
+        self.fields['stim_duration'].label = "Stimulus duration (seconds)"
         self.fields['L'].label = "Total number of trials"
         self.fields['Call'].label = 'Check to include all pairwise contrasts'
         self.fields['Clen'].label = 'Number of custom contrasts'
@@ -59,6 +60,7 @@ class DesignMainForm(forms.ModelForm):
             cleaned_data.get("ITImean")<0,
             cleaned_data.get("ITImax")<0,
             cleaned_data.get("S")<0,
+            cleaned_data.get("stim_duration")<0,
             cleaned_data.get("L")<0,
             cleaned_data.get("Clen")<0,
             cleaned_data.get("RestNum")<0,
@@ -76,6 +78,7 @@ class DesignMainForm(forms.ModelForm):
             cleaned_data.get("ITImean")==None,
             cleaned_data.get("ITImax")==None,
             cleaned_data.get("S")==None,
+            cleaned_data.get("stim_duration")==None,
             cleaned_data.get("L")==None,
             cleaned_data.get("Clen")==None,
             cleaned_data.get("RestNum")==None,
@@ -102,9 +105,10 @@ class DesignMainForm(forms.ModelForm):
             'Design parameters',
             HTML("""<h5 style="margin-left: 15px">These parameters refer to your design and need your careful attention.</h5><br><br>"""),
             Div(
-            Div(Field('TR'),css_class='col-md-4 col-sm-6 col-xs-12'),
-            Div(Field('S'),css_class='col-md-4 col-sm-6 col-xs-12'),
-            Div(Field('L'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            Div(Field('TR'),css_class='col-md-3 col-sm-6 col-xs-12'),
+            Div(Field('S'),css_class='col-md-3 col-sm-6 col-xs-12'),
+            Div(Field('stim_duration'),css_class='col-md-3 col-sm-6 col-xs-12'),
+            Div(Field('L'),css_class='col-md-3 col-sm-6 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             ),
             ),

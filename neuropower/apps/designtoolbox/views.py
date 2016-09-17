@@ -413,6 +413,7 @@ def runGA(request):
         L=desdata.L,
         P=matrices["P"],
         C=matrices["C"],
+        stim_duration=desdata.stim_duration,
         weights=desdata.W,
         ConfoundOrder=desdata.ConfoundOrder,
         MaxRepeat=desdata.MaxRepeat,

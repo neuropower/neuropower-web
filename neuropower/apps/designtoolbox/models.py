@@ -17,6 +17,7 @@ class DesignModel(models.Model):
     TR = models.FloatField(default=None, null=True, blank=True)
     L = models.IntegerField(null=True, blank=True)
     S = models.IntegerField(null=True, blank=True)
+    stim_duration = models.FloatField(default=1,null=True,blank=True)
     nested = models.BooleanField(default=False)
     nest_classes = models.IntegerField(null=True, blank=True)
     nest_symmetry = models.BooleanField(default=False)

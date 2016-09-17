@@ -106,13 +106,6 @@ var chart2 = c3.generate({
         values:list
       }
     },
-    y:{
-      tick:{
-        values:ytx
-      },
-      min: -0.5,
-      max: 2.2
-    }
   },
   color:{
     pattern:['#0098DB','#009B76','#B26F16','#007C92','#E98300','#EAAB00']

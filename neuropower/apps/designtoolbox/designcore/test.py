@@ -6,16 +6,20 @@ import time
 
 import scipy.sparse as sps
 import scipy.sparse.linalg as spsl
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
 
 tapsfile = "/Users/Joke/Documents/Onderzoek/ProjectsOngoing/Neuropower/neuropower-web/neuropower/media/taps.p"
 
 
 des = design.GeneticAlgorithm(
     # design specific
-    ITI = [0.5,1,4],
-    TR = 0.68,
+    ITI = [10,10,10],
+    TR = 1,
     L = 242,
     P = [1/2,1/2],
+    stim_duration = 20,
     C = np.array([[1,0],[0,1],[1,-1]]),
     restnum =0,
     restlength=0,
@@ -39,8 +43,21 @@ des = design.GeneticAlgorithm(
 
 
 Design={"order":np.array([2,1,1,2,1,1,1,2,2,2,1,1,1,1,2,1,2,1,1,2,2,2,1,2,1,1,2,2,1,2,1,2,2,1,1,2,2,2,1,2,1,2,1,1,2,2,2,2,2,2,1,1,2,1,2,1,2,2,2,2,1,1,1,1,2,1,1,2,1,1,2,1,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2,1,1,1,2,2,2,2,1,2,1,2,2,1,1,1,2,1,2,2,1,1,2,1,2,1,1,2,2,1,1,1,2,1,2,1,2,2,1,1,1,1,1,1,2,2,1,2,1,2,1,1,1,1,2,2,2,2,1,2,2,1,2,2,1,2,2,1,1,1,1,1,1,1,1,2,1,1,1,2,2,2,2,1,2,1,2,2,1,1,1,2,1,2,2,1,1,2,1,2,1,1,2,2,1,1,1,2,1,2,1,2,2,1,1,1,1,1,1,2,2,1,2,1,2,1,1,1,1,2,2,2,2,1,2,2,1,2,2,1,2,2,1,1,1,1,1,1,1,1,2,2,2,2,2])-1}
-Design['ITIs']=[2]*242
+Design['ITIs']=[10]*242
 Design = des.CreateDesignMatrix(Design)
+
+
+XconvEV = Design['Xconv'][:,0]
+X_EV = Design['Xnonconv'][:,0]
+
+plt.plot(Design['Xconv'][:,0],color="red")
+plt.plot(Design['Xnonconv'][:,0],color="grey")
+plt.plot(XconvEV,color="blue")
+plt.ylim([-1,2.5])
+plt.xlim([0,700])
+plt.show()
+
+
 
 
 start_time = time.time()
@@ -135,11 +152,15 @@ d4.update(d3)
 # Design['ITIs'] = [des.mnITI]*des.n_trials
 # Design = des.CreateDesignMatrix(Design)
 #
-# import matplotlib as mpl
-# import matplotlib.pyplot as plt
-#
-# plt.plot(a)
-# plt.show()
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+durres = Design['Xconv'][:,0]
+
+plt.plot(Design['Xconv'][:,0])
+plt.ylim([-1,2.5])
+plt.xlim([0,700])
+plt.show()
 #
 # plt.plot(Design['Xconv'])
 # plt.show()
