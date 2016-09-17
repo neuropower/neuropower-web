@@ -643,13 +643,13 @@ class DesignProbsForm(forms.ModelForm):
 class DesignOptionsForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['rho','Aoptimality','Saturation','resolution','G','q','I','cycles','preruncycles']
+        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles']
 
     def __init__(self,*args,**kwargs):
         super(DesignOptionsForm,self).__init__(*args,**kwargs)
         self.fields['rho'].label = "The assumed temporal autocorrelation coefficient."
         self.fields['Aoptimality'].label = "Do you want to optimise using A-optimality or D-optimality?"
-        self.fields['Saturation'].label = "We assume that there is saturation in the BOLD-signal: the signal cannot exceed 2 times the height of the HRF.  This avoids that for an ITI going towards 0, the signal goes to infinity."
+        #self.fields['Saturation'].label = "We assume that there is saturation in the BOLD-signal: the signal cannot exceed 2 times the height of the HRF.  This avoids that for an ITI going towards 0, the signal goes to infinity."
         self.fields['resolution'].label = "The resolution of the timing of stimuli."
         self.fields['G'].label = "How many designs go from one generation to the next?"
         self.fields['q'].label = "What percentage of the trials gets mutated?"
@@ -672,7 +672,7 @@ class DesignOptionsForm(forms.ModelForm):
             Div(
             Div(Field('rho'),css_class='col-xs-12'),
             Div(Field('Aoptimality'),css_class='col-xs-12'),
-            Div(Field('Saturation'),css_class='col-xs-12'),
+            #Div(Field('Saturation'),css_class='col-xs-12'),
             Div(Field('resolution'),css_class='col-xs-12'),
             css_class='row-md-12 col-xs-12'
             )
