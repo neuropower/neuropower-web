@@ -13,16 +13,16 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, patterns, include
+from django.conf.urls import url, include
 from django.contrib import admin
 import django.views.defaults
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Notice the expression does not end in $,
     # that happens at the myapp/url.py level
-    (r'^', include('apps.main.urls')),
-    (r'^neuropower/', include('apps.neuropowertoolbox.urls')),
-    (r'^design/', include('apps.designtoolbox.urls'))
-)
+    url(r'^', include('apps.main.urls')),
+    url(r'^neuropower/', include('apps.neuropowertoolbox.urls')),
+    url(r'^design/', include('apps.designtoolbox.urls'))
+]

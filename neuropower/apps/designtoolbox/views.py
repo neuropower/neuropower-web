@@ -10,6 +10,7 @@ import os
 from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested
 from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm
 from .models import DesignModel
+from .tasks import GeneticAlgorithm
 from designcore import design
 import numpy as np
 import time
@@ -19,6 +20,7 @@ import csv
 import zipfile
 import StringIO
 import shutil
+from celery import task
 
 
 def end_session(request):
@@ -397,45 +399,14 @@ def runGA(request):
     runform = DesignRunForm(request.POST or None, instance=desdata)
     context["runform"] = runform
 
-    # Get parameters to GA
+    form = runform.save(commit=False)
+    form.desfile = os.path.join(settings.MEDIA_ROOT, "designs",
+                        "design_" + str(sid) + ".json")
+    form.genfile = os.path.join(settings.MEDIA_ROOT, "designs",
+                        "generation_" + str(sid) + ".json")
+    form.onsetsfolder = os.path.join(settings.MEDIA_ROOT, "designonsets", str(sid))
+    form.save()
 
-    matrices = probs_and_cons(sid)
-    desfile = os.path.join(settings.MEDIA_ROOT, "designs",
-                           "design_" + str(sid) + ".json")
-    genfile = os.path.join(settings.MEDIA_ROOT, "designs",
-                           "generation_" + str(sid) + ".json")
-    onsetsfolder = os.path.join(settings.MEDIA_ROOT, "designonsets", str(sid))
-
-    des = design.GeneticAlgorithm(
-        # design specific
-        ITI=[desdata.ITImin, desdata.ITImean, desdata.ITImax],
-        TR=desdata.TR,
-        L=desdata.L,
-        P=matrices["P"],
-        C=matrices["C"],
-        stim_duration=desdata.stim_duration,
-        weights=desdata.W,
-        ConfoundOrder=desdata.ConfoundOrder,
-        MaxRepeat=desdata.MaxRepeat,
-        restnum=desdata.RestNum,
-        restlength=desdata.RestDur,
-        # general/defaulted
-        rho=desdata.rho,
-        Aoptimality=True if desdata.Aoptimality == 1 else False,
-        saturation=True if desdata.Saturation == 1 else False,
-        resolution=desdata.resolution,
-        G=desdata.G,
-        q=desdata.q,
-        I=desdata.I,
-        cycles=desdata.cycles,
-        preruncycles=desdata.preruncycles,
-        HardProb=desdata.HardProb,
-        tapsfile=os.path.join(settings.MEDIA_ROOT, "taps.p"),
-        gui_sid=sid,
-        write_score=genfile,
-        write_design=desfile
-    )
-    des.counter = 0
 
     # Responsive loop
 
@@ -461,77 +432,26 @@ def runGA(request):
 
             # check whether loop is already running and
             # only start if it's not running
+
             desdata = DesignModel.objects.get(SID=sid)
             if not desdata.running == 0:
                 context["message"] = "Analysis is already running."
 
             else:
-                form.running = 1
-                form.save()
+                context["message"] = "Analysis added to queue."
 
-                # Create first generation
-                des.GeneticAlgorithmInitiate()
-
-                # Maximise Fe
-                if des.weights[0] > 0 and des.preruncycles > 0:
-                    form.running = 2
-                    form.save()
-                    des.prerun = 'Fe'
-                    NatSel = des.GeneticAlgorithmNaturalSelection(
-                        cycles=des.preruncycles)
-                    des.FeMax = np.max(NatSel['Best'])
-
-                # Maximise Fd
-                if des.weights[1] > 0 and des.preruncycles > 0:
-                    form.running = 3
-                    form.save()
-                    des.prerun = 'Fd'
-                    NatSel = des.GeneticAlgorithmNaturalSelection(
-                        cycles=des.preruncycles)
-                    des.FdMax = np.max(NatSel['Best'])
-
-                # Natural selection
-                des.prerun = None
-                form.running = 4
-                form.save()
-                NatSel = des.GeneticAlgorithmNaturalSelection(
-                    cycles=des.cycles)
-
-                # Select optimal design
-                desdata = DesignModel.objects.get(SID=sid)
-                if not desdata.stop==1:
-                    Generation = NatSel['Generation']
-                    Best = NatSel['Best']
-
-                    OptInd = np.min(np.arange(len(Generation['F']))[
-                                    Generation['F'] == np.max(Generation['F'])])
-                    des.opt = {
-                        'order': Generation['order'][OptInd],
-                        'onsets': Generation['onsets'][OptInd],
-                        'F': Generation['F'][OptInd],
-                        'FScores': Best
-                    }
-
-                    form.optimalorder = Generation['order'][OptInd]
-                    form.optimalonsets = Generation['onsets'][OptInd]
-                    form.done = 1
-                    context['message'] = "Analysis complete"
-
-                # reset
-                form.stop = 0
-                form.running = 0
-                form.save()
+                res = GeneticAlgorithm.delay(sid)
 
         if request.POST.get("Download") == "Download optimal sequence":
             orders = desdata.optimalorder
             onsets = [round(x / desdata.resolution) *
                       desdata.resolution for x in desdata.optimalonsets]
-            if os.path.exists(onsetsfolder):
-                shutil.rmtree(onsetsfolder)
-            os.mkdir(onsetsfolder)
+            if os.path.exists(desdata.onsetsfolder):
+                shutil.rmtree(desdata.onsetsfolder)
+            os.mkdir(desdata.onsetsfolder)
 
             filenames = [os.path.join(
-                onsetsfolder, "stimulus_" + str(stim) + ".txt") for stim in range(desdata.S)]
+                desdata.onsetsfolder, "stimulus_" + str(stim) + ".txt") for stim in range(desdata.S)]
             for stim in range(desdata.S):
                 onsubsets = [str(x) for x in np.array(
                     onsets)[np.array(orders) == stim]]
@@ -583,8 +503,8 @@ def runGA(request):
             context["downform"] = downform
             downform = downform.save(commit=False)
 
-        if os.path.isfile(genfile):
-            jsonfile = open(genfile).read()
+        if os.path.isfile(desdata.genfile):
+            jsonfile = open(desdata.genfile).read()
             try:
                 data = json.loads(jsonfile)
                 data = json.dumps(data)
@@ -592,8 +512,8 @@ def runGA(request):
             except ValueError:
                 pass
 
-        if os.path.isfile(desfile):
-            jsonfile = open(desfile).read()
+        if os.path.isfile(desdata.desfile):
+            jsonfile = open(desdata.desfile).read()
             try:
                 data = json.loads(jsonfile)
                 data = json.dumps(data)

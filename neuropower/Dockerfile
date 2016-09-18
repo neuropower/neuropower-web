@@ -90,6 +90,27 @@ RUN source activate crnenv && \
   pip install uwsgi && \
   pip install -U Jinja2
 
+RUN pip install celery[redis]
+RUN pip install celery==3.0.19
+RUN pip install --upgrade celery
+RUN pip install SQLAlchemy
+RUN pip install neuropower
+RUN pip install django-celery
+RUN pip install opbeat
+RUN pip install django
+RUN pip install django-crispy-forms
+RUN pip install django-secure
+RUN pip install django-sslserver
+RUN conda install psycopg2
+RUN pip install django-picklefield
+RUN pip install matplotlib
+RUN pip install palettable
+RUN pip install mpld3
+RUN pip install jinja2
+RUN pip install sklearn
+RUN pip install nilearn
+RUN conda install sqlalchemy
+
 # Clear apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

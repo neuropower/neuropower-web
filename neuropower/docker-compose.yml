@@ -24,3 +24,14 @@ nginx:
     - uwsgi
   links:
     - uwsgi
+
+redis:
+  restart: always
+  image: redis
+  command: redis-server --appendonly yes
+
+worker:
+  image: joke/neuropower
+  command: celery worker -A celeryNP -Q default -n default@%h --detach
+  volumes_from:
+    - uwsgi
