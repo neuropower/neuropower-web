@@ -4,8 +4,8 @@ from designcore import design
 from .forms import DesignRunForm
 from celery import task, Celery
 import os
-import numpy as np
 from utils import probs_and_cons
+import numpy as np
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'neuropower.settings')
 app = Celery('neuropower')
@@ -58,9 +58,7 @@ def GeneticAlgorithm(sid):
 
     form = runform.save(commit=False)
     form.running = 1
-    print("geraken we hier?")
     form.save()
-    print("opgeslagen")
 
     # Create first generation
     des.GeneticAlgorithmInitiate()

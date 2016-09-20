@@ -19,17 +19,6 @@
   {% if message %}
   <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
   {% endif %}
-  <div class="col-sm-1"></div>
-  <div class="col-sm-10">
-    <h5>Some notes:</h5>
-    <ul>
-    <li><p style="color:red"><b>At this point, we are mainly testing and demo'ing the toolbox.  To minimise the duration, we have set the number of preruns and run very low and the resolution too high.  For a good optimisation, please change the number of runs and preruns in the Options (Review tab) to 10000.  Resolution is better at 0.1.  The analysis will then take a few hours.</b></p></li>
-    <li>Please refresh the page once after initialising the genetic algorithm.  You'll be able to follow the progress. (I have to figure out how to do this automatically)</li>
-    <li>During the optimisation, you can check settings in the other tabs.  The analysis will continue running.  However, changing parameters will not affect the ongoing process.</li>
-    <li>The optimisation can take a while.  What's mostly impacting the duration of the GA is the inversion of the estimation matrix (that is, if you've set the weights for estimation optimisation > 0).  The longer the duration of the experiment (more trials, longer ITI's, more rest,...), the longer the optimisation will take.  Other factors impacting the optimisation: the size of the generation and the number of immigrants per generation (can be changed in the options).</li>
-  </ul>
-  </div>
-  <div class="col-sm-1"></div>
 </div>
 
 <div class="row">

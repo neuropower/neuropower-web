@@ -12,6 +12,7 @@ import json
 from collections import Counter
 import os
 import sys
+import numpy as np
 
 class GeneticAlgorithm(object):
     '''
@@ -252,7 +253,7 @@ class GeneticAlgorithm(object):
 
             # if gui: read stop signal
             if self.gui_sid:
-                desdata = self.DesignModel.objects.get(SID=self.gui_sid)
+                desdata = self.DesignModel.objects.get(shareID=self.gui_sid)
                 if desdata.stop==1:
                     break
 

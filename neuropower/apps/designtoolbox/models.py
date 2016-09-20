@@ -10,6 +10,7 @@ from django.conf import settings
 
 class DesignModel(models.Model):
     SID = models.CharField(max_length=300,default="")
+    shareID = models.CharField(max_length=300,default="")
     ITI = models.FloatField(default=None, null=True, blank=True)
     ITImin = models.FloatField(default=None, null=True, blank=True)
     ITImean = models.FloatField(default=None, null=True, blank=True)

@@ -7,6 +7,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from scipy.stats import norm, t
 import os
+from django.contrib.sessions.backends.db import SessionStore
 from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested
 from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm
 from .models import DesignModel
@@ -123,6 +124,7 @@ def maininput(request, end_session=False):
         # initial save
 
         form = inputform.save(commit=False)
+        form.shareID = sid
         form.SID = sid
         form.mainpars = True
         form.save()
@@ -290,10 +292,20 @@ def review(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
 
-    try:
-        desdata = DesignModel.objects.get(SID=sid)
-    except DesignModel.DoesNotExist:
-        return HttpResponseRedirect('../maininput/')
+    # retrieve session information
+
+    retrieve_id = request.GET.get('retrieve','')
+    if retrieve_id:
+        desdata = DesignModel.objects.get(shareID=retrieve_id)
+        desdata.SID=sid
+        desdata.save()
+        context["steps"] = get_design_steps(template, sid)
+    else:
+        try:
+            desdata = DesignModel.objects.get(SID=sid)
+        except DesignModel.DoesNotExist:
+            return HttpResponseRedirect('../maininput/')
+
 
     # Define form
 
@@ -375,7 +387,7 @@ def options(request):
         return HttpResponseRedirect('../review/')
 
 
-def runGA(request):
+def runGA(request,retrieve_id=None):
 
     # Get the template/step status
 
@@ -396,6 +408,7 @@ def runGA(request):
 
     # Define form (Run or Stop)
 
+    print(desdata.shareID)
     runform = DesignRunForm(request.POST or None, instance=desdata)
     context["runform"] = runform
 

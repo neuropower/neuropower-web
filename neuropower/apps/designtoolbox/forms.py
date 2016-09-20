@@ -717,6 +717,19 @@ class DesignRunForm(forms.ModelForm):
         ButtonHolder(Submit('GA', 'Stop', css_class='btn-black'))
         )
 
+class DesignRetrieveForm(forms.ModelForm):
+    class Meta:
+        model = DesignModel
+        fields = "__all__"
+
+    def __init__(self,*args,**kwargs):
+        super(DesignRetrieveForm,self).__init__(*args,**kwargs)
+
+    def save(self):
+        post = super(DesignRetrieveForm,self).save()
+        post.save()
+
+
 class DesignDownloadForm(forms.ModelForm):
     class Meta:
         model = DesignModel
