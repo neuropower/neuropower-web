@@ -56,6 +56,8 @@ def GeneticAlgorithm(sid):
 
     # Responsive loop
 
+    desdata = DesignModel.objects.get(SID=sid)
+    runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.running = 1
     form.save()
@@ -64,7 +66,10 @@ def GeneticAlgorithm(sid):
     des.GeneticAlgorithmInitiate()
 
     # Maximise Fe
-    if des.weights[0] > 0 and des.preruncycles > 0:
+    desdata = DesignModel.objects.get(SID=sid)
+    if des.weights[0] > 0 and des.preruncycles > 0 and desdata.stop == 0:
+        runform = DesignRunForm(None, instance=desdata)
+        form = runform.save(commit=False)
         form.running = 2
         form.save()
         des.prerun = 'Fe'
@@ -73,7 +78,10 @@ def GeneticAlgorithm(sid):
         des.FeMax = np.max(NatSel['Best'])
 
     # Maximise Fd
-    if des.weights[1] > 0 and des.preruncycles > 0:
+    desdata = DesignModel.objects.get(SID=sid)
+    if des.weights[1] > 0 and des.preruncycles > 0 and desdata.stop == 0:
+        runform = DesignRunForm(None, instance=desdata)
+        form = runform.save(commit=False)
         form.running = 3
         form.save()
         des.prerun = 'Fd'
@@ -82,31 +90,34 @@ def GeneticAlgorithm(sid):
         des.FdMax = np.max(NatSel['Best'])
 
     # Natural selection
-    des.prerun = None
-    form.running = 4
-    form.save()
-    NatSel = des.GeneticAlgorithmNaturalSelection(
-        cycles=des.cycles)
-
-    # Select optimal design
     desdata = DesignModel.objects.get(SID=sid)
-    Generation = NatSel['Generation']
-    Best = NatSel['Best']
+    if desdata.stop == 0:
+        des.prerun = None
+        runform = DesignRunForm(None, instance=desdata)
+        form = runform.save(commit=False)
+        form.running = 4
+        form.save()
+        NatSel = des.GeneticAlgorithmNaturalSelection(
+            cycles=des.cycles)
 
-    OptInd = np.min(np.arange(len(Generation['F']))[
-                    Generation['F'] == np.max(Generation['F'])])
-    des.opt = {
-        'order': Generation['order'][OptInd],
-        'onsets': Generation['onsets'][OptInd],
-        'F': Generation['F'][OptInd],
-        'FScores': Best
-    }
+        # Select optimal design
+        Generation = NatSel['Generation']
+        Best = NatSel['Best']
 
-    form.optimalorder = Generation['order'][OptInd]
-    form.optimalonsets = Generation['onsets'][OptInd]
-    form.done = 1
+        OptInd = np.min(np.arange(len(Generation['F']))[
+                        Generation['F'] == np.max(Generation['F'])])
+        des.opt = {
+            'order': Generation['order'][OptInd],
+            'onsets': Generation['onsets'][OptInd],
+            'F': Generation['F'][OptInd],
+            'FScores': Best
+        }
 
-    # reset
-    form.stop = 0
-    form.running = 0
-    form.save()
+        desdata = DesignModel.objects.get(SID=sid)
+        runform = DesignRunForm(None, instance=desdata)
+        form = runform.save(commit=False)
+        form.optimalorder = Generation['order'][OptInd]
+        form.optimalonsets = Generation['onsets'][OptInd]
+
+        # reset
+        form.save()

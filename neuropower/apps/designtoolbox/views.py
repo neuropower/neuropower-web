@@ -21,6 +21,7 @@ import csv
 import zipfile
 import StringIO
 import shutil
+import urllib2
 from celery import task
 
 
@@ -127,6 +128,12 @@ def maininput(request, end_session=False):
         form.shareID = sid
         form.SID = sid
         form.mainpars = True
+        form.desfile = os.path.join(settings.MEDIA_ROOT, "designs",
+                            "design_" + str(sid) + ".json")
+        form.genfile = os.path.join(settings.MEDIA_ROOT, "designs",
+                            "generation_" + str(sid) + ".json")
+        form.onsetsfolder = os.path.join(settings.MEDIA_ROOT, "designonsets", str(sid))
+
         form.save()
 
         # get data and change parameters
@@ -387,7 +394,7 @@ def options(request):
         return HttpResponseRedirect('../review/')
 
 
-def runGA(request,retrieve_id=None):
+def runGA(request):
 
     # Get the template/step status
 
@@ -407,35 +414,29 @@ def runGA(request,retrieve_id=None):
         return HttpResponseRedirect('../maininput/')
 
     # Define form (Run or Stop)
-
-    print(desdata.shareID)
-    runform = DesignRunForm(request.POST or None, instance=desdata)
+    runform = DesignRunForm(request.POST, instance=desdata)
     context["runform"] = runform
 
     # Responsive loop
 
     if request.method == "POST":
-        form = runform.save(commit=False)
-        form.desfile = os.path.join(settings.MEDIA_ROOT, "designs",
-                            "design_" + str(sid) + ".json")
-        form.genfile = os.path.join(settings.MEDIA_ROOT, "designs",
-                            "generation_" + str(sid) + ".json")
-        form.onsetsfolder = os.path.join(settings.MEDIA_ROOT, "designonsets", str(sid))
-        form.save()
 
         # If stop is requested
         if request.POST.get("GA") == "Stop":
 
-            form.stop = 1
-            form.running = 0
-            form.done = 0
-            form.save()
+            runform2 = DesignRunForm(request.POST, instance=desdata)
+            form2 = runform2.save(commit=False)
+            form2.stop = 1
+            form2.running = 0
+            form2.save()
 
             context["message"] = "Analysis halted."
+            return render(request, template, context)
 
         # If run is requested
         if request.POST.get("GA") == "Run":
 
+            form = runform.save(commit=False)
             form.stop = 0
             form.done = 0
             form.save()
@@ -451,6 +452,7 @@ def runGA(request,retrieve_id=None):
                 context["message"] = "Analysis added to queue."
 
                 res = GeneticAlgorithm.delay(sid)
+            return render(request, template, context)
 
         if request.POST.get("Download") == "Download optimal sequence":
             orders = desdata.optimalorder

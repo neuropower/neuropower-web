@@ -54,6 +54,16 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("ConfoundOrder")>10:
             raise forms.ValidationError("Sorry, at the moment we can only model designs with a confoundorder smaller than 10. Parameters not saved.")
 
+        if cleaned_data.get("ITImin")==None and cleaned_data.get("ITImax")==None and cleaned_data.get("ITImean")==None:
+            raise forms.ValidationError("You need to specify at least either a range of ITI, or the average (fixed) ITI.")
+
+        if (cleaned_data.get("ITImin")==None and not cleaned_data.get("ITImax")==None) or (cleaned_data.get("ITImax")==None and not cleaned_data.get("ITImin")==None):
+            raise forms.ValidationError("You specified either a minimum or a maximum ITI.  You need to fill out both.")
+
+
+
+
+
         smaller = [
             cleaned_data.get("TR")<0,
             cleaned_data.get("ITImin")<0,
@@ -724,11 +734,6 @@ class DesignRetrieveForm(forms.ModelForm):
 
     def __init__(self,*args,**kwargs):
         super(DesignRetrieveForm,self).__init__(*args,**kwargs)
-
-    def save(self):
-        post = super(DesignRetrieveForm,self).save()
-        post.save()
-
 
 class DesignDownloadForm(forms.ModelForm):
     class Meta:
