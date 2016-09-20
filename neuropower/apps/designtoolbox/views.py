@@ -399,19 +399,16 @@ def runGA(request):
     runform = DesignRunForm(request.POST or None, instance=desdata)
     context["runform"] = runform
 
-    form = runform.save(commit=False)
-    form.desfile = os.path.join(settings.MEDIA_ROOT, "designs",
-                        "design_" + str(sid) + ".json")
-    form.genfile = os.path.join(settings.MEDIA_ROOT, "designs",
-                        "generation_" + str(sid) + ".json")
-    form.onsetsfolder = os.path.join(settings.MEDIA_ROOT, "designonsets", str(sid))
-    form.save()
-
-
     # Responsive loop
 
     if request.method == "POST":
         form = runform.save(commit=False)
+        form.desfile = os.path.join(settings.MEDIA_ROOT, "designs",
+                            "design_" + str(sid) + ".json")
+        form.genfile = os.path.join(settings.MEDIA_ROOT, "designs",
+                            "generation_" + str(sid) + ".json")
+        form.onsetsfolder = os.path.join(settings.MEDIA_ROOT, "designonsets", str(sid))
+        form.save()
 
         # If stop is requested
         if request.POST.get("GA") == "Stop":

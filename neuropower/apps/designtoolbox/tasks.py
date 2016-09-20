@@ -4,6 +4,7 @@ from designcore import design
 from .forms import DesignRunForm
 from celery import task, Celery
 import os
+import numpy as np
 from utils import probs_and_cons
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'neuropower.settings')
@@ -15,7 +16,7 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 def GeneticAlgorithm(sid):
 
     desdata = DesignModel.objects.get(SID=sid)
-    form = DesignRunForm(None, instance=desdata)
+    runform = DesignRunForm(None, instance=desdata)
 
     matrices = probs_and_cons(sid)
     desfile = desdata.desfile
@@ -55,6 +56,7 @@ def GeneticAlgorithm(sid):
 
     # Responsive loop
 
+    form = runform.save(commit=False)
     form.running = 1
     print("geraken we hier?")
     form.save()
