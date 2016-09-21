@@ -45,6 +45,9 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("S")>10:
             raise forms.ValidationError("Sorry, at the moment we can only model designs when there are at most 10 stimulus types. Parameters not saved.")
 
+        if cleaned_data.get("S")==1:
+            raise forms.ValidationError("Sorry, at the moment we can only model designs with more than 1 stimulus type.  Check back, this extension is on the agenda!")
+
         if cleaned_data.get("Clen")>5:
             raise forms.ValidationError("Sorry, at the moment we can only model designs when there are at most 5 contrasts. Parameters not saved.")
 
