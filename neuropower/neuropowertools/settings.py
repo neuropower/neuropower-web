@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+from kombu import Exchange, Queue
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,13 +46,25 @@ INSTALLED_APPS = [
     "kombu.transport.django",
 ]
 
-import djcelery
-djcelery.setup_loader()
 # Celery config
-BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+
+CELERY_DEFAULT_QUEUE = 'default'
+CELERY_QUEUES = (
+    Queue('default', Exchange('default'), routing_key='default'),
+)
+CELERY_IMPORTS = ('apps.designtoolbox.tasks', )
+BROKER_TRANSPORT='redis'
 CELERY_ACCEPT_CONTENT = ['json']
-CELERY_CONCURRENCY = 1
+CELERYD_CONCURRENCY = 2
+CELERY_IMPORTS = ('apps.designtoolbox.tasks', )
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+BROKER_URL = 'redis://redis:6379/0'
+
+CELERYD_LOG_LEVEL  = 'DEBUG'
+CELERYD_MAX_TASKS_PER_CHILD = 4
+
 
 
 MIDDLEWARE_CLASSES = [
@@ -101,7 +114,7 @@ DATABASES = {
         'NAME': 'sqlite3',
     }
 }
-
+#
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

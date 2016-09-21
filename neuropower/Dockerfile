@@ -90,7 +90,6 @@ RUN source activate crnenv && \
   pip install uwsgi && \
   pip install -U Jinja2
 
-RUN pip install celery[redis]
 RUN pip install celery==3.0.19
 RUN pip install --upgrade celery
 RUN pip install SQLAlchemy
@@ -110,7 +109,13 @@ RUN pip install jinja2
 RUN pip install sklearn
 RUN pip install nilearn
 RUN conda install sqlalchemy
-RUN pip install redis
+RUN pip install kombu==3.0.30
+RUN source activate crnenv && \
+    pip install redis && \
+    pip install celery[redis] && \
+
+env PATH=$PATH:/usr/lib/:/root/miniconda2/envs/crnenv/lib/
+ADD shelve.py /root/miniconda2/envs/crnenv/bin/
 
 # Clear apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

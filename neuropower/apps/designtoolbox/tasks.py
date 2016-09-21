@@ -14,7 +14,7 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 @app.task
 def GeneticAlgorithm(sid):
-
+    print("running now...")
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
 
