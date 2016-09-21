@@ -110,6 +110,7 @@ RUN pip install jinja2
 RUN pip install sklearn
 RUN pip install nilearn
 RUN conda install sqlalchemy
+RUN pip install redis
 
 # Clear apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

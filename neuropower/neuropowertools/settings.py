@@ -51,9 +51,8 @@ djcelery.setup_loader()
 BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERY_ACCEPT_CONTENT = ['json']
+CELERY_CONCURRENCY = 1
 
-
-CELERY_ALWAYS_EAGER = True
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',

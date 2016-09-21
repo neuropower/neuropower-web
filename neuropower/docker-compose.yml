@@ -32,6 +32,6 @@ redis:
 
 worker:
   image: joke/neuropower
-  command: celery worker -A celeryNP -Q default -n default@%h --detach
+  command: celery worker -A celeryNP -Q default -n default@%h --detach --maxtasksperchild=10 -c 1
   volumes_from:
     - uwsgi
