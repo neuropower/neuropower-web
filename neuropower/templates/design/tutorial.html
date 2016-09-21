@@ -15,17 +15,20 @@
 <div class="row">
 
   <!-- Navigation for user -->
-  <div class="col-md-12" style="padding-bottom:30px">
-    <h1>NeuroDesign - Tutorial</h1>
-    <p> Under development </p>
+  <div class="col-md-4" style="padding-bottom:30px">
+    <h1>Neuropower Tutorial</h1>
 
-    <!-- <ul>
+    <ul>
       <li><a class="step-link" id="#step0">Getting Started</a></li>
-    </ul> -->
+      <li><a class="step-link" id="#step1">Experimental outcomes</a></li>
+      <li><a class="step-link" id="#step2">Input</a></li>
+      <li><a class="step-link" id="#step3">Options</a></li>
+      <li><a class="step-link" id="#step4">Genetic Algorithm</a></li>
+    </ul>
   </div>
 
   <!-- Title Box -->
-  <!-- <div class="col-md-8" style="padding-bottom:30px">
+  <div class="col-md-8" style="padding-bottom:30px">
     <h1 style="align-text:center;padding-top:140px; float:right" id="step_title">Getting Started</h1>
   </div>
 </div>
@@ -34,24 +37,87 @@
         <a class="btn btn-primary btn" style="border-radius:30px;float:right;position:relative; top:-20px" id="save_pdf"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a>
         <div id="editor"></div>
     </div>
-</div> -->
+</div>
 
-<!-- <div class="row" id="pdf-content">
-
+<div class="row" id="pdf-content">
   <div class="panel panel-default" id="step0-content">
     <div class="panel-body">
       <div class="col-md-12">
-        <h3> Step 0</h3>
-        <p>BladiBla. </p>
-
-       <a class="btn btn-primary btn-lg step-button" text="Data Input" style="float:right" id="next1">Next: Step 1</a>
+        <p>This toolbox is for the optimisation of experimental designs for fMRI. Minimising the variance of the design matrix will help detect or estimate (depending on the outcome of interest) the effect researchers are looking for.  The genetic algorithm for experimental designs was introduced by a href="http://www.ncbi.nlm.nih.gov/pubmed/12595184">Wager and Nichols (2002)</a> and further improved by <a href="http://www.ncbi.nlm.nih.gov/pubmed/18948212">Kao, Mandal, Lazar and Stufken (2009)</a>.  We implemented these methods in a userfriendly web-application and introduced some improvements and allows more flexibility for the experimental setup.</p>
+        <br>
+        <h4>Goal of the optimisation</h4>
+        <br>
+        <h5>Stimulus order</h5>
+        <p>Let's say a researcher wants to design an experiment with 3 possible conditions: A (seeing happy faces), B (seeing sad faces) and C(seeing angry faces).  The first goal of the optimisation is to provide an optimal order of the conditions. </p>
+        <p>For example: compare the designs with stimulus order AAAABBBBCCCC and AABBCCBBCCAA.  With the first design, you'll have an optimal BOLD response, but it will be hard to distinguish the design from scanner drift.  Moreover, the first design is very predictable.  In this case, it might be advisable to use the second example.  This is an example of how we optimise the stimulus order.</p>
+        <h5>Stimulus timing</h5>
+        <p>A second example is the exact timing of the stimuli.  For example: a whole brain scan is taken every 2 seconds (TR=2s), and the stimuli are also presented every 2 seconds (ITI=2s). We assume that the HRF (the fMRI signal after activation) is a continuous function that peaks somewhere around 4 seconds and then has a slow decay.  However, with this design, you will measure the exact same timepoint on the HRF.  You won't be able to estimate the whole HRF.  Moreover, a whole brain scan is taken in slices.  For example: the temporal lob (or part of it) will be measured 0.5s after stimulus presentation and the parietal lobe will be measured after 1s.  This is clearly unwanted.</p>
+        A first solution is to set the ITI different from the TR.  But an even better solution is to spread the stimuli at specific timepoints that will enable to estimate the hrf at many different time points.  This toolbox searches for optimal stimulus timing.</p>
+        <h5>Output</h5>
+        <p>Once the design optimisation is run, the output will be a file for each stimulus type (or condition) with stimulus onsets. As such, it captures both the stimulus order and the exact timing.</p>
+        <br><br>
+         <a class="btn btn-primary btn-md step-button" text="Experimental Outcomes" style="float:right" id="next1">Next: Experimental Outcomes</a>
       </div>
     </div>
   </div>
 
+  <div class="panel panel-default hidden" id="step1-content">
+    <div class="panel-body">
+      <div class="col-md-12">
+        <p>There is no global way to improve an experimental design.  It depends on what the researcher wants to measure.  There are two statistical properties and two psychological properties that can be optimised.  It is the researcher's choice to decide the relative importance of each of those properties.  The two statistical properties define the main possible outcomes of an experimental design.  However, there are two potential unwanted psychological effects that can be avoided by optimising the psychological properties.
+        </p>
+        <h5> Statistical properties</h5>
+        <ul>
+          <li><b>Estimation efficiency:</b> A possible goal of the research is to estimate the exact shape of the signal (the <a href="https://en.wikipedia.org/wiki/Haemodynamic_response">haemodynamic response function - HRF </a>) after a stimulus has been presented.  This can be interesting for research into how the HRF varies accross subjects/regions/...  This outcome is also desirable when estimating connectivity between region/time series.  The optimisation algorithm will improve the likeliness to have a good estimate of the brain response at following a stimulus with a good temporal resolution.</li>
+          <li><b>Detection power:</b> Another potential goal of an fMRI study is to detect brain activation related to a certain task.  The keyword is <b>contrast</b>.  For example: the researcher wants to find which part of the brain is responsible for the contrast between seeing faces and houses, the contrast between angry and happy faces, or the contrast between auditory stimulation and nothing (baseline).  In this case, the optimisation algorithm will improve the statistical separation between the modeled conditions.</li>
+        </ul>
+        <h5> Psychological properties</h5>
+        <ul>
+          <li><b>Predictability:</b> When a subject in the scanner can predict which stimulus will follow, the effect of that stimulus might be biased.  As such, it is important to avoid certain contingencies.</li>
+          <li><b>Stimulus frequencies:</b> Sometimes, you can get higher detection power or estimation efficiency when the frequencies of the stimuli are slightly changed.  For example: in a stop-signal experiment, you want 30% of the stimuli to be stop-trials and 70% to be go-trials.  However, the genetic algorithm has a better detection power when the frequencies are changed from 30-70 to 25-75%.  In certain tasks (like a  basic stop-signal task), changing these frequencies can have a large psychological impact and you want to avoid changing the frequencies. </li>
+        </ul>
+        <br><br>
 
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-md step-button" text="Getting Started" id="previous0">Previous: Getting Started</a>
+       <a class="btn btn-primary btn-md step-button" text="Viewer" id="next2" style="float:right">Next: Viewer</a>
+    </div>
   </div>
-</div> -->
+
+
+  <div class="panel panel-default hidden" id="step2-content">
+    <div class="panel-body">
+      <div class="col-md-12">
+        <p>If you have loaded your data through a public link (not uploaded), then you can see in the tab <button type="button" class="btn btn-secondary btn-xs">Viewer</button> a preview of your map using <a href="https://github.com/rii-mango/Papaya" target="_blank">Papaya viewer</a>.</p>
+      </div>
+      <div class="col-md-12">
+        <a href="{% static "documentation/2_viewer.png" %}" target="_blank"><img src='{% static "documentation/2_viewer.png" %}' width="80%"/></a>
+      </div>
+
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-sm step-button" text="Experimental Outcomes" id="previous1">Previous: Experimental Outcomes</a>
+       <a class="btn btn-primary btn-sm step-button" text="Extract Peaks" id="next3" style="float:right">Next: Extract Peaks</a>
+
+    </div>
+  </div>
+
+  <div class="panel panel-default hidden" id="step3-content">
+    <div class="panel-body">
+      <div class="col-md-12">
+        Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Peak Table</button> invokes the extraction of the local maxima in the statistical map.  This step, while not of particular interest to the user, is crucial for the power calculations.  Depending on the size of the dataset, this step might take a while.  Once all peaks are extracted, a table is shown with the coordinates, the values and the p-values for each peak.
+      </div><br>
+      <div class="col-md-12">
+        <a href='{% static "documentation/3_peak_table.png" %}' target="_blank"><img src='{% static "documentation/3_peak_table.png" %}' width="90%"/></a>
+      </div>
+
+       <!-- Next and previous buttons -->
+       <a class="btn btn-primary btn-lg step-button" text="Viewer" id="previous2">Previous: Viewer</a>
+       <a class="btn btn-primary btn-lg step-button" text="Fit Model" id="next4" style="float:right">Next: Fit Model</a>
+
+
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

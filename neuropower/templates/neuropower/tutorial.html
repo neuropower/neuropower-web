@@ -16,7 +16,7 @@
 
   <!-- Navigation for user -->
   <div class="col-md-4" style="padding-bottom:30px">
-    <h1>Tutorial</h1>
+    <h1>Neuropower Tutorial</h1>
 
     <ul>
       <li><a class="step-link" id="#step0">Getting Started</a></li>
@@ -158,7 +158,7 @@
 
   <div class="panel panel-default hidden" id="step4-content">
     <div class="panel-body">
- 
+
       <div class="col-md-12">
         The tab <button type="button" class="btn btn-secondary btn-xs">Model Fit</button>  will show you the result of the fit of the model.  What we are aiming for is finding the alternative distribution of peaks.  How to do this?
         <h3>1. Estimate the mean and the standard deviation of the alternative distribution</h3>
@@ -265,19 +265,19 @@ $(document).ready(function(){
        var step_id = $(this).attr("id")
        $(".panel").addClass("hidden");
        $(step_id + "-content").removeClass("hidden");
-    
+
        $("body").scrollTop(0)
    })
 
    //Clicking button at bottom of panel moves to next step
     $(".step-button").click(function(){
        var button_id = $(this).attr("id")
-       
+
        // Get rid of previous or next to leave the id to go to
        button_id = button_id.replace("previous","")
        button_id = button_id.replace("next","")
        $("#step_title").text($(this).attr("text"))
-       
+
        $(".panel").addClass("hidden");
        $("#step" + button_id + "-content").removeClass("hidden");
 
@@ -299,7 +299,7 @@ $(document).ready(function(){
 		return true;
 	}
       };
- 
+
         // Remove images - are not rendering properly
         var html = $('#pdf-content').html()
             .replace(/<img[^>]*>/g,"")
@@ -310,7 +310,7 @@ $(document).ready(function(){
             .replace(/&#963;/g,"sigma") // not currenly working
 
         doc.fromHTML(html, 15, 15, {
-	   'width': 170, 
+	   'width': 170,
 	   'elementHandlers': specialElementHandlers
         },
 
