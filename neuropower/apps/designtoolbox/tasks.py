@@ -17,7 +17,7 @@ def GeneticAlgorithm(sid):
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
-    form.running = 0
+    form.running = 1
     form.save()
 
     matrices = probs_and_cons(sid)
@@ -60,7 +60,7 @@ def GeneticAlgorithm(sid):
         desdata = DesignModel.objects.get(SID=sid)
         runform = DesignRunForm(None, instance=desdata)
         form = runform.save(commit=False)
-        form.running = 1
+        form.running = 2
         form.save()
         des.prerun = 'Fe'
         NatSel = des.GeneticAlgorithmNaturalSelection(
@@ -72,7 +72,7 @@ def GeneticAlgorithm(sid):
         desdata = DesignModel.objects.get(SID=sid)
         runform = DesignRunForm(None, instance=desdata)
         form = runform.save(commit=False)
-        form.running = 2
+        form.running = 3
         form.save()
         des.prerun = 'Fd'
         NatSel = des.GeneticAlgorithmNaturalSelection(
@@ -83,7 +83,7 @@ def GeneticAlgorithm(sid):
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
-    form.running = 3
+    form.running = 4
     form.save()
     des.prerun = None
     NatSel = des.GeneticAlgorithmNaturalSelection(
