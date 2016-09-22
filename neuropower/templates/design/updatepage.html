@@ -9,10 +9,10 @@
 
 {% block scripts %}
 {% include 'main/javascript.html' %}
-{% if refrun == "1" or refrun == "2" %}
+{% if refrun == 1 or refrun == 2 %}
 {% include 'design/prerun.js' %}
 {% endif %}
-{% if refrun == "3" %}
+{% if refrun == 3 %}
 {% include 'design/update.js' %}
 {% endif %}
 {% endblock %}

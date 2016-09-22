@@ -8,6 +8,7 @@
 
 {% block navbar %}
 {% include 'main/navbar.html' %}
+{%include 'design/designnavbar.html' %}
 {% endblock %}
 
 {% block content %}
@@ -22,30 +23,21 @@
   <div class="col-xs-1"></div>
 </div>
 <div class="row">
-  <div class="col-xs-4"></div>
-  <div class="col-xs-4">
-      <br><br><br>
-      <a href="{% url 'DMainInput' %}"><button type="button" class="btn btn-primary btn-lg">Use the toolbox !</button></a>
-      <br><br><br>
-  </div>
-  <div class="col-xs-4"></div>
-</div>
-<div class="row">
   <div class="col-xs-1"></div>
   <div class="col-xs-10">
     <h4> Help Wanted </h4>
     <br><br>
       <p>You're looking at the first version of the design efficiency toolbox.  We need input !  Any feedback is welcome: visual, aesthetical, user friendliness, bugs,...  If you were redirected to a 404 or 500 page, we probably got a very detailed report of what went wrong, but feel free to give more details.</p>
       <p>We want to make this toolbox as useful as possible.  If you're currently planning a study and your design requires specific options that are not in here, let us know ! We might include it.  If you have other ideas on how to extend or improve this toolbox, just fill out the form below.</p>
-      <p>Here are some ideas we want to include in next versions:</p>
+      <p>Here are some ideas on our plate:</p>
       <ul>
-        <li><b>Stimulus combinations:</b> For example, you want to show a sad/happy face and then a sad/happy event to see what happens with congruent and non-congruent trials.  Your stimuli are grouped: faces (sad,happy,pleased,angry,...) and events.  This will probably be the first extension of the toolbox as it is.</li>
         <li>Speed up the optimisation.</li>
         <li><b>HRF functions:</b> Right now, we're using the double gamma hrf from SPM.  We might include others in the future</li>
         <li>Different drift models</li>
-        <li><b>Other optimisation algorithms</b></li>
+        <li>Other optimisation algorithms</li>
         <li>Allow only 1 stimulustype</li>
         <li>Do ITI jittering using a truncated exponential rather than uniform between two values</li>
+        <li>Write a paper about it :-)</li>
         <li>...</li>
       </ul>
       <p> Depending on the feedback, we will make a list of potential new features and bugs and prioritise accordingly !</p><br><br>

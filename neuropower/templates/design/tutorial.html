@@ -16,7 +16,7 @@
 
   <!-- Navigation for user -->
   <div class="col-md-4" style="padding-bottom:30px">
-    <h1>Neuropower Tutorial</h1>
+    <h1>Neurodesign Tutorial</h1>
 
     <ul>
       <li><a class="step-link" id="#step0">Getting Started</a></li>
@@ -43,16 +43,16 @@
   <div class="panel panel-default" id="step0-content">
     <div class="panel-body">
       <div class="col-md-12">
-        <p>This toolbox is for the optimisation of experimental designs for fMRI. Minimising the variance of the design matrix will help detect or estimate (depending on the outcome of interest) the effect researchers are looking for.  The genetic algorithm for experimental designs was introduced by a href="http://www.ncbi.nlm.nih.gov/pubmed/12595184">Wager and Nichols (2002)</a> and further improved by <a href="http://www.ncbi.nlm.nih.gov/pubmed/18948212">Kao, Mandal, Lazar and Stufken (2009)</a>.  We implemented these methods in a userfriendly web-application and introduced some improvements and allows more flexibility for the experimental setup.</p>
+        <p>This toolbox is for the optimisation of experimental designs for fMRI. Minimising the variance of the design matrix will help detect or estimate (depending on the outcome of interest) the effect researchers are looking for.  The genetic algorithm for experimental designs was introduced by <a href="http://www.ncbi.nlm.nih.gov/pubmed/12595184">Wager and Nichols (2002)</a> and further improved by <a href="http://www.ncbi.nlm.nih.gov/pubmed/18948212">Kao, Mandal, Lazar and Stufken (2009)</a>.  We implemented these methods in a userfriendly web-application and introduced some improvements and allows more flexibility for the experimental setup.</p>
         <br>
         <h4>Goal of the optimisation</h4>
         <br>
         <h5>Stimulus order</h5>
         <p>Let's say a researcher wants to design an experiment with 3 possible conditions: A (seeing happy faces), B (seeing sad faces) and C(seeing angry faces).  The first goal of the optimisation is to provide an optimal order of the conditions. </p>
-        <p>For example: compare the designs with stimulus order AAAABBBBCCCC and AABBCCBBCCAA.  With the first design, you'll have an optimal BOLD response, but it will be hard to distinguish the design from scanner drift.  Moreover, the first design is very predictable.  In this case, it might be advisable to use the second example.  This is an example of how we optimise the stimulus order.</p>
+        <p>For example: compare the designs with stimulus order AAAABBBBCCCC and AABBCCBBCCAA.  With the first design, you'll have an optimal BOLD response to distinguish the different stimuli, but it will be hard to distinguish the design from scanner drift.  Moreover, the first design is very predictable.  In this case, it might be advisable to use the second example.  This is an example of how we optimise the stimulus order.</p>
         <h5>Stimulus timing</h5>
         <p>A second example is the exact timing of the stimuli.  For example: a whole brain scan is taken every 2 seconds (TR=2s), and the stimuli are also presented every 2 seconds (ITI=2s). We assume that the HRF (the fMRI signal after activation) is a continuous function that peaks somewhere around 4 seconds and then has a slow decay.  However, with this design, you will measure the exact same timepoint on the HRF.  You won't be able to estimate the whole HRF.  Moreover, a whole brain scan is taken in slices.  For example: the temporal lob (or part of it) will be measured 0.5s after stimulus presentation and the parietal lobe will be measured after 1s.  This is clearly unwanted.</p>
-        A first solution is to set the ITI different from the TR.  But an even better solution is to spread the stimuli at specific timepoints that will enable to estimate the hrf at many different time points.  This toolbox searches for optimal stimulus timing.</p>
+        A layman's solution is to set the ITI different from the TR.  But an even better solution is to spread the stimuli at specific timepoints that will enable to estimate the hrf at many different time points, with a variable ITI.  This toolbox searches for optimal stimulus timing.</p>
         <h5>Output</h5>
         <p>Once the design optimisation is run, the output will be a file for each stimulus type (or condition) with stimulus onsets. As such, it captures both the stimulus order and the exact timing.</p>
         <br><br>
@@ -80,44 +80,155 @@
 
        <!-- Next and previous buttons -->
        <a class="btn btn-primary btn-md step-button" text="Getting Started" id="previous0">Previous: Getting Started</a>
-       <a class="btn btn-primary btn-md step-button" text="Viewer" id="next2" style="float:right">Next: Viewer</a>
+       <a class="btn btn-primary btn-md step-button" text="Input" id="next2" style="float:right">Next: Input</a>
     </div>
   </div>
+</div>
 
 
   <div class="panel panel-default hidden" id="step2-content">
     <div class="panel-body">
       <div class="col-md-12">
-        <p>If you have loaded your data through a public link (not uploaded), then you can see in the tab <button type="button" class="btn btn-secondary btn-xs">Viewer</button> a preview of your map using <a href="https://github.com/rii-mango/Papaya" target="_blank">Papaya viewer</a>.</p>
-      </div>
-      <div class="col-md-12">
-        <a href="{% static "documentation/2_viewer.png" %}" target="_blank"><img src='{% static "documentation/2_viewer.png" %}' width="80%"/></a>
-      </div>
+        <p>In the first step, you are asked some parameters about your design/scanner:</p>
+        <h4>Design parameters</h4>
+        <h5>General</h5>
+          <div class="table">
+            <table><tr>
+              <td width="20%">Scanner TR (seconds)</td><td width='80%'>The repetition time of your scanner.  How many seconds are there between two whole brain scans?</td>
+              </tr><tr>
+              <td>Stimulus types</td><td>The number of <b>different</b> stimuli in your design, often the same as the number of conditions.  If you're comparing seeing faces with seeing houses, you have 3 stimulus types.</td>
+              </tr><tr>
+              <td>Stimulus duration</td><td>How long does one stimulus last on the screen?  We expect brain activation for the duration of the stimulus.  Please exclude the duration of non-target parts of a trial (such as fixation crosses) and add this duration to the ITI.</td>
+              </tr><tr>
+              <td>Stimulus duration</td><td>How long does one stimulus last on the screen?  We expect brain activation for the duration of the stimulus.  Please exclude the duration of non-target parts of a trial (such as fixation crosses) and add this duration to the ITI.</td>
+              </tr><tr>
+              <td>Total number of trials</td><td>How many trials does the experiment consist of in total?</td>
+              </tr>
+            </table>
+          </div>
+        <h5>Contrasts</h5>
+        <p>If you are comparing conditions (or a condition with baseline), you need to prepare contrasts for your analysis.  The optimisation of your design also depends on these contrasts.  If you have 3 conditions, and you want to compare all of those, your contrast matrix would be:<p>
+          <div class="table">
+            <table width='200'><tr>
+              <td width="33%">1</td><td width="33%">-1</td><td width="33%">0</td>
+              </tr><tr>
+              <td>0</td><td>1</td><td>-1</td>
+              </tr><tr>
+              <td>1</td><td>0</td><td>-1</td>
+            </tr>
+            </table>
+          </div>
+        <p>The first line compares condition 1 with condition 2.  The second line compares condition 2 with condition 3 and the last line compares condition 1 with condition 3.</p>
+        <p>By checking to inclide all pairwise contrasts, all these one-by-one contrasts will be added.</p>
+        <p>If you want to specify custom contrasts, you can do so too.  In an example with three conditions - seeing angry faces, seeing sad faces and seeing neutral faces - you'd want to compare the average of emotional faces with neutral faces.  Your contrast would look like this:</p>
+          <div class="table">
+            <table width='200'><tr>
+              <td width="33%">0.5</td><td width="33%">0.5</td><td width="33%">-1</td>
+              </tr>
+            </table>
+          </div>
+        <h5>Inter-trial interval (ITI)</h5>
+        <p>You want to specify the time between stimuli, the inter-trial interval (ITI) or also known as the inter-stimulus interval (ISI).  You can specify a fixed ITI, but also a variable ITI.  We strongly suggest a variable ITI for a better estimation of the activation.  For a fixed ITI, you only have to fill out the average ITI; for a variable ITI, uniform between two values, you should fill out the minimum and the maximum.  You can also specify a minimum and a maximum <b><i>and</i></b> a mean that is not exactly between the minimum and the maximum. <p>
+        <h5>Rest blocks</h5>
+        <p>Very often, a researcher would include some rest blocks during the experiment to let the subject rest and refocus.  You can choose how long these rest blocks are and how many trials there are between rest blocks. </p>
+        <p><b>Note</b> that if you're modeling a very long experiment, it might be advisable to optimise 2 different runs rather than 1 long run with a long rest block.</p>
+        <h5>Nested designs</h5>
+        <p>Often, you have nested designs: certain conditions are nested within other conditions.  You can specify this structure in this toolbox.</p>
+        <p>On the first input page, you're asked how many classes of stimuli you have.  This will take you to a next page to specify the structure of your stimuli.</p>
+        <p>This option is only to make input easier.  If you prefer to handle the stimuli as independent, this will not impact the results.</p>
+        <h4>Design optimisation parameters</h4>
+        <p>On the previous page in the tutorial, we explained the different optimisation criteria.  Here, you are asked to give weights to each of those criteria.  Each criterium is scaled between 0 and 1, with higher being better.  The total optimisation will be the weighted average of those criteria.
+        <h4>Psychological confounding factors</h4>
+        <p><b>Trial contingencies</b></p>
+        <p>On the previous page, we explained how we you want to avoid predictability by ensuring that each stimulus follows each other stimulus with equal probabilities.  We also model the the probability that a stimulus follows another stimulus with other stimulus in between, with two stimuli in between,...  You can choose at which lag this is controlled.  The default is set to 3.</p>
+        <p><b>Trial blockedness</b></p>
+        <p>Imagine an experiment with 3 stimulus types.  The probability to have randomly a block of 6 stimuli of the same type is 1/3^6.  However, with a design of 300 trials, the probality of a random design to have a block of 6 stimuli is close to 0.4.  As such, even a design that is completely random has a large chance of containing a <i>long</i> block of the same stimuli.  You might want to avoid such long blocks, it might interfere with the expectance of the subject by setting a maximum number of repeated stimuli.<p>
+        <p>Watch out though.  In an experiment with only 2 stimuli, there is on average a block of 6 repeated stimuli every 64 trials.  With only two stimuli, it will not only be difficult to randomly find a design without such blocks, but it might also inversely impact the expectance of the stimuli.  You might want to set the maximum number of repeated stimuli higher or leave this field empty.</p>
+        <h4>Contrasts and Probabilities</h4>
+        <h5>Stimulus probabilities</h5>
+        <p>Here, you are asked to set the probability of each stimulus type.  You can fill this out in whatever unit, as long as they are relative to one another.  If you want a design with 200 trials with 4 stimulus types with equal probabilities, you can fill out [0.25, 0.25, 0.25, 0.25], or [50,50,50,50], or even [1,1,1,1].</p>
+        <p>You can fill out integers or decimal values, but not fractions.  For fractions that have infinite decimals (like 1/3), you can ignore the denominator.  For example [1/3,2/3] can be written as [1,2].</p>
+        <h5>Hard limit on the probabilities</h5>
+        <p>During the design optimisation, it might (and it probably will) occur that the final probabilities are not exactly what you wanted for the sake of having an optimal design.  To avoid this, you can set the probabilities as an optimality criterion, but it might still not be perfect.  If you <b>only</b> want designs with the exact probabilities you wanted, you can check this box. </p>
+        <p>However, this will have a large impact on the optimisation.  It will largely restrict the number of designs to search over, and the optimisation will take a lot longer and we might even end up without optimal design.  If you check this box, we will automatically set the number of designs in each step of the algorithm a lot larger to avoid finishing without design, but there's nothing we can do about the duration.</p>
+        <h5>Contrasts</h5>
+        <p>We've explained in short how to construct a custom contrast above.  For a clear overview and more information, see <a href="http://mumfordbrainstats.tumblr.com/post/125507100796/day-6-setting-up-linear-contrasts">this video</a> from Jeanette Mumford's blog.</p>
+        <br><br>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-sm step-button" text="Experimental Outcomes" id="previous1">Previous: Experimental Outcomes</a>
-       <a class="btn btn-primary btn-sm step-button" text="Extract Peaks" id="next3" style="float:right">Next: Extract Peaks</a>
-
+       <a class="btn btn-primary btn-md step-button" text="Experimental Outcomes" id="previous1">Previous: Experimental Outcomes</a>
+       <a class="btn btn-primary btn-md step-button" text="Options" id="next3" style="float:right">Next: Options</a>
+     </div>
     </div>
   </div>
 
   <div class="panel panel-default hidden" id="step3-content">
     <div class="panel-body">
       <div class="col-md-12">
-        Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Peak Table</button> invokes the extraction of the local maxima in the statistical map.  This step, while not of particular interest to the user, is crucial for the power calculations.  Depending on the size of the dataset, this step might take a while.  Once all peaks are extracted, a table is shown with the coordinates, the values and the p-values for each peak.
-      </div><br>
-      <div class="col-md-12">
-        <a href='{% static "documentation/3_peak_table.png" %}' target="_blank"><img src='{% static "documentation/3_peak_table.png" %}' width="90%"/></a>
-      </div>
-
+        <p>In the review panel, there is a button that will take you to some settings of the design and the genetic algorithm.  These settings are based on research, so you might leave those to the default settings.  We will explain all these parameters in short here.</p>
+        <h5>Design and optimisation parameters</h5>
+        <table><tr>
+          <td width="30%">Temporal autocorrelation coefficient</td><td width='70%'>We have to make an assumption about the autocorrelation structure of the data.  We assume an AR(1) model with a correlation of 0.3 between each subsequent timepoint.</td>
+          </tr><tr>
+          <td>A-optimality or D-optimality</td><td>There are two measures of design optimality.  Read up on the methods what these mean.  We choose A-optimality as the default.</td>
+          </tr><tr>
+          <td>Resolution</td><td>This parameter sets the resolution of the design, and will define the minimal difference between two ITI's.  You can change this setting, but it should be a divisor between both the TR and the ITI in the case of a fixed ITI. For a design with variable ITI, this should be divisor of the TR.</td>
+          </tr>
+        </table>
+        <h5>Genetic algorithm parameters</h5>
+        <p>To understand these parameters, ideally you read about the genetic algorithm (see methods).  Here's the algorithm in very basic terminology.</p>
+        <ol>
+          <li>First parent generation: A certain number of designs are constructed to start</li>
+          <li>Cross-over happens: The designs make babies by mixing part of one design with part of another design.</li>
+          <li>Mutation: Babies aren't perfect clones of their parent designs.  A certain percentage of trials are randomly changed for other trials.</li>
+          <li>Immigrants: To avoid inbred designs, new baby designs are added to the already existing baby designs.</li>
+          <li>Natural selection: the best babies are selected and now become the next generation of parents.</li>
+          <li>Step 2 to 5 are repeated for a large number of generations</li>
+        </ol>
+        Some parameters with respect to this algorithm you can change:
+        <table><tr>
+          <td width="30%">The size of each generation</td><td width='70%'>The number of designs that go from one generation to another.</td>
+          </tr><tr>
+          <td>Percentage mutation</td><td>The number of trials that get mutated in each design.</td>
+          </tr><tr>
+          <td>Number of immigrants</td><td>The number of new designs in each generation.</td>
+          </tr><tr>
+          <td>Number of generations</td><td>How many generations are run before coming to the final optimal design?  <br>Fun fact: since anatomically modern humans arose, there have been between 5,000 and 10,000 generations of this natural selection mechanism (source: <a href="http://lmgtfy.com/?q=how+many+generations+are+there">google</a>) and we're still nowhere near perfection.</td>
+          </tr><tr>
+          <td>Pre-run generations</td><td>To have an accurate scale of the optimality criteria, we have to do a prerun to find the optimal efficiency and detection power.  This should be more or less equal to the number of generations in the genetic algorithm.</td>
+          </tr>
+        </table>
+        <br><br>
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" text="Viewer" id="previous2">Previous: Viewer</a>
-       <a class="btn btn-primary btn-lg step-button" text="Fit Model" id="next4" style="float:right">Next: Fit Model</a>
-
-
+       <a class="btn btn-primary btn-md step-button" text="Input" id="previous2">Previous: Input</a>
+       <a class="btn btn-primary btn-md step-button" text="Genetic Algorithm" id="next4" style="float:right">Next: Genetic Algorithm</a>
+     </div>
     </div>
   </div>
+
+  <div class="panel panel-default hidden" id="step4-content">
+    <div class="panel-body">
+      <div class="col-md-12">
+        <p> In the tab 'Genetic Algorithm Status', you can start the genetic algorithm by clicking 'start'.</p>
+        <p> The first step will be to find the maximum values of two of the optimality criteria (unless they are set at 0).  You'll be able to see the percentage done.</p>
+        <p> Next, the genetic algorithm starts.  You'll see a figure with the weighted optimality, and the individual optimality criteria.  You can hover over the lines to see the exact values.  Below, a figure will show the expected BOLD signal (in a perfect voxel without noise) for your design for the different conditions of the best design so far.</p>
+        <p> Once the optimisation is done, there will be download button visible that will allow you to download a zip-file with a file for each stimulus with the onsets of that particular stimulus.</p>
+        <p> During the optimisation, you can go to the different tabs to check your settings.  However, once the algorithm has started, changing these parameters will not affect the optimisation.</p>
+       <!-- Next and previous buttons -->
+       <br><br>
+       <a class="btn btn-primary btn-md step-button" text="Options" id="previous3">Previous: Options</a>
+     </div>
+    </div>
+  </div>
+
+
+
+
 </div>
+
+
+
+
 {% endblock %}
 
 {% block scripts %}

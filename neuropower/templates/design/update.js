@@ -4,6 +4,7 @@
 
 var lineData = JSON.parse('{{ optim | escapejs }}');
 var designData = JSON.parse('{{ design | escapejs }}');
+console.log(designData);
 
 // Figure of optimisation
 var Gen = lineData.Gen;
