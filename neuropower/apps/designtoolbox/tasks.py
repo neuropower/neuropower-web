@@ -14,14 +14,13 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 @app.task
 def GeneticAlgorithm(sid):
-    print("running now...")
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
+    form = runform.save(commit=False)
+    form.running = 0
+    form.save()
 
     matrices = probs_and_cons(sid)
-    desfile = desdata.desfile
-    genfile = desdata.genfile
-    onsetsfolder = desdata.onsetsfolder
 
     des = design.GeneticAlgorithm(
         # design specific
@@ -48,29 +47,20 @@ def GeneticAlgorithm(sid):
         preruncycles=desdata.preruncycles,
         HardProb=desdata.HardProb,
         tapsfile=os.path.join(settings.MEDIA_ROOT, "taps.p"),
-        gui_sid=sid,
-        write_score=genfile,
-        write_design=desfile
+        write_score=desdata.genfile,
+        write_design=desdata.desfile
     )
     des.counter = 0
-
-    # Responsive loop
-
-    desdata = DesignModel.objects.get(SID=sid)
-    runform = DesignRunForm(None, instance=desdata)
-    form = runform.save(commit=False)
-    form.running = 1
-    form.save()
 
     # Create first generation
     des.GeneticAlgorithmInitiate()
 
     # Maximise Fe
-    desdata = DesignModel.objects.get(SID=sid)
-    if des.weights[0] > 0 and des.preruncycles > 0 and desdata.stop == 0:
+    if des.weights[0] > 0 and des.preruncycles > 0:
+        desdata = DesignModel.objects.get(SID=sid)
         runform = DesignRunForm(None, instance=desdata)
         form = runform.save(commit=False)
-        form.running = 2
+        form.running = 1
         form.save()
         des.prerun = 'Fe'
         NatSel = des.GeneticAlgorithmNaturalSelection(
@@ -78,11 +68,11 @@ def GeneticAlgorithm(sid):
         des.FeMax = np.max(NatSel['Best'])
 
     # Maximise Fd
-    desdata = DesignModel.objects.get(SID=sid)
-    if des.weights[1] > 0 and des.preruncycles > 0 and desdata.stop == 0:
+    if des.weights[1] > 0 and des.preruncycles > 0:
+        desdata = DesignModel.objects.get(SID=sid)
         runform = DesignRunForm(None, instance=desdata)
         form = runform.save(commit=False)
-        form.running = 3
+        form.running = 2
         form.save()
         des.prerun = 'Fd'
         NatSel = des.GeneticAlgorithmNaturalSelection(
@@ -91,33 +81,32 @@ def GeneticAlgorithm(sid):
 
     # Natural selection
     desdata = DesignModel.objects.get(SID=sid)
-    if desdata.stop == 0:
-        des.prerun = None
-        runform = DesignRunForm(None, instance=desdata)
-        form = runform.save(commit=False)
-        form.running = 4
-        form.save()
-        NatSel = des.GeneticAlgorithmNaturalSelection(
-            cycles=des.cycles)
+    runform = DesignRunForm(None, instance=desdata)
+    form = runform.save(commit=False)
+    form.running = 3
+    form.save()
+    des.prerun = None
+    NatSel = des.GeneticAlgorithmNaturalSelection(
+        cycles=des.cycles)
 
-        # Select optimal design
-        Generation = NatSel['Generation']
-        Best = NatSel['Best']
+    # Select optimal design
+    Generation = NatSel['Generation']
+    Best = NatSel['Best']
 
-        OptInd = np.min(np.arange(len(Generation['F']))[
-                        Generation['F'] == np.max(Generation['F'])])
-        des.opt = {
-            'order': Generation['order'][OptInd],
-            'onsets': Generation['onsets'][OptInd],
-            'F': Generation['F'][OptInd],
-            'FScores': Best
-        }
+    OptInd = np.min(np.arange(len(Generation['F']))[
+                    Generation['F'] == np.max(Generation['F'])])
+    des.opt = {
+        'order': Generation['order'][OptInd],
+        'onsets': Generation['onsets'][OptInd],
+        'F': Generation['F'][OptInd],
+        'FScores': Best
+    }
 
-        desdata = DesignModel.objects.get(SID=sid)
-        runform = DesignRunForm(None, instance=desdata)
-        form = runform.save(commit=False)
-        form.optimalorder = Generation['order'][OptInd]
-        form.optimalonsets = Generation['onsets'][OptInd]
+    desdata = DesignModel.objects.get(SID=sid)
+    runform = DesignRunForm(None, instance=desdata)
+    form = runform.save(commit=False)
+    form.optimalorder = Generation['order'][OptInd]
+    form.optimalonsets = Generation['onsets'][OptInd]
 
-        # reset
-        form.save()
+    # reset
+    form.save()
