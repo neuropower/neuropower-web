@@ -108,12 +108,7 @@ class GeneticAlgorithm(object):
         self.r_scans = None
         self.write_score = write_score
         self.write_design = write_design
-        self.gui_sid=gui_sid
         self.convergence=convergence
-
-        if self.gui_sid:
-            from apps.designtoolbox.models import DesignModel
-            self.DesignModel = DesignModel
 
         self.CreateTsComp()
         self.CreateLmComp()
@@ -251,12 +246,6 @@ class GeneticAlgorithm(object):
         conv=False
         for gen in xrange(cycles):
 
-            # if gui: read stop signal
-            if self.gui_sid:
-                desdata = self.DesignModel.objects.get(shareID=self.gui_sid)
-                if desdata.stop==1:
-                    break
-
             # start loop
             self.counter = self.counter + 1
             print("Generation: "+str(gen+1))
@@ -285,7 +274,7 @@ class GeneticAlgorithm(object):
 
             # write design
             if self.write_design:
-                keys = ["Stimulus_"+str(i) for i in range(desdata.S)]
+                keys = ["Stimulus_"+str(i) for i in range(self.n_stimuli)]
                 Seq = {}
                 for s in keys:
                     Seq.update({s:[]})
