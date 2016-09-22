@@ -114,6 +114,44 @@ def weights_html(weights):
     html_join = "".join(html)
     return html_join
 
+def prepare_download(sid):
+    desdata = DesignModel.objects.get(SID=sid)
+
+    # round onsets to resolution
+    orders = desdata.optimalorder
+    onsets = [round(x / desdata.resolution) *
+              desdata.resolution for x in desdata.optimalonsets]
+
+    # if path already exist: remove
+    if os.path.exists(desdata.onsetsfolder):
+        shutil.rmtree(desdata.onsetsfolder)
+    os.mkdir(desdata.onsetsfolder)
+
+    # write onset files
+    filenames = [os.path.join(
+        desdata.onsetsfolder, "stimulus_" + str(stim) + ".txt") for stim in range(desdata.S)]
+    for stim in range(desdata.S):
+        onsubsets = [str(x) for x in np.array(
+            onsets)[np.array(orders) == stim]]
+        f = open(filenames[stim], 'w+')
+        for line in onsubsets:
+            f.write(line)
+            f.write("\n")
+        f.close()
+
+    # combine in zipfile
+    zip_subdir = "OptimalDesign"
+    zip_filename = "%s.zip" % zip_subdir
+    file = StringIO.StringIO()
+    zf = zipfile.ZipFile(file, "w")
+    for fpath in filenames:
+        fdir, fname = os.path.split(fpath)
+        zip_path = os.path.join(zip_subdir, fname)
+        zf.write(fpath, zip_path)
+    zf.close()
+
+    return({"file":file, "zipfile":zip_filename})
+
 def get_design_steps(template_page,sid):
 
     # template name, step class, and color
