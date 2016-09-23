@@ -143,7 +143,7 @@ class DesignMainForm(forms.ModelForm):
         Fieldset(
             '',
             HTML("""<div class="col-lg-12"><h5 style="margin-left: 15px">In what range is the ITI?</h5>
-            <p style="margin-left: 20px">For a fixed ITI, only fill out the average ITI.  For equally spaced ITI, only fill out minimum and maximum ITI.</p><br></div> """),
+            <p style="margin-left: 20px">For a fixed ITI, only fill out the average ITI.  For ITI's uniformly distributed between two values, only fill out minimum and maximum ITI.</p><br></div> """),
             Div(
             Div(Field('ITImin'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('ITImean'),css_class='col-md-4 col-sm-6 col-xs-12'),
@@ -656,7 +656,7 @@ class DesignProbsForm(forms.ModelForm):
 class DesignOptionsForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles']
+        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles','conv_crit']
 
     def __init__(self,*args,**kwargs):
         super(DesignOptionsForm,self).__init__(*args,**kwargs)
@@ -669,6 +669,7 @@ class DesignOptionsForm(forms.ModelForm):
         self.fields['I'].label = "How many immigrants per generation?"
         self.fields['cycles'].label = "Number of generations (iterations or cycles)."
         self.fields['preruncycles'].label = "Number of generations in the prerun to define the maximum efficiency and detection power."
+        self.fields['conv_crit'].label = "Number of stable generations to reach convergence"
 
     def clean(self):
         cleaned_data = super(DesignOptionsForm,self).clean()
@@ -700,6 +701,7 @@ class DesignOptionsForm(forms.ModelForm):
             Div(Field('I'),css_class='col-xs-12'),
             Div(Field('cycles'),css_class='col-xs-12'),
             Div(Field('preruncycles'),css_class='col-xs-12'),
+            Div(Field('conv_crit'),css_class='col-xs-12'),
             css_class='row-md-12 col-xs-12'
             )
             ),
@@ -727,8 +729,29 @@ class DesignRunForm(forms.ModelForm):
     helper.layout = Layout(
         ButtonHolder(Submit('GA', 'Run', css_class='btn-black')),
         HTML("""&emsp;"""),
-        ButtonHolder(Submit('GA', 'Stop', css_class='btn-black'))
+        ButtonHolder(Submit('GA', 'Stop', css_class='btn-black')),
         )
+
+class DesignSureForm(forms.ModelForm):
+    class Meta:
+        model = DesignModel
+        fields = []
+
+    def __init__(self,*args,**kwargs):
+        super(DesignSureForm,self).__init__(*args,**kwargs)
+
+    def clean(self):
+        cleaned_data = super(DesignSureForm,self).clean()
+        return cleaned_data
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        ButtonHolder(Submit('Sure', "I'm sure about this", css_class='btn-alert')),
+        )
+
 
 class DesignRetrieveForm(forms.ModelForm):
     class Meta:

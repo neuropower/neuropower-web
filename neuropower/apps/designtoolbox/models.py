@@ -11,6 +11,9 @@ from django.conf import settings
 class DesignModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     shareID = models.CharField(max_length=300,default="")
+    taskstatus = models.IntegerField(default=0)
+    running = models.IntegerField(default=0)
+    taskID = models.CharField(max_length=300,default="")
     ITI = models.FloatField(default=None, null=True, blank=True)
     ITImin = models.FloatField(default=None, null=True, blank=True)
     ITImean = models.FloatField(default=None, null=True, blank=True)
@@ -131,9 +134,6 @@ class DesignModel(models.Model):
     ConfoundOrder = models.IntegerField(default=3)
     MaxRepeat = models.IntegerField(default=6)
     HardProb = models.BooleanField(default=False)
-    stop = models.IntegerField(default=0)
-    running = models.IntegerField(default=0)
-    done = models.IntegerField(default=0)
     optimalorder = PickledObjectField(default="")
     optimalonsets = PickledObjectField(default="")
     desfile = PickledObjectField(default="")
@@ -142,5 +142,9 @@ class DesignModel(models.Model):
     mainpars = models.BooleanField(default=False)
     conpars = models.BooleanField(default=False)
     nestpars = models.BooleanField(default=False)
+    conv_crit = models.IntegerField(default=1000)
+    convergence = models.BooleanField(default = False)
+    name = models.CharField(default = "")
+    email = models.CharField(default = "")
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID

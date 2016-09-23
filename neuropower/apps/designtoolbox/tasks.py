@@ -13,12 +13,8 @@ app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 @app.task
-def GeneticAlgorithm(sid):
+def GeneticAlgorithm(sid,ignore_result=False):
     desdata = DesignModel.objects.get(SID=sid)
-    runform = DesignRunForm(None, instance=desdata)
-    form = runform.save(commit=False)
-    form.running = 1
-    form.save()
 
     matrices = probs_and_cons(sid)
 
@@ -48,9 +44,17 @@ def GeneticAlgorithm(sid):
         HardProb=desdata.HardProb,
         tapsfile=os.path.join(settings.MEDIA_ROOT, "taps.p"),
         write_score=desdata.genfile,
-        write_design=desdata.desfile
+        write_design=desdata.desfile,
+        convergence=desdata.conv_crit
     )
     des.counter = 0
+
+    desdata = DesignModel.objects.get(SID=sid)
+    runform = DesignRunForm(None, instance=desdata)
+    form = runform.save(commit=False)
+    form.running = 1
+    form.save()
+
 
     # Create first generation
     des.GeneticAlgorithmInitiate()
@@ -92,6 +96,7 @@ def GeneticAlgorithm(sid):
     # Select optimal design
     Generation = NatSel['Generation']
     Best = NatSel['Best']
+    conv = NatSel['convergence']
 
     OptInd = np.min(np.arange(len(Generation['F']))[
                     Generation['F'] == np.max(Generation['F'])])
@@ -107,6 +112,5 @@ def GeneticAlgorithm(sid):
     form = runform.save(commit=False)
     form.optimalorder = Generation['order'][OptInd]
     form.optimalonsets = Generation['onsets'][OptInd]
-
-    # reset
+    form.convergence = conv
     form.save()

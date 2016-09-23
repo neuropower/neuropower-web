@@ -8,8 +8,8 @@ from django.conf import settings
 from scipy.stats import norm, t
 import os
 from django.contrib.sessions.backends.db import SessionStore
-from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested
-from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm
+from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested, prepare_download
+from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm, DesignSureForm
 from .models import DesignModel
 from .tasks import GeneticAlgorithm
 from designcore import design
@@ -23,6 +23,8 @@ import StringIO
 import shutil
 import urllib2
 from celery import task
+from celery.task.control import revoke
+from celery.result import AsyncResult
 
 
 def end_session(request):
@@ -401,7 +403,7 @@ def runGA(request):
     template = "design/runGA.html"
     context = {}
 
-    # Get the session ID and database entry
+    # Get the session ID
 
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
@@ -414,8 +416,62 @@ def runGA(request):
         return HttpResponseRedirect('../maininput/')
 
     # Define form (Run or Stop)
+
     runform = DesignRunForm(request.POST, instance=desdata)
     context["runform"] = runform
+
+    # check status of job
+
+    form = runform.save(commit=False)
+    if desdata.taskID:
+        task = AsyncResult(desdata.taskID)
+        if task.status == "PENDING":
+            form.taskstatus = 1
+            form.running = 0
+        elif task.status == "STARTED":
+            form.taskstatus = 2
+        elif ((task.status == "RETRY"
+            or  task.status == "FAILURE"
+            or task.status == "SUCCESS")
+            and desdata.optimalorder):
+            form.taskstatus = 3
+            form.running = 0
+        else:
+            form.taskstatus = 0
+            form.running = 0
+    else:
+        form.taskstatus = 0
+        form.running = 0
+    form.save()
+
+    # pass results for visualisation
+
+    if os.path.isfile(desdata.genfile):
+        jsonfile = open(desdata.genfile).read()
+        try:
+            data = json.loads(jsonfile)
+            data = json.dumps(data)
+            context['optim'] = data
+        except ValueError:
+            pass
+
+    if os.path.isfile(desdata.desfile):
+        jsonfile = open(desdata.desfile).read()
+        try:
+            data = json.loads(jsonfile)
+            data = json.dumps(data)
+            context['design'] = data
+            context['stim'] = desdata.S
+        except ValueError:
+            pass
+
+    # show downloadform if results are available
+
+    desdata = DesignModel.objects.get(SID=sid)
+    if desdata.taskstatus == 3:
+        downform = DesignDownloadForm(
+            request.POST or None, instance=desdata)
+        context["downform"] = downform
 
     # Responsive loop
 
@@ -424,67 +480,60 @@ def runGA(request):
         # If stop is requested
         if request.POST.get("GA") == "Stop":
 
-            runform2 = DesignRunForm(request.POST, instance=desdata)
-            form2 = runform2.save(commit=False)
-            form2.stop = 1
-            form2.running = 0
-            form2.save()
+            if not (desdata.taskstatus == 2 or desdata.taskstatus == 1):
+                context['message'] = "You want to stop the optimisation, but nothing is running."
+            else:
+                print(desdata.taskID)
+                revoke(desdata.taskID,terminate=True,signal='KILL')
+                context["message"] = "The optimisation has been terminated."
 
-            context["message"] = "Analysis halted."
             return render(request, template, context)
 
-        # If run is requested
-        if request.POST.get("GA") == "Run":
-
+        if request.POST.get("Sure") == "I'm sure about this":
+            someonesure = True
+            desdata = DesignModel.objects.get(SID=sid)
+            runform = DesignRunForm(None, instance=desdata)
             form = runform.save(commit=False)
-            form.stop = 0
-            form.done = 0
+            form.taskstatus = 0
+            form.convergence = False
             form.save()
 
-            # check whether loop is already running and
-            # only start if it's not running
+        # If run is requested
+        if request.POST.get("GA") == "Run" or someonesure:
 
             desdata = DesignModel.objects.get(SID=sid)
-            if not desdata.running == 0:
-                context["message"] = "Analysis is already running."
-
+            if desdata.taskstatus > 0:
+                if desdata.taskstatus == 1:
+                    context['message'] = "There is already an optimisation process queued.  You can only queue or run one design optimisation at a time."
+                elif desdata.taskstatus == 2:
+                    context['message'] = "There is already an optimisation process running.  You can only queue or run one design optimisation at a time."
+                elif desdata.taskstatus == 3:
+                    context['sure'] = True
+                    sureform = DesignSureForm(
+                        request.POST or None, instance=desdata)
+                    context['sureform'] = sureform
+                return render(request, template, context)
             else:
-                context["message"] = "Analysis added to queue."
-
+                desdata = DesignModel.objects.get(SID=sid)
+                runform = DesignRunForm(None, instance=desdata)
                 res = GeneticAlgorithm.delay(sid)
-            return render(request, template, context)
+                form = runform.save(commit=False)
+                form.taskID = res.task_id
+                form.save()
+                desdata = DesignModel.objects.get(SID=sid)
+                HttpResponseRedirect('../consinput/')
 
+
+        # If request = download
         if request.POST.get("Download") == "Download optimal sequence":
-            orders = desdata.optimalorder
-            onsets = [round(x / desdata.resolution) *
-                      desdata.resolution for x in desdata.optimalonsets]
-            if os.path.exists(desdata.onsetsfolder):
-                shutil.rmtree(desdata.onsetsfolder)
-            os.mkdir(desdata.onsetsfolder)
 
-            filenames = [os.path.join(
-                desdata.onsetsfolder, "stimulus_" + str(stim) + ".txt") for stim in range(desdata.S)]
-            for stim in range(desdata.S):
-                onsubsets = [str(x) for x in np.array(
-                    onsets)[np.array(orders) == stim]]
-                f = open(filenames[stim], 'w+')
-                for line in onsubsets:
-                    f.write(line)
-                    f.write("\n")
-                f.close()
-            zip_subdir = "OptimalDesign"
-            zip_filename = "%s.zip" % zip_subdir
-            s = StringIO.StringIO()
-            zf = zipfile.ZipFile(s, "w")
-            for fpath in filenames:
-                fdir, fname = os.path.split(fpath)
-                zip_path = os.path.join(zip_subdir, fname)
-                zf.write(fpath, zip_path)
-            zf.close()
+            download = prepare_download(sid)
 
             resp = HttpResponse(
-                s.getvalue(), content_type="application/x-zip-compressed")
-            resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
+                download['file'].getvalue(),
+                content_type="application/x-zip-compressed"
+                )
+            resp['Content-Disposition'] = 'attachment; filename=%s' % download['zip_filename']
 
             return resp
 
@@ -492,50 +541,26 @@ def runGA(request):
         desdata = DesignModel.objects.get(SID=sid)
         context["preruns"] = desdata.preruncycles
         context["runs"] = desdata.cycles
-        context["refrun"] = 0
+        context["refrun"] = desdata.running
+        if desdata.taskstatus==3:
+            context['refrun'] = 5
 
         context["message"] = ""
         if desdata.running == 1:
             context["message"] = "Design optimisation initiated."
-            context["refrun"] = "1"
         elif desdata.running == 2:
             context["message"] = "Running first pre-run to find maximum efficiency."
-            context["refrun"] = "1"
         elif desdata.running == 3:
             context["message"] = "Running second pre-run to find maximum power."
-            context["refrun"] = "2"
         elif desdata.running == 4:
             context["message"] = "Running design optimisation."
-            context["refrun"] = "3"
-        elif desdata.done == 1:
-            context["message"] = "Design optimisation done"
-            context['refrun'] = "3"
-            downform = DesignDownloadForm(
-                request.POST or None, instance=desdata)
-            context["downform"] = downform
-            downform = downform.save(commit=False)
+        elif desdata.taskstatus == 3 and desdata.convergence:
+            context['message'] = 'Design optimisation finished after convergence.'
+        elif desdata.taskstatus == 3:
+            context['message'] = 'Design optimisation finished, convergence not reached.  Consider increasing the number of generations.'
 
-        if os.path.isfile(desdata.genfile):
-            jsonfile = open(desdata.genfile).read()
-            try:
-                data = json.loads(jsonfile)
-                data = json.dumps(data)
-                context['optim'] = data
-            except ValueError:
-                pass
-
-        if os.path.isfile(desdata.desfile):
-            jsonfile = open(desdata.desfile).read()
-            try:
-                data = json.loads(jsonfile)
-                data = json.dumps(data)
-                context['design'] = data
-                context['stim'] = desdata.S
-            except ValueError:
-                pass
 
     return render(request, template, context)
-
 
 def updatepage(request):
     return render(request, "design/updatepage.html", {})
