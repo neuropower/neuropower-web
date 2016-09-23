@@ -30,15 +30,32 @@
       {% crispy runform %}
     </form>
   </div>
+
+{% if refrun == 1 or refrun == 2  or refrun == 3 or refrun == 4 or refrun == 5%}
   <div class="col-sm-9">
-    {% if refrun == "3" %}<h5> Design optimisation scores </h5>{% endif %}
+    {% if refrun == 4 or refrun == 5 %}<h5> Design optimisation scores </h5>{% endif %}
     <div cass="row" id="magic"></div>
     <div cass="row"><br><br><br><br><br><br><br></div>
-    {% if refrun == "3" %}<h5> Expected signal for optimal design in this generation </h5>{% endif %}
-    <div cass="row" id="legend"></div>
+    {% if refrun == 4 or refrun == 5 %}<h5> Expected signal for optimal design in this generation </h5>{% endif %}
   </div>
   {% include 'design/updatepage.html' with optim=optim refrun=refrun preruns=preruns runs=runs design=design stim=stim %}
 </div>
+{% endif %}
+
+{% if sure %}
+  <div class="col-sm-4">
+    <div  class="alert alert-warning alert-dismissible" role="alert">
+    <p> <b>WARNING:</b></p>
+    <p>You already have a finished optimal design.  If you run a new analyses, you will lose those results.  Are you sure about this?</p>
+    <br>
+    <center>
+    {% csrf_token %}
+    {% crispy sureform %}
+  </center>
+  </div>
+</div>
+{% endif %}
+
 
 <div class="row">
 </div>

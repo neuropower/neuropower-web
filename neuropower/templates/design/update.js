@@ -4,7 +4,6 @@
 
 var lineData = JSON.parse('{{ optim | escapejs }}');
 var designData = JSON.parse('{{ design | escapejs }}');
-console.log(designData);
 
 // Figure of optimisation
 var Gen = lineData.Gen;
@@ -78,8 +77,6 @@ for (var i = 0; i != {{ stim }}+1; ++i){
     inner = [names[i]].concat(designData[names[i-1]])
     outer[i] = inner
   }
-  // console.log(["Stimulus_".join(i)]);
-  // list.push("Stimulus_".join(var).concat(Stim))
 };
 
 

@@ -1,7 +1,10 @@
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
 {%block head %}
-<meta http-equiv="refresh" content="5" >
+{% if refrun == 1 or refrun == 2  or refrun == 3 or refrun == 4 %}
+<meta http-equiv="refresh" content="2" >
+{% endif %}
+
 {% endblock %}
 
 {% block content %}
@@ -9,10 +12,10 @@
 
 {% block scripts %}
 {% include 'main/javascript.html' %}
-{% if refrun == 1 or refrun == 2 %}
+{% if refrun == 2 or refrun == 3 %}
 {% include 'design/prerun.js' %}
 {% endif %}
-{% if refrun == 3 %}
+{% if refrun == 4 or refrun == 5 %}
 {% include 'design/update.js' %}
 {% endif %}
 {% endblock %}
