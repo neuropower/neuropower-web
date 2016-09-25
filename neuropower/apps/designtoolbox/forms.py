@@ -726,11 +726,9 @@ class DesignRunForm(forms.ModelForm):
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'
     helper.label_class = 'col-lg-12'
-    helper.layout = Layout(
-        ButtonHolder(Submit('GA', 'Run', css_class='btn-black')),
-        HTML("""&emsp;"""),
-        ButtonHolder(Submit('GA', 'Stop', css_class='btn-black')),
-        )
+    helper.add_input(Submit('GA','Run',css_class=".btn-stanford"))
+    helper.add_input(Submit('GA','Stop',css_class=".btn-stanford"))
+
 
 class DesignSureForm(forms.ModelForm):
     class Meta:
@@ -778,7 +776,7 @@ class DesignDownloadForm(forms.ModelForm):
     helper.field_class = 'col-lg-12'
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
-        ButtonHolder(Submit('Download', 'Download optimal sequence', css_class='btn-black')),
+        ButtonHolder(Submit('Download', 'Download optimal sequence', css_class='btn-stanford')),
         )
 
 class ContactForm(forms.Form):
@@ -806,3 +804,41 @@ class ContactForm(forms.Form):
         'content',
         ButtonHolder(Submit('Submit', 'Send feedback', css_class='btn-black'))
     )
+
+
+class DesignMailForm(forms.ModelForm):
+    class Meta:
+        model = DesignModel
+        fields = ['name','email']
+
+    def __init__(self,*args,**kwargs):
+        super(DesignMailForm,self).__init__(*args,**kwargs)
+        self.fields['name'].label = "Name"
+        self.fields['name'].required = True
+        self.fields['email'].label = "E-mail address"
+        self.fields['email'].required=True
+
+    def clean(self):
+        cleaned_data = super(DesignMailForm,self).clean()
+
+        if cleaned_data.get("mail")=="" or cleaned_data.get("email")=="":
+            raise forms.ValidationError("Please fill out your name and email address.")
+
+        return cleaned_data
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        Fieldset(
+            '',
+            Div(
+                Div(Field('name'),css_class='col-xs-12'),
+                Div(Field('email'),css_class='col-xs-12')
+                )
+                ),
+            HTML("""<br>"""),
+            ButtonHolder(Submit('Mail', 'Submit', css_class='btn-black')),
+            HTML("""<br>""")
+        )

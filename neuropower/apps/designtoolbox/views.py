@@ -9,7 +9,7 @@ from scipy.stats import norm, t
 import os
 from django.contrib.sessions.backends.db import SessionStore
 from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested, prepare_download
-from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm, DesignSureForm
+from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm, DesignSureForm, DesignMailForm
 from .models import DesignModel
 from .tasks import GeneticAlgorithm
 from designcore import design
@@ -23,7 +23,7 @@ import StringIO
 import shutil
 import urllib2
 from celery import task
-from celery.task.control import revoke
+from celery.task.control import revoke, inspect
 from celery.result import AsyncResult
 
 
@@ -398,10 +398,14 @@ def options(request):
 
 def runGA(request):
 
+
     # Get the template/step status
 
     template = "design/runGA.html"
     context = {}
+    context['tasks_queued'] = len(list(inspect().reserved().values())[0])
+    context['tasks_running'] = float(len(list(inspect().active().values())[0]))/settings.CELERYD_CONCURRENCY
+
 
     # Get the session ID
 
@@ -412,13 +416,24 @@ def runGA(request):
 
     try:
         desdata = DesignModel.objects.get(SID=sid)
+        context['no_data'] = False
     except DesignModel.DoesNotExist:
-        return HttpResponseRedirect('../maininput/')
+        context['no_data']=True
 
-    # Define form (Run or Stop)
+        return render(request, template, context)
 
-    runform = DesignRunForm(request.POST, instance=desdata)
-    context["runform"] = runform
+    # Do we know email?
+    print("email: "+str(desdata.email))
+    if not desdata.email:
+        context['no_email'] = True
+        mailform = DesignMailForm(request.POST or None, instance=desdata)
+        context["mailform"] = mailform
+
+        return render(request, template, context)
+    else:
+        context['no_email'] = False
+        runform = DesignRunForm(request.POST, instance=desdata)
+        context['runform'] = runform
 
     # check status of job
 
@@ -476,6 +491,26 @@ def runGA(request):
     # Responsive loop
 
     if request.method == "POST":
+        someonesure = False
+
+        # if mail is given
+        if request.POST.get("Mail") == "Submit":
+            mailform = DesignMailForm(request.POST)
+            runform = DesignRunForm(request.POST, instance=desdata)
+            saveform = runform.save(commit=False)
+
+            if mailform.is_valid():
+                form = mailform.save(commit=False)
+                saveform.name = mailform.cleaned_data['name']
+                saveform.email = mailform.cleaned_data['email']
+                saveform.save()
+                desdata = DesignModel.objects.get(SID=sid)
+                print("desdata:"+str(desdata.email))
+
+                context['mailform'] = None
+                context['runform'] = runform
+
+                return render(request, template, context)
 
         # If stop is requested
         if request.POST.get("GA") == "Stop":
@@ -485,6 +520,12 @@ def runGA(request):
             else:
                 print(desdata.taskID)
                 revoke(desdata.taskID,terminate=True,signal='KILL')
+                desdata = DesignModel.objects.get(SID=sid)
+                runform = DesignRunForm(None, instance=desdata)
+                form = runform.save(commit=False)
+                form.taskstatus = 0
+                form.taskID = ""
+                form.save()
                 context["message"] = "The optimisation has been terminated."
 
             return render(request, template, context)
@@ -495,6 +536,7 @@ def runGA(request):
             runform = DesignRunForm(None, instance=desdata)
             form = runform.save(commit=False)
             form.taskstatus = 0
+            form.taskID = None
             form.convergence = False
             form.save()
 
@@ -521,7 +563,7 @@ def runGA(request):
                 form.taskID = res.task_id
                 form.save()
                 desdata = DesignModel.objects.get(SID=sid)
-                HttpResponseRedirect('../consinput/')
+                return render(request, template, context)
 
 
         # If request = download

@@ -17,11 +17,13 @@ var nopt = {{ runs }}/10
 var list =[];
 for (var i = 1; i != 10; ++i) list.push(i * nopt);
 
+var width = window.innerWidth/4;
+
 var chart1 = c3.generate({
   bindto:'#magic',
   size:{
-    height:240,
-    width:480
+    width:400,
+    height:250
   },
   data :{
     x: 'x',
@@ -80,13 +82,15 @@ for (var i = 0; i != {{ stim }}+1; ++i){
 };
 
 
-var ytx = [-0.5,0,0.5,1,1.5,2]
+var ytx = [-0.5,0,0.5,1,1.5,2];
+
+console.log(outer);
 
 var chart2 = c3.generate({
-  bindto:'#legend',
+  bindto:'#design',
   size:{
-    height:240,
-    width:580
+    width:400,
+    height:250
   },
   data :{
     x: 'x',

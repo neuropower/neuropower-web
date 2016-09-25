@@ -9,13 +9,3 @@
 
 {% block content %}
 {% endblock %}
-
-{% block scripts %}
-{% include 'main/javascript.html' %}
-{% if refrun == 2 or refrun == 3 %}
-{% include 'design/prerun.js' %}
-{% endif %}
-{% if refrun == 4 or refrun == 5 %}
-{% include 'design/update.js' %}
-{% endif %}
-{% endblock %}

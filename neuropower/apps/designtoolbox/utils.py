@@ -169,7 +169,6 @@ def get_design_steps(template_page,sid):
         pages["design/cons.html"]["enabled"] = 'no'
         pages["design/review.html"]["enabled"] = 'no'
         pages["design/options.html"]["enabled"] = 'no'
-        pages["design/runGA.html"]["enabled"] = 'no'
     else:
         desdata = DesignModel.objects.get(SID=sid)
         if desdata.mainpars == False:
@@ -180,7 +179,6 @@ def get_design_steps(template_page,sid):
         if desdata.conpars == False:
             pages["design/review.html"]["enabled"] = 'no'
             pages["design/options.html"]["enabled"] = 'no'
-            pages["design/runGA.html"]["enabled"] = 'no'
         if desdata.nested == False:
             pages["design/nested.html"]["enabled"] = 'no'
 

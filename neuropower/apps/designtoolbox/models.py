@@ -144,7 +144,7 @@ class DesignModel(models.Model):
     nestpars = models.BooleanField(default=False)
     conv_crit = models.IntegerField(default=1000)
     convergence = models.BooleanField(default = False)
-    name = models.CharField(default = "")
-    email = models.CharField(default = "")
+    name = models.CharField(default = "",max_length=500)
+    email = models.CharField(default = "",max_length=500)
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID

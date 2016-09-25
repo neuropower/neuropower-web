@@ -7,7 +7,7 @@ var percentage = Object.keys(lineData.Gen).length / {{preruns}};
 console.log(percentage);
 
 var chart = c3.generate({
-  bindto:'#magic',
+  bindto:'#prerun',
   size:{
     height:240,
     width:480
