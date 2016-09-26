@@ -143,7 +143,7 @@ class GeneticAlgorithm(object):
         # compute number of timepoints (self.tp)
         ITIdur = self.n_trials*self.ITImax
         STIMdur = self.n_trials*self.stim_duration
-        self.duration = ITIdur+STIMdur
+        self.duration = ITIdur+STIMdur+1
         if self.restnum>0:
             resdur = (np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
             self.duration = self.duration+resdur
