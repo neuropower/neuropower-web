@@ -423,16 +423,12 @@ def runGA(request):
         return render(request, template, context)
 
     # Do we know email?
-    print("email: "+str(desdata.email))
-    if not desdata.email:
-        context['no_email'] = True
-        mailform = DesignMailForm(request.POST or None, instance=desdata)
-        context["mailform"] = mailform
+    mailform = DesignMailForm(request.POST or None, instance=desdata)
+    runform = DesignRunForm(request.POST, instance=desdata)
 
-        return render(request, template, context)
+    if not desdata.email:
+        context["mailform"] = mailform
     else:
-        context['no_email'] = False
-        runform = DesignRunForm(request.POST, instance=desdata)
         context['runform'] = runform
 
     # check status of job
@@ -483,6 +479,7 @@ def runGA(request):
     # show downloadform if results are available
 
     desdata = DesignModel.objects.get(SID=sid)
+    print(desdata.taskstatus)
     if desdata.taskstatus == 3:
         downform = DesignDownloadForm(
             request.POST or None, instance=desdata)
@@ -495,15 +492,20 @@ def runGA(request):
 
         # if mail is given
         if request.POST.get("Mail") == "Submit":
-            mailform = DesignMailForm(request.POST)
-            runform = DesignRunForm(request.POST, instance=desdata)
-            saveform = runform.save(commit=False)
 
             if mailform.is_valid():
-                form = mailform.save(commit=False)
-                saveform.name = mailform.cleaned_data['name']
-                saveform.email = mailform.cleaned_data['email']
-                saveform.save()
+
+                email=mailform.cleaned_data['email']
+                name=mailform.cleaned_data['name']
+
+                desdata = DesignModel.objects.get(SID=sid)
+                runform = DesignRunForm(None, instance=desdata)
+                form = runform.save(commit=False)
+                form.email = email
+                form.name = name
+                form.taskID = ""
+                form.save()
+
                 desdata = DesignModel.objects.get(SID=sid)
                 print("desdata:"+str(desdata.email))
 
@@ -536,7 +538,7 @@ def runGA(request):
             runform = DesignRunForm(None, instance=desdata)
             form = runform.save(commit=False)
             form.taskstatus = 0
-            form.taskID = None
+            form.taskID = ""
             form.convergence = False
             form.save()
 
@@ -563,6 +565,7 @@ def runGA(request):
                 form.taskID = res.task_id
                 form.save()
                 desdata = DesignModel.objects.get(SID=sid)
+                context['refresh'] = True
                 return render(request, template, context)
 
 
@@ -575,7 +578,7 @@ def runGA(request):
                 download['file'].getvalue(),
                 content_type="application/x-zip-compressed"
                 )
-            resp['Content-Disposition'] = 'attachment; filename=%s' % download['zip_filename']
+            resp['Content-Disposition'] = 'attachment; filename=%s' % download['zipfile']
 
             return resp
 

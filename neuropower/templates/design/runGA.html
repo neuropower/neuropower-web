@@ -7,8 +7,8 @@
 {% endblock %}
 
 {%block head %}
-{% if refrun == 1 or refrun == 2  or refrun == 3 or refrun == 4 %}
-<meta http-equiv="refresh" content="2" >
+{% if refrun == 1 or refrun == 2  or refrun == 3 or refrun == 4 or refresh %}
+<meta http-equiv="refresh" content="1" >
 {% endif %}
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 {% endblock %}
@@ -53,6 +53,23 @@
       <div class="well" style="height:600px;">
         <center><h3>Control panel</h3></center>
         <br>
+        {% if sure %}
+        <br>
+          <div class="col-sm-12">
+            <div  class="alert alert-warning alert-dismissible" role="alert">
+            <p> <b>WARNING:</b></p>
+            <p>You already have a finished optimal design.  If you run a new analyses, you will lose those results.  Are you sure about this?</p>
+            <br>
+            <center>
+            {% csrf_token %}
+            {% crispy sureform %}
+          </center>
+          </div>
+        </div>
+        {% endif %}
+
+
+
         {% if message %}
         <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
         {% endif %}
@@ -66,12 +83,7 @@
         <form id="mailform" method='POST' action='.'>
           {% csrf_token %}
           {% crispy mailform %}
-          {% if downform %}
-          <form id="downform" method='POST' action='.'>
-            {% csrf_token %}
-
         </form>
-        {% endif %}
         {% endif %}
 
         {% if runform %}
@@ -81,10 +93,21 @@
         <p> You can only run 1 optimisation at a time.  The stop-button will stop the optimisation, whether it is queued or running.</p>
         <p> Once the optimisation is finished, you can download here a zipfile.  In the zipfile, there will be a text file with onsets for each stimulus type.</p>
         <br><br>
+        <div class="col-xs-12 col-md-6">
         <form id="runform" method='POST' action='.'>
           {% csrf_token %}
           {% crispy runform %}
         </form>
+      </div>
+        {% if downform %}
+        <div class ='col-xs-12 col-md-6'>
+        <form id="downform" method='POST' action='.'>
+          {% csrf_token %}
+          {% crispy downform %}
+      </form>
+    </div>
+      {% endif %}
+
         {% endif %}
 
       </div>
@@ -122,21 +145,5 @@
 
 
 
-
-{% if sure %}
-<div class="col-sm-3"></div>
-  <div class="col-sm-6">
-    <div  class="alert alert-warning alert-dismissible" role="alert">
-    <p> <b>WARNING:</b></p>
-    <p>You already have a finished optimal design.  If you run a new analyses, you will lose those results.  Are you sure about this?</p>
-    <br>
-    <center>
-    {% csrf_token %}
-    {% crispy sureform %}
-  </center>
-  </div>
-</div>
-<div class="col-sm-3"></div>
-{% endif %}
 
 {% endblock %}

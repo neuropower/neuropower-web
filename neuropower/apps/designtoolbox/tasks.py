@@ -16,6 +16,18 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 def GeneticAlgorithm(sid,ignore_result=False):
     desdata = DesignModel.objects.get(SID=sid)
 
+    subject = "NeuroDesign: optimisation process started"
+    sender = "NeuroDesign"
+    sendermail = "joke.durnez@gmail.com"
+    message = "Your design optimisation has now started.  You can follow the progress here:"+" http://development.neuropowertools.org/design/?runGA="+str(desdata.shareID)+". Thank you for using NeuroDesign."
+    recipient = str(desdata.email)
+    key = settings.MAILGUN_KEY
+
+    command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
+        " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
+    os.system(command)
+
+
     matrices = probs_and_cons(sid)
 
     des = design.GeneticAlgorithm(
@@ -114,3 +126,14 @@ def GeneticAlgorithm(sid,ignore_result=False):
     form.optimalonsets = Generation['onsets'][OptInd]
     form.convergence = conv
     form.save()
+
+    subject = "NeuroDesign: optimisation process ended"
+    sender = "NeuroDesign"
+    sendermail = "joke.durnez@gmail.com"
+    message = "Your design optimisation has now ended.  You can download the results here:"+" http://development.neuropowertools.org/design/?runGA="+str(desdata.shareID)+". Thank you for using NeuroDesign."
+    recipient = str(desdata.email)
+    key = settings.MAILGUN_KEY
+
+    command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
+        " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
+    os.system(command)
