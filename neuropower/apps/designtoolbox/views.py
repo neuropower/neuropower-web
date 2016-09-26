@@ -300,7 +300,11 @@ def review(request):
 
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
-    desdata = DesignModel.objects.get(SID=sid)
+
+    try:
+        desdata = DesignModel.objects.get(SID=sid)
+    except DesignModel.DoesNotExist:
+        return HttpResponseRedirect('../maininput/')
 
     # Define form
 
