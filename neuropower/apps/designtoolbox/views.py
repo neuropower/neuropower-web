@@ -301,20 +301,6 @@ def review(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
 
-    # retrieve session information
-
-    retrieve_id = request.GET.get('retrieve','')
-    if retrieve_id:
-        desdata = DesignModel.objects.get(shareID=retrieve_id)
-        desdata.SID=sid
-        desdata.save()
-        context["steps"] = get_design_steps(template, sid)
-    else:
-        try:
-            desdata = DesignModel.objects.get(SID=sid)
-        except DesignModel.DoesNotExist:
-            return HttpResponseRedirect('../maininput/')
-
 
     # Define form
 
@@ -411,6 +397,20 @@ def runGA(request):
 
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
+
+    # retrieve session information
+
+    retrieve_id = request.GET.get('retrieve','')
+    if retrieve_id:
+        desdata = DesignModel.objects.get(shareID=retrieve_id)
+        desdata.SID=sid
+        desdata.save()
+        context["steps"] = get_design_steps(template, sid)
+    else:
+        try:
+            desdata = DesignModel.objects.get(SID=sid)
+        except DesignModel.DoesNotExist:
+            return HttpResponseRedirect('../maininput/')
 
     # check if there is a database entry: else go back to inputform
 
