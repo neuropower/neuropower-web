@@ -65,7 +65,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,stim_duration,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=6,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None):
+    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,stim_duration,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=None,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None):
         self.ITI = ITI
         self.ITImin = ITI[0]
         self.mnITI = ITI[1]
@@ -143,7 +143,7 @@ class GeneticAlgorithm(object):
         # compute number of timepoints (self.tp)
         ITIdur = self.n_trials*self.ITImax
         STIMdur = self.n_trials*self.stim_duration
-        self.duration = ITIdur+STIMdur+1
+        self.duration = ITIdur+STIMdur
         if self.restnum>0:
             resdur = (np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
             self.duration = self.duration+resdur
@@ -307,7 +307,9 @@ class GeneticAlgorithm(object):
         return Generation
 
     def GeneticAlgorithmInitiate(self):
+        print("generate order")
         self.GeneticAlgorithmCreateOrder()
+        print("done generate order")
 
         nulorder = [np.argmin(self.P)]*self.n_trials
         nulitis = [self.mnITI]*self.n_trials
@@ -495,9 +497,12 @@ class GeneticAlgorithm(object):
     def GeneticAlgorithmCreateOrder(self):
         Designs = {}
         nRandom = 1000
+        print("blocked")
         Designs['Blocked'] = self.GenerateOrderBlocked()
+        print("mseq")
         if not self.n_stimuli == 6:
             Designs['Mseq'] = self.GenerateOrderMsequence(tapsfile=self.tapsfile)
+        print("random")
         Designs['Random'] = self.GenerateOrderRandom(nRandom)
         self.Designs = Designs
 
@@ -509,6 +514,10 @@ class GeneticAlgorithm(object):
         nBlocked = r[0]
         nMseq = r[1]
         nRandom = r[2]
+
+        if self.n_stimuli == 6:
+            nBlocked = int(r[0]/np.sum(r[0]+r[2]))
+            nRandom = int(r[2]/np.sum(r[0]+r[2]))
 
         iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=True).tolist()
         oBlocked = [self.Designs['Blocked']['orders'][i] for i in iBlocked]
@@ -575,12 +584,15 @@ class GeneticAlgorithm(object):
 
         return {"orders":orders,"ITIs":ITIs}
 
-    def GenerateOrderBlocked(self):
-        numBlocks = np.arange(3,self.maxrepeat)
+    def GenerateOrderBlocked(self,number):
+        maxlen = np.min(self.maxrepeat,10)
+        numBlocks = np.arange(3,maxlen)
         orders = []
         for blocks in numBlocks:
             BlockSize = int(np.ceil(self.n_trials/(blocks*self.n_stimuli)))
             perms = list(itertools.permutations(xrange(self.n_stimuli)))
+            if len(perms)>1000:
+                perms = perms[np.random.randint(0,len(perms))]
             for permut in perms:
                 order = np.tile(np.repeat(list(permut),BlockSize),blocks).tolist()
                 if len(order) > self.n_trials:
@@ -741,6 +753,7 @@ class GeneticAlgorithm(object):
         return Design
 
     def FeCalc(self,Design):
+        print('inverting for Fe')
         try:
             invM = np.linalg.inv(Design['X'])
         except np.linalg.linalg.LinAlgError:
@@ -753,6 +766,7 @@ class GeneticAlgorithm(object):
         return Design
 
     def FdCalc(self,Design):
+        print('inverting for Fd')
         try:
             invM = np.linalg.inv(Design['Z'])
         except np.linalg.LinAlgError:
