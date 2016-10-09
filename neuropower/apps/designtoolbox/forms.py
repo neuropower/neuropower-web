@@ -9,7 +9,8 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITImin','ITImax','ITImean','stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','nested','nest_classes']
+        fields = ['ITImin','ITImax','ITImean','stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars']
+        # fields.append(['nested','nest_classes'])
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
@@ -30,8 +31,8 @@ class DesignMainForm(forms.ModelForm):
         self.fields['W2'].label = 'Detection power'
         self.fields['W3'].label = 'Trial probabilities'
         self.fields['W4'].label = 'Psychological confounds'
-        self.fields['nested'].label = "Check for a nested design"
-        self.fields['nest_classes'].label = "If the design is nested, how many classes of stimulus types are there?"
+        # self.fields['nested'].label = "Check for a nested design"
+        # self.fields['nest_classes'].label = "If the design is nested, how many classes of stimulus types are there?"
 
     def clean(self):
         cleaned_data = super(DesignMainForm,self).clean()
@@ -163,28 +164,28 @@ class DesignMainForm(forms.ModelForm):
             )
             ),
         HTML("<br><br>"),
-        Fieldset(
-            '',
-            HTML("""<h5 style="margin-left: 15px">Nested designs: Is there a specific structure amongst the stimulus types?</h5>
-            <p style="margin-left: 20px"><b>Example:</b> A researcher designs a task with two condition (congruent and incongruent).  Within those conditions, the subject is presented with either a go signal or a stop signal (no go).  As such the condition <b>go/no go</b> is nested within the condition <b>congruency</b>.</p>
-            <p style="margin-left: 20px"><b>How to specify your structure?</b> Please provide the total number of stimulus types above at the lowest level.  For the stop signal example above, you have a total of 4 stimuli (congruent stop, congruent go, incongruent stop, incongruent go).  On the next page, you will be asked to group those stimuli in classes.</p>
-            <!-- <p style="margin-left: 20px"><b>Why is this important?</b> In the design optimisation, you want to avoid psychological confounds: if congruent always follows congruent, the experiment is predictable and this can influence your results.  If you don't specify the nested structure, the algorithm will avoid the predictability of all stimuli, but not of the stimulus classes.  For example: the algorithm will avoid that a 'congruent stop' follows 'congruent go' as much as it follows 'incongruent stop'.  However, the algorithm will not avoid that 'congruent' follows 'congruent' more than 'incongruent'.  By specifying the nesting structure, the algorithm will avoid psychological confounding on all levels of the nested design.</p>
-            <p style = 'margin-left: 20px'><b>Symmetry.</b>  We call a symmetric design if all conditions nested within amother condition are the same.  In the example above: both the congruent and the incongruent trials are presented with a go or a no go trial.  Failing to ticking this box for a symmetric design would lead to the fact that the psychological confounding is preserved for the upper level (congruent vs. noncongruent), but not for the lower level (go vs. no go).</p> -->
-            """),
-            Div(
-            Div(Field('nested'),css_class='col-lg-3 col-sm-12'),
-            css_class='row-md-12 col-xs-12'
-            ),
-            # Div(
-            # Div(Field('nest_symmetry'),css_class='col-lg-3 col-sm-12'),
-            # css_class='row-md-12 col-xs-12'
-            # ),
-            Div(
-            Div(Field('nest_classes'),css_class='col-lg-12'),
-            css_class='row-md-12 col-xs-12'
-            ),
-            ),
-        HTML("<br><br>"),
+        # Fieldset(
+        #     '',
+        #     HTML("""<h5 style="margin-left: 15px">Nested designs: Is there a specific structure amongst the stimulus types?</h5>
+        #     <p style="margin-left: 20px"><b>Example:</b> A researcher designs a task with two condition (congruent and incongruent).  Within those conditions, the subject is presented with either a go signal or a stop signal (no go).  As such the condition <b>go/no go</b> is nested within the condition <b>congruency</b>.</p>
+        #     <p style="margin-left: 20px"><b>How to specify your structure?</b> Please provide the total number of stimulus types above at the lowest level.  For the stop signal example above, you have a total of 4 stimuli (congruent stop, congruent go, incongruent stop, incongruent go).  On the next page, you will be asked to group those stimuli in classes.</p>
+        #     <!-- <p style="margin-left: 20px"><b>Why is this important?</b> In the design optimisation, you want to avoid psychological confounds: if congruent always follows congruent, the experiment is predictable and this can influence your results.  If you don't specify the nested structure, the algorithm will avoid the predictability of all stimuli, but not of the stimulus classes.  For example: the algorithm will avoid that a 'congruent stop' follows 'congruent go' as much as it follows 'incongruent stop'.  However, the algorithm will not avoid that 'congruent' follows 'congruent' more than 'incongruent'.  By specifying the nesting structure, the algorithm will avoid psychological confounding on all levels of the nested design.</p>
+        #     <p style = 'margin-left: 20px'><b>Symmetry.</b>  We call a symmetric design if all conditions nested within amother condition are the same.  In the example above: both the congruent and the incongruent trials are presented with a go or a no go trial.  Failing to ticking this box for a symmetric design would lead to the fact that the psychological confounding is preserved for the upper level (congruent vs. noncongruent), but not for the lower level (go vs. no go).</p> -->
+        #     """),
+        #     Div(
+        #     Div(Field('nested'),css_class='col-lg-3 col-sm-12'),
+        #     css_class='row-md-12 col-xs-12'
+        #     ),
+        #     # Div(
+        #     # Div(Field('nest_symmetry'),css_class='col-lg-3 col-sm-12'),
+        #     # css_class='row-md-12 col-xs-12'
+        #     # ),
+        #     Div(
+        #     Div(Field('nest_classes'),css_class='col-lg-12'),
+        #     css_class='row-md-12 col-xs-12'
+        #     ),
+        #     ),
+        # HTML("<br><br>"),
         Fieldset(
             'Design optimisation parameters',
             HTML("""<p>There are 4 criteria that quantify the optimality of the design:</p>
@@ -289,8 +290,9 @@ class DesignConsForm(forms.ModelForm):
         'C10','C11','C12','C13','C14','C15','C16','C17','C18','C19',
         'C20','C21','C22','C23','C24','C25','C26','C27','C28','C29',
         'C30','C31','C32','C33','C34','C35','C36','C37','C38','C39',
-        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb','G','conpars','I'
+        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','G','conpars','I'
         ]
+        # fields.append('HardProb')
 
     def __init__(self,*args,**kwargs):
 
@@ -311,7 +313,7 @@ class DesignConsForm(forms.ModelForm):
         if self.stim<6:
             cssclass = "col-xs-"+str(int(np.floor(12/self.stim)))
         else:
-            cssclass = "col-xs-"+str(int(np.floor(12/5)))
+            cssclass = "col-xs-"+str(int(np.floor(12*2/(self.stim))))
 
         fields = [['C00','C01','C02','C03','C04','C05','C06','C07','C08','C09'],
             ['C10','C11','C12','C13','C14','C15','C16','C17','C18','C19'],
@@ -344,18 +346,6 @@ class DesignConsForm(forms.ModelForm):
 
         self.helper.layout.append(
             HTML('<br><br><br><br><br>')
-            )
-
-        # hard limit
-        self.helper.layout.append(
-            HTML('<h5> Do you want a hard limit on those probabilities? </h5><br><p>Check if you want to preserve the probabilities exactly.  This largely restricts the possibilities to search over, so the optimisation will take (a lot) longer.</p>')
-            )
-
-        self.helper.layout.append(
-            Div(
-            Div(Field('HardProb'),css_class='col-lg-3 col-sm-12'),
-            css_class='row-md-12 col-xs-12'
-            )
             )
 
 
@@ -656,7 +646,7 @@ class DesignProbsForm(forms.ModelForm):
 class DesignOptionsForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles','conv_crit']
+        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles','conv_crit','HardProb']
 
     def __init__(self,*args,**kwargs):
         super(DesignOptionsForm,self).__init__(*args,**kwargs)
@@ -670,6 +660,7 @@ class DesignOptionsForm(forms.ModelForm):
         self.fields['cycles'].label = "Number of generations (iterations or cycles)."
         self.fields['preruncycles'].label = "Number of generations in the prerun to define the maximum efficiency and detection power."
         self.fields['conv_crit'].label = "Number of stable generations to reach convergence"
+        self.fields['HardProb'].label = "Do you want a hard limit on the probabilities? (experimental)"
 
     def clean(self):
         cleaned_data = super(DesignOptionsForm,self).clean()
@@ -688,6 +679,7 @@ class DesignOptionsForm(forms.ModelForm):
             Div(Field('Aoptimality'),css_class='col-xs-12'),
             #Div(Field('Saturation'),css_class='col-xs-12'),
             Div(Field('resolution'),css_class='col-xs-12'),
+            Div(Field('HardProb'),css_class='col-xs-12'),
             css_class='row-md-12 col-xs-12'
             )
             ),
