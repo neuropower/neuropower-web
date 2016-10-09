@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 from numpy.linalg import inv
+from scipy import linalg
 from numpy import transpose as t
 from scipy.special import gamma
 from collections import Counter
@@ -754,9 +755,9 @@ class GeneticAlgorithm(object):
 
     def FeCalc(self,Design):
         try:
-            invM = np.linalg.inv(Design['X'])
-        except np.linalg.linalg.LinAlgError:
-            invM  = np.linalg.pinv(Design['X'])
+            invM = scipy.linalg.inv(Design['X'])
+        except scipy.linalg.linalg.LinAlgError:
+            invM  = scipy.linalg.pinv(Design['X'])
         invM = np.array(invM)
         st1 = np.dot(self.CX,invM)
         CMC = np.dot(st1,t(self.CX))
@@ -768,9 +769,9 @@ class GeneticAlgorithm(object):
 
     def FdCalc(self,Design):
         try:
-            invM = np.linalg.inv(Design['Z'])
-        except np.linalg.LinAlgError:
-            invM = np.linalg.pinv(Design['Z'])
+            invM = scipy.linalg.inv(Design['Z'])
+        except scipy.linalg.LinAlgError:
+            invM = scipy.linalg.pinv(Design['Z'])
         invM = np.array(invM)
         CMC = np.matrix(self.C)*invM*np.matrix(t(self.C))
         if self.Aoptimality == True:
