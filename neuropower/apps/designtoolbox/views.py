@@ -34,6 +34,11 @@ def end_session(request):
 
     '''ends a session so the user can start a new one.'''
     try:
+        desdata = DesignModel.objects.get(SID=sid)
+        revoke(desdata.taskID,terminate=True,signal='KILL')
+    except KeyError:
+        pass
+    try:
         request.session.flush()
     except KeyError:
         pass
@@ -153,7 +158,7 @@ def maininput(request, end_session=False):
             weightsform.resolution = desdata.TR/resfact
 
         # get ITI's streight
-        if not desdata.ITImin or desdata.ITImax:
+        if not (desdata.ITImin or desdata.ITImax):
             weightsform.ITImin = desdata.ITImean
             weightsform.ITImax = desdata.ITImean
         if not desdata.ITImean:
@@ -410,13 +415,6 @@ def runGA(request):
         desdata.SID=sid
         desdata.save()
         context["steps"] = get_design_steps(template, sid)
-    else:
-        try:
-            desdata = DesignModel.objects.get(SID=sid)
-        except DesignModel.DoesNotExist:
-            return HttpResponseRedirect('../maininput/')
-
-    # check if there is a database entry: else go back to inputform
 
     try:
         desdata = DesignModel.objects.get(SID=sid)
@@ -483,7 +481,6 @@ def runGA(request):
     # show downloadform if results are available
 
     desdata = DesignModel.objects.get(SID=sid)
-    print(desdata.taskstatus)
     if desdata.taskstatus == 3:
         downform = DesignDownloadForm(
             request.POST or None, instance=desdata)
@@ -570,6 +567,8 @@ def runGA(request):
                 form.save()
                 desdata = DesignModel.objects.get(SID=sid)
                 context['refresh'] = True
+                context['status'] = "PENDING"
+                context['message'] = "Job succesfully submitted."
                 return render(request, template, context)
 
 
@@ -591,8 +590,16 @@ def runGA(request):
         context["preruns"] = desdata.preruncycles
         context["runs"] = desdata.cycles
         context["refrun"] = desdata.running
+        context['status'] = "NOT RUNNING"
+
+        if desdata.taskstatus==1:
+            context['status'] = "PENDING"
+        if desdata.taskstatus==2:
+            context['status'] = "RUNNING"
         if desdata.taskstatus==3:
             context['refrun'] = 5
+            context['status'] = "STOPPED"
+
 
         context["message"] = ""
         if desdata.running == 1:
