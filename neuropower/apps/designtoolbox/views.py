@@ -508,7 +508,6 @@ def runGA(request):
                 form.save()
 
                 desdata = DesignModel.objects.get(SID=sid)
-                print("desdata:"+str(desdata.email))
 
                 context['mailform'] = None
                 context['runform'] = runform
@@ -521,7 +520,6 @@ def runGA(request):
             if not (desdata.taskstatus == 2 or desdata.taskstatus == 1):
                 context['message'] = "You want to stop the optimisation, but nothing is running."
             else:
-                print(desdata.taskID)
                 revoke(desdata.taskID,terminate=True,signal='KILL')
                 desdata = DesignModel.objects.get(SID=sid)
                 runform = DesignRunForm(None, instance=desdata)
