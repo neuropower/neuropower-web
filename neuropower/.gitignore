@@ -10,3 +10,5 @@ sqlite
 script.sh
 media/designs/*
 media/designonsets/*
+../dockernotes.sh
+../dockernotes.txt
