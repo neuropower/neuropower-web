@@ -756,7 +756,7 @@ class GeneticAlgorithm(object):
     def FeCalc(self,Design):
         try:
             invM = scipy.linalg.inv(Design['X'])
-        except scipy.linalg.linalg.LinAlgError:
+        except scipy.linalg.LinAlgError:
             invM  = scipy.linalg.pinv(Design['X'])
         invM = np.array(invM)
         st1 = np.dot(self.CX,invM)
