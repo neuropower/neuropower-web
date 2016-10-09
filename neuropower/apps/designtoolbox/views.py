@@ -334,11 +334,13 @@ def review(request):
     context["message"] = ""
     if desdata.HardProb == True:
         context["message"] = context["message"] + \
-            "<p><b>Warning:</b> Because of the hard limit on the frequencies, we increased the size of the generation and the number of random designs per generation.  This might slow down the optimisation.  </p>"
+            "<br><p><b>Warning:</b> Because of the hard limit on the frequencies, we increased the size of the generation and the number of random designs per generation.  This might slow down the optimisation.  </p>"
     if desdata.MaxRepeat < 10 and desdata.S == 2:
-        context["message"] = context["message"] + "<p><b>Warning:</b> With only 2 stimuli, many random designs have repetitions larger dan " + \
+        context["message"] = context["message"] + "<br><p><b>Warning:</b> With only 2 stimuli, many random designs have repetitions larger dan " + \
             str(desdata.MaxRepeat) + \
             ".  We increased the number of random designs per generation, but this might slow down the optimisation.  </p>"
+    if desdata.S>5 and desdata.L>200 and desdata.ITImax>3 and (desdata.Restnum<30 and desdata.Resdur>30) desdata.C.shape[0]>5:
+        context['message'] = context['message']+"<br><p><b>Warning:</b>This is a long and complex design.  Be aware that the optimisation will take a <b>long</b> time.</p>"
 
     # Duration
     dur = desdata.ITImean*desdata.L+desdata.RestNum*desdata.RestDur
@@ -594,6 +596,8 @@ def runGA(request):
             context['status'] = "PENDING"
         if desdata.taskstatus==2:
             context['status'] = "RUNNING"
+            if desdata.preruncycles<1000 or desdata.cycles<1000 or desdata.resolution>0.2:
+                context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application.  However, the results will be sub-optimal.  For a good optimisation, go to options on the review page and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
         if desdata.taskstatus==3:
             context['refrun'] = 5
             context['status'] = "STOPPED"
