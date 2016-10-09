@@ -228,7 +228,7 @@ class GeneticAlgorithm(object):
         Generation = self.GeneticAlgorithmCreateEmptyGeneration()
 
         # number of designs to be added
-        if not self.n_stimuli == 6:
+        if not (self.n_stimuli == 6 or self.n_stimuli == 10):
             rp = [1/4.,2/4.,1/4.]
         else:
             rp = [2/4.,0,2/4.]
@@ -307,9 +307,7 @@ class GeneticAlgorithm(object):
         return Generation
 
     def GeneticAlgorithmInitiate(self):
-        print("generate order")
         self.GeneticAlgorithmCreateOrder()
-        print("done generate order")
 
         nulorder = [np.argmin(self.P)]*self.n_trials
         nulitis = [self.mnITI]*self.n_trials
@@ -476,7 +474,7 @@ class GeneticAlgorithm(object):
         else:
             add = self.I
         # equally distribute new immigrants (blocked, msequence, ...)
-        if not self.n_stimuli == 6:
+        if not (self.n_stimuli == 6 or self.n_stimuli == 10):
             rp = [1/4.,2/4.,1/4.]
         else:
             rp = [2/4.,0,2/4.]
@@ -497,12 +495,9 @@ class GeneticAlgorithm(object):
     def GeneticAlgorithmCreateOrder(self):
         Designs = {}
         nRandom = 1000
-        print("blocked")
         Designs['Blocked'] = self.GenerateOrderBlocked()
-        print("mseq")
-        if not self.n_stimuli == 6:
+        if not (self.n_stimuli == 6 or self.n_stimuli == 10):
             Designs['Mseq'] = self.GenerateOrderMsequence(tapsfile=self.tapsfile)
-        print("random")
         Designs['Random'] = self.GenerateOrderRandom(nRandom)
         self.Designs = Designs
 
@@ -515,23 +510,28 @@ class GeneticAlgorithm(object):
         nMseq = r[1]
         nRandom = r[2]
 
-        if self.n_stimuli == 6:
-            nBlocked = int(r[0]/np.sum(r[0]+r[2]))
-            nRandom = int(r[2]/np.sum(r[0]+r[2]))
+        oBlocked=[]
+        tBlocked =[]
+        oMseq = []
+        tMseq = []
+        oRandom = []
+        tRandom = []
 
-        iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=True).tolist()
-        oBlocked = [self.Designs['Blocked']['orders'][i] for i in iBlocked]
-        tBlocked = [self.Designs['Blocked']['ITIs'][i] for i in iBlocked]
-        if not self.n_stimuli == 6:
+        if nBlocked>0:
+            iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=True).tolist()
+            oBlocked = [self.Designs['Blocked']['orders'][i] for i in iBlocked]
+            tBlocked = [self.Designs['Blocked']['ITIs'][i] for i in iBlocked]
+        if nMseq>0:
             iMseq = np.random.choice(len(self.Designs['Mseq']['orders']),nMseq,replace=True).tolist()
             oMseq = [self.Designs['Mseq']['orders'][i] for i in iMseq]
             tMseq = [self.Designs['Mseq']['ITIs'][i] for i in iMseq]
-        iRandom = np.random.choice(len(self.Designs['Random']['orders']),nRandom,replace=True).tolist()
-        oRandom = [self.Designs['Random']['orders'][i] for i in iRandom]
-        tRandom = [self.Designs['Random']['ITIs'][i] for i in iRandom]
+        if nRandom>0:
+            iRandom = np.random.choice(len(self.Designs['Random']['orders']),nRandom,replace=True).tolist()
+            oRandom = [self.Designs['Random']['orders'][i] for i in iRandom]
+            tRandom = [self.Designs['Random']['ITIs'][i] for i in iRandom]
 
         oTotal = []
-        ors = [oBlocked,oMseq,oRandom] if not self.n_stimuli == 6 else [oBlocked,oRandom]
+        ors = [oBlocked,oMseq,oRandom]
         for orders in ors:
             if isinstance(orders,list):
                 oTotal = oTotal+orders
@@ -539,7 +539,7 @@ class GeneticAlgorithm(object):
                 oTotal.append(orders)
 
         tTotal = []
-        trs = [tBlocked,tMseq,tRandom] if not self.n_stimuli == 6 else [tBlocked,tRandom]
+        trs = [tBlocked,tMseq,tRandom] if not (self.n_stimuli == 6 or self.n_stimuli == 10) else [tBlocked,tRandom]
         for itis in trs:
             if isinstance(orders,list):
                 tTotal = tTotal+itis
@@ -584,15 +584,15 @@ class GeneticAlgorithm(object):
 
         return {"orders":orders,"ITIs":ITIs}
 
-    def GenerateOrderBlocked(self,number):
-        maxlen = np.min(self.maxrepeat,10)
-        numBlocks = np.arange(3,maxlen)
+    def GenerateOrderBlocked(self):
+        numBlocks = np.arange(3,self.maxrepeat)
         orders = []
         for blocks in numBlocks:
             BlockSize = int(np.ceil(self.n_trials/(blocks*self.n_stimuli)))
             perms = list(itertools.permutations(xrange(self.n_stimuli)))
-            if len(perms)>1000:
-                perms = perms[np.random.randint(0,len(perms))]
+            if len(perms)>100:
+                rind = np.random.randint(0,len(perms),100)
+                perms = [np.array(perms[k]) for k in rind]
             for permut in perms:
                 order = np.tile(np.repeat(list(permut),BlockSize),blocks).tolist()
                 if len(order) > self.n_trials:
@@ -753,12 +753,13 @@ class GeneticAlgorithm(object):
         return Design
 
     def FeCalc(self,Design):
-        print('inverting for Fe')
         try:
             invM = np.linalg.inv(Design['X'])
         except np.linalg.linalg.LinAlgError:
             invM  = np.linalg.pinv(Design['X'])
-        CMC = np.matrix(self.CX)*invM*np.matrix(t(self.CX))
+        invM = np.array(invM)
+        st1 = np.dot(self.CX,invM)
+        CMC = np.dot(st1,t(self.CX))
         if self.Aoptimality == True:
             Design["Fe"] = float(self.CX.shape[0]/np.matrix.trace(CMC))
         else:
@@ -766,11 +767,11 @@ class GeneticAlgorithm(object):
         return Design
 
     def FdCalc(self,Design):
-        print('inverting for Fd')
         try:
             invM = np.linalg.inv(Design['Z'])
         except np.linalg.LinAlgError:
             invM = np.linalg.pinv(Design['Z'])
+        invM = np.array(invM)
         CMC = np.matrix(self.C)*invM*np.matrix(t(self.C))
         if self.Aoptimality == True:
             Design["Fd"] = float(self.C.shape[0]/np.matrix.trace(CMC))
