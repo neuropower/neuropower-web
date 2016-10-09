@@ -7,9 +7,9 @@
 {% endblock %}
 
 {%block head %}
-{% if refrun == 1 or refrun == 2  or refrun == 3 or refrun == 4 or refresh %}
-<meta http-equiv="refresh" content="1" >
-{% endif %}
+<!--{% if refrun == 1 or refrun == 2  or refrun == 3 or refrun == 4 or refresh %}-->
+<!-- <meta http-equiv="refresh" content="2" > -->
+<!--{% endif %}-->
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 {% endblock %}
 
@@ -43,6 +43,9 @@
           </tr>
           <tr>
             <th> Queued processes:</th><th> {{ tasks_queued }}</th>
+          </tr>
+          <tr>
+            <th> Your optimisation:</th><th> {{ status }}</th>
           </tr>
         </table>
       </div>
@@ -120,7 +123,7 @@
       <div class="well" style="height:700px;">
         <center><h3>Optimisation progress</h3></center>
 
-        {% if refrun == 1 or refrun == 2 or refrun == 3 %}
+        {% if refrun == 1 or refrun == 2 or refrun == 3 or refrun == 0 or status == "RUNNING" %}
         <div class="col-xs-12">
           <div id="prerun"></div>
         </div>
