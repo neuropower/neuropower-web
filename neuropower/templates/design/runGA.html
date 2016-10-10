@@ -76,6 +76,9 @@
         {% if message %}
         <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
         {% endif %}
+        {% if message %}
+        <div class="alert alert-danger alert-dismissible" role="alert">{{ alert }}</div>
+        {% endif %}
 
         {% if no_data %}
         <p>There is insufficient data for a design optimisation.  Please fill out the design characteristics first.</p>
