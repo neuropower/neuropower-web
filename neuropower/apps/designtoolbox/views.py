@@ -400,8 +400,12 @@ def runGA(request):
 
     template = "design/runGA.html"
     context = {}
-    context['tasks_queued'] = len(list(inspect().reserved().values())[0])
-    context['tasks_running'] = float(len(list(inspect().active().values())[0]))/settings.CELERYD_CONCURRENCY
+    if not inspect().reserved() == None:
+        context['tasks_queued'] = len(list(inspect().reserved().values())[0])
+        context['tasks_running'] = float(len(list(inspect().active().values())[0]))/settings.CELERYD_CONCURRENCY
+    else:
+        context['tasks_queued'] = 0
+        context['tasks_running'] = 0
 
 
     # Get the session ID
