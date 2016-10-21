@@ -9,7 +9,7 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITImin','ITImax','ITImean','stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars']
+        fields = ['ITImin','ITImax','ITImean','stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','duration_unitfree','duration_unit']
         # fields.append(['nested','nest_classes'])
 
     def __init__(self,*args,**kwargs):
@@ -21,6 +21,8 @@ class DesignMainForm(forms.ModelForm):
         self.fields['S'].label = "Number of stimulus types"
         self.fields['stim_duration'].label = "Stimulus duration (seconds)"
         self.fields['L'].label = "Total number of trials"
+        self.fields['duration_unitfree'].label = 'Total duration of the task'
+        self.fields['duration_unit'].label = 'Unit of duration'
         self.fields['Call'].label = 'Check to include all pairwise contrasts'
         self.fields['Clen'].label = 'Number of custom contrasts'
         self.fields['RestNum'].label = 'How many trials between rest blocks'
@@ -65,7 +67,8 @@ class DesignMainForm(forms.ModelForm):
             raise forms.ValidationError("You specified either a minimum or a maximum ITI.  You need to fill out both.")
 
 
-
+        if (cleaned_data.get("L")==None and cleaned_data.get("duration_unitfree")==None) or (not cleaned_data.get("L")==None and not cleaned_data.get("duration_unitfree")==None):
+            raise forms.ValidationError("You need to specify either the total duration of the experiment or the number of trials. Not both.")
 
 
         smaller = [
@@ -117,12 +120,30 @@ class DesignMainForm(forms.ModelForm):
     helper.layout = Layout(
         Fieldset(
             'Design parameters',
-            HTML("""<h5 style="margin-left: 15px">These parameters refer to your design and need your careful attention.</h5><br><br>"""),
+            HTML("""<h5 style="margin-left: 15px">These parameters refer to your design and need your careful attention.</h5><br>"""),
             Div(
-            Div(Field('TR'),css_class='col-md-3 col-sm-6 col-xs-12'),
-            Div(Field('S'),css_class='col-md-3 col-sm-6 col-xs-12'),
-            Div(Field('stim_duration'),css_class='col-md-3 col-sm-6 col-xs-12'),
-            Div(Field('L'),css_class='col-md-3 col-sm-6 col-xs-12'),
+            Div(Field('TR'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            Div(Field('S'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            Div(Field('stim_duration'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            css_class='row-md-12 col-xs-12'
+            ),
+            ),
+        HTML("<br><br>"),
+        Fieldset(
+            '',
+            HTML("""<br><h5 style="margin-left: 15px">Duration parameters.</h5><p style="margin-left: 20px"> Please either fill out the total duration of the experiment, or the number of trials.</p><ul><li><b>If you give duration</b>: number of trials = duration/(trialduration + mean ITI)</li></ul><br>"""),
+            Div(
+            Div(Field('duration_unitfree'),css_class='col-md-6 col-sm-6 col-xs-12'),
+            Div(Field('duration_unit'),css_class='col-md-6 col-sm-6 col-xs-12'),
+            css_class='row-md-12 col-xs-12'
+            ),
+            ),
+        HTML("<br><br>"),
+        Fieldset(
+            '',
+            HTML("""<br><ul><li><b>If you give number of trials</b>: duration = (trialduration + mean ITI)* number of trials</li></ul><br>"""),
+            Div(
+            Div(Field('L'),css_class='col-md-12 col-sm-12 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             ),
             ),

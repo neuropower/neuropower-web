@@ -34,7 +34,8 @@ def GeneticAlgorithm(sid,ignore_result=False):
         # design specific
         ITI=[desdata.ITImin, desdata.ITImean, desdata.ITImax],
         TR=desdata.TR,
-        L=desdata.L,
+        n_trials=desdata.L,
+        duration=desdata.duration,
         P=matrices["P"],
         C=matrices["C"],
         stim_duration=desdata.stim_duration,

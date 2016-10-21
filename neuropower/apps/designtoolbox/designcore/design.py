@@ -66,13 +66,14 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,L,P,C,rho,weights,tapsfile,stim_duration,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=None,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None):
+    def __init__(self,ITI,TR,P,C,rho,weights,tapsfile,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=None,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None):
         self.ITI = ITI
         self.ITImin = ITI[0]
         self.mnITI = ITI[1]
         self.ITImax = ITI[2]
         self.TR = TR
-        self.n_trials = L
+        self.n_trials = n_trials
+        self.duration = duration
         self.n_cons = C.shape[0]
         self.n_stimuli = C.shape[1]
         self.stim_duration = stim_duration
@@ -122,7 +123,6 @@ class GeneticAlgorithm(object):
 
     def canonical(self,RT):
         # translated from spm_hrf
-
         p=[6,16,1,1,6,0,32]
         dt = RT/16.
         s = np.array(xrange(int(p[6]/dt+1)))
@@ -142,13 +142,19 @@ class GeneticAlgorithm(object):
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
-        ITIdur = self.n_trials*self.mnITI
-        STIMdur = self.n_trials*self.stim_duration
-        self.duration = ITIdur+STIMdur
-        self.duration_norest = self.duration
+        resdur = 0
         if self.restnum>0:
             resdur = (np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
-            self.duration = self.duration+resdur
+        if self.duration:
+            trialdur = float(self.duration-resdur)
+            SOA = float(self.stim_duration + self.mnITI)
+            self.n_trials = int(np.floor(trialdur/SOA))
+        if self.n_trials:
+            ITIdur = self.n_trials*self.mnITI
+            STIMdur = self.n_trials*self.stim_duration
+            self.duration = ITIdur+STIMdur
+        self.duration_norest = self.duration
+        self.duration = self.duration+resdur
         self.n_scans = int(np.ceil(self.duration/self.TR)) # number of scans
         self.n_tp = int(np.ceil(self.duration/self.resolution)) #number of timepoints (in resolution)
         self.r_scans = np.arange(0,self.duration,self.TR)
@@ -614,7 +620,6 @@ class GeneticAlgorithm(object):
         else:
             ITIli = np.array(Design['ITIs'])+self.stim_duration
             Design['onsets'] = np.cumsum(ITIli)-ITIli[0]
-        print(Design['onsets'])
 
         # round onsets to resolution
         onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]

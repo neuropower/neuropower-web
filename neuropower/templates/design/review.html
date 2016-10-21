@@ -46,9 +46,16 @@
   <div class="col-md-9 col-xs-12"> {{ S }} trials (or conditions) </div>
   <div class="col-xs-12"><br></div>
 
-  <div class="col-md-3 col-xs-12"><b> Total number of trials </b></div>
+  {% if L %}
+<div class="col-md-3 col-xs-12"><b> Total number of trials </b></div>
   <div class="col-md-9 col-xs-12"> {{ L }} trials </div>
   <div class="col-xs-12"><br></div>
+{% endif %}
+{% if L %}
+<div class="col-md-3 col-xs-12"><b> Total duration </b></div>
+<div class="col-md-9 col-xs-12"> {{ duration }} seconds </div>
+<div class="col-xs-12"><br></div>
+{% endif %}
 
   <div class="col-md-3 col-xs-12"><b> Probabilities </b></div>
   <div class="col-md-9 col-xs-12"><div class="table"><table>{{Phtml|safe}}</table></div></div>

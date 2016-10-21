@@ -163,7 +163,16 @@ def maininput(request, end_session=False):
             weightsform.ITImax = desdata.ITImean
         if not desdata.ITImean:
             weightsform.ITImean = (desdata.ITImin+desdata.ITImax)/2
+
+        # get duration in seconds
+        print(desdata.duration_unitfree)
+        if desdata.duration_unit == 2:
+            weightsform.duration = weightsform.duration_unitfree*60
+        elif desdata.duration_unit == 1:
+            weightsform.duration = weightsform.duration_unitfree
+        print(weightsform.duration)
         weightsform.save()
+
 
         if desdata.nested and desdata.nest_classes == None:
             context['message'] = "For a nested design, please specify the number of classes."
@@ -324,7 +333,10 @@ def review(request):
     context['ITImax'] = desdata.ITImax
     context['TR'] = desdata.TR
     context['S'] = desdata.S
-    context['L'] = desdata.L
+    if desdata.L:
+        context['L'] = desdata.L
+    if desdata.duration:
+        context['duration'] = desdata.duration
     context["Phtml"] = matrices["Phtml"]
     context["Chtml"] = matrices["Chtml"]
     context["Whtml"] = weights_html(desdata.W)
@@ -343,7 +355,10 @@ def review(request):
         context['message'] = context['message']+"<br><p><b>Warning:</b>This is a long and complex design.  Be aware that the optimisation will take a <b>long</b> time.</p>"
 
     # Duration
-    dur = desdata.ITImean*desdata.L+desdata.RestNum*desdata.RestDur
+    if desdata.L:
+        dur = desdata.ITImean*desdata.L+desdata.RestNum*desdata.RestDur
+    elif desdata.duration:
+        dur = desdata.duration
     if dur > 1800:
         context['message'] = context['message'] + "<p><b>Warning:</b> The run you request is longer dan 30 minutes.  This optimisation will take <b>a long</b> time.  You could set the resolution lower, or split the experiment in multiple shorter runs.  Or you could grab a coffee and wait a few hours for the optimisation to complete.</p>"
     # If page was result of POST: show summary
