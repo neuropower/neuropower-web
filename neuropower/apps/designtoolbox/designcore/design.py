@@ -142,9 +142,10 @@ class GeneticAlgorithm(object):
 
     def CreateTsComp(self):
         # compute number of timepoints (self.tp)
-        ITIdur = self.n_trials*self.ITImax
+        ITIdur = self.n_trials*self.mnITI
         STIMdur = self.n_trials*self.stim_duration
         self.duration = ITIdur+STIMdur
+        self.duration_norest = self.duration
         if self.restnum>0:
             resdur = (np.floor(self.n_trials/self.restnum)*self.restlength) #total duration (s)
             self.duration = self.duration+resdur
@@ -185,43 +186,6 @@ class GeneticAlgorithm(object):
     Functions specific to the Genetic Algorithm
     ###########################################
     '''
-
-    def GeneticAlgorithm(self):
-
-        # Create first generation
-        self.GeneticAlgorithmInitiate()
-
-        # Maximise Fe
-        if self.weights[0]>0 and self.preruncycles>0:
-            print("PRERUN FOR EFFICIENCY")
-            self.prerun='Fe'
-            NatSel = self.GeneticAlgorithmNaturalSelection(cycles=self.preruncycles)
-            self.FeMax = NatSel['Best']
-
-        # Maximise Fd
-        if self.weights[1]>0 and self.preruncycles>0:
-            print("PRERUN FOR DETECTION POWER")
-            self.prerun='Fd'
-            NatSel = self.GeneticAlgorithmNaturalSelection(cycles=self.preruncycles)
-            self.FdMax = NatSel['Best']
-
-        # Natural selection
-        self.prerun=None
-        NatSel = self.GeneticAlgorithmNaturalSelection(cycles=self.cycles)
-
-        # Select optimal design
-        Generation = NatSel['Generation']
-        Best = NatSel['Best']
-
-        OptInd = np.min(np.arange(len(Generation['F']))[Generation['F']==np.max(Generation['F'])])
-        self.opt = {
-            'order':Generation['order'][OptInd],
-            'onsets':Generation['onsets'][OptInd],
-            'F':Generation['F'][OptInd],
-            'FScores':Best
-            }
-
-        return self
 
     def GeneticAlgorithmNaturalSelection(self,cycles):
         # sid is a parameter for monitoring
@@ -568,7 +532,7 @@ class GeneticAlgorithm(object):
             order = [x.tolist().index(1) for x in mult]
             orders.append(order)
 
-            ITI = self.smpl_ITI(self.n_trials,self.ITImin,self.ITImax,self.ITImax)
+            ITI = self.smpl_ITI()
             ITIs.append(ITI)
 
         return {"orders":orders,"ITIs":ITIs}
@@ -580,7 +544,7 @@ class GeneticAlgorithm(object):
 
         ITIs = []
         for ind in xrange(len(orders)):
-            ITI = self.smpl_ITI(self.n_trials,self.ITImin,self.ITImax,self.ITImax)
+            ITI = self.smpl_ITI()
             ITIs.append(ITI)
 
         return {"orders":orders,"ITIs":ITIs}
@@ -602,7 +566,7 @@ class GeneticAlgorithm(object):
 
         ITIs = []
         for ind in xrange(len(orders)):
-            ITI = self.smpl_ITI(self.n_trials,self.ITImin,self.ITImax,self.ITImax)
+            ITI = self.smpl_ITI()
             ITIs.append(ITI)
 
         return {"orders":orders,"ITIs":ITIs}
@@ -650,6 +614,7 @@ class GeneticAlgorithm(object):
         else:
             ITIli = np.array(Design['ITIs'])+self.stim_duration
             Design['onsets'] = np.cumsum(ITIli)-ITIli[0]
+        print(Design['onsets'])
 
         # round onsets to resolution
         onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]
@@ -801,6 +766,26 @@ class GeneticAlgorithm(object):
         Design["Ff"] = np.sum(abs(np.array(Pobs)-np.array(self.n_trials*np.array(self.P))))
         return Design
 
+    def smpl_ITI(self):
+        succes = 0
+        while succes == 0:
+            if self.ITImin == self.ITImax:
+                smp = np.random.uniform(self.min,self.max,self.n_trials)
+            else:
+                mn_pos = (self.mnITI + self.ITImin)/2
+                mn_neg = (self.ITImax + self.mnITI)/2
+                a = (mn_pos-self.mnITI)/(mn_pos-mn_neg)
+                b = 1-a
+                s1 = np.random.uniform(self.ITImin,self.mnITI,self.n_trials*a)
+                s2 = np.random.uniform(self.mnITI,self.ITImax,self.n_trials*b)
+                smp = np.concatenate((s1,s2))[:self.n_trials]
+
+            if np.sum(smp[1:])<(self.duration_norest-self.ITImin-self.n_trials*self.stim_duration):
+                succes = 1
+            else:
+                succes = 0
+        return smp
+
     @staticmethod
     def drift(s,deg=3):
         S = np.ones([deg,len(s)])
@@ -816,17 +801,3 @@ class GeneticAlgorithm(object):
         s = np.array(s)
         res = (h-1)*np.log(s) + h*np.log(l) - l*s - np.log(gamma(h))
         return np.exp(res)
-
-    @staticmethod
-    def smpl_ITI(n,min,mean,max):
-        if min == max:
-            smp = np.random.uniform(min,max,n)
-        else:
-            mn_pos = (mean + min)/2
-            mn_neg = (max + mean)/2
-            a = (mn_pos-mean)/(mn_pos-mn_neg)
-            b = 1-a
-            s1 = np.random.uniform(min,mean,n*a)
-            s2 = np.random.uniform(mean,max,n*b)
-            smp = np.concatenate((s1,s2))[:n]
-        return smp
