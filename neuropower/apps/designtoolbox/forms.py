@@ -190,10 +190,18 @@ class DesignMainForm(forms.ModelForm):
             'Design optimisation parameters',
             HTML("""<p>There are 4 criteria that quantify the optimality of the design:</p>
             <ol>
-            <li> Estimation efficiency (estimating the HRF)</li>
-            <li> Detection power (activation detection)</li>
-            <li> Final frequencies of each trial type</li>
-            <li> Avoiding psychological confounds</li>
+            <li> Estimation efficiency (estimating the HRF)
+                <img src="../../static/img/info.png" data-toggle="tooltip" data-placement="right" title="A possible goal of the research is to estimate the exact shape of the signal (the HRF) after a stimulus has been presented.  This can be interesting for research into how the HRF varies accross subjects/regions/...  This outcome is also desirable when estimating connectivity between region/time series.  The optimisation algorithm will improve the likeliness to have a good estimate of the brain response at following a stimulus with a good temporal resolution." style="width:10px;"/>
+            </li>
+            <li> Detection power (activation detection)
+                <img src="../../static/img/info.png" data-toggle="tooltip" data-placement="right" title="A potential goal of an fMRI study is to detect brain activation related to a certain task.  The keyword is contrast.  For example: the researcher wants to find which part of the brain is responsible for the contrast between seeing faces and houses, the contrast between angry and happy faces, or the contrast between auditory stimulation and nothing (baseline).  In this case, the optimisation algorithm will improve the statistical separation between the modeled conditions." style="width:10px;"/>
+            </li>
+            <li> Final frequencies of each trial type
+                <img src="../../static/img/info.png" data-toggle="tooltip" data-placement="right" title="Sometimes, you can get higher detection power or estimation efficiency when the frequencies of the stimuli are slightly changed.  For example: in a stop-signal experiment, you want 30% of the stimuli to be stop-trials and 70% to be go-trials.  However, the genetic algorithm has a better detection power when the frequencies are changed from 30-70 to 25-75%.  In certain tasks (like a  basic stop-signal task), changing these frequencies can have a large psychological impact and you want to avoid changing the frequencies." style="width:10px;"/>
+            </li>
+            <li> Avoiding psychological confounds
+                <img src="../../static/img/info.png" data-toggle="tooltip" data-placement="right" title="When a subject in the scanner can predict which stimulus will follow, the effect of that stimulus might be biased.  As such, it is important to avoid certain contingencies." style="width:10px;"/>
+            </li>
             </ol>
             <p>Please provide the weights that you want to give to each of the design criteria.</p>
             <p> Ideally, the weights sum to 1.  If not, they will be rescaled as such. <br><br>"""),
