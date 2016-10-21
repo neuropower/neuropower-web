@@ -18,7 +18,7 @@ class DesignMainForm(forms.ModelForm):
         self.fields['ITImean'].label = "Average ITI (seconds)"
         self.fields['ITImax'].label = "Maximum ITI (seconds)"
         self.fields['TR'].label = "Scanner TR (seconds)"
-        self.fields['S'].label = "Stimulus types"
+        self.fields['S'].label = "Number of stimulus types"
         self.fields['stim_duration'].label = "Stimulus duration (seconds)"
         self.fields['L'].label = "Total number of trials"
         self.fields['Call'].label = 'Check to include all pairwise contrasts'
