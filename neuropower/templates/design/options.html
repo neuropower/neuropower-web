@@ -13,6 +13,9 @@
 
 {% block content %}
 <div class="row">
+  <div class="alert alert-danger">
+    <strong>Warning!</strong> These are internal settings for the genetic algorithm.  We've carefully chosen the default values, and they are in accordance with defaults in other software.  Change these values only if you know what you are doing.
+  </div>
   {% if message %}
   <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
   {% endif %}

@@ -687,7 +687,7 @@ class DesignOptionsForm(forms.ModelForm):
             Div(Field('Aoptimality'),css_class='col-xs-12'),
             #Div(Field('Saturation'),css_class='col-xs-12'),
             Div(Field('resolution'),css_class='col-xs-12'),
-            Div(Field('HardProb'),css_class='col-xs-12'),
+            Div(Field('HardProb'),css_class='col-xs-4'),
             css_class='row-md-12 col-xs-12'
             )
             ),

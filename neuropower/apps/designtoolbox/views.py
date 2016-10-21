@@ -374,11 +374,14 @@ def options(request):
     try:
         desdata = DesignModel.objects.get(SID=sid)
     except DesignModel.DoesNotExist:
-        return HttpResponseRedirect('../maininput/')
+        pass
 
     # Define form
+    if "desdata" in locals():
+        opsform = DesignOptionsForm(request.POST or None, instance=desdata)
+    else:
+        opsform = DesignOptionsForm(request.POST or None)
 
-    opsform = DesignOptionsForm(request.POST or None, instance=desdata)
     context["opsform"] = opsform
 
     # If page was result of POST: show summary
@@ -601,7 +604,7 @@ def runGA(request):
         if desdata.taskstatus==2:
             context['status'] = "RUNNING"
             if desdata.preruncycles<1000 or desdata.cycles<1000 or desdata.resolution>0.2:
-                context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application but the results will be sub-optimal.  For a good optimisation, go to options on the review page and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
+                context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application but the results will be sub-optimal.  For a good optimisation, go to the settings and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
         if desdata.taskstatus==3:
             context['refrun'] = 5
             context['status'] = "STOPPED"
