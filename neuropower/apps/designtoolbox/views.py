@@ -336,7 +336,7 @@ def review(request):
         context["message"] = context["message"] + \
             "<br><p><b>Warning:</b> Because of the hard limit on the frequencies, we increased the size of the generation and the number of random designs per generation.  This might slow down the optimisation.  </p>"
     if desdata.MaxRepeat < 10 and desdata.S == 2:
-        context["message"] = context["message"] + "<br><p><b>Warning:</b> With only 2 stimuli, many random designs have repetitions larger dan " + \
+        context["message"] = context["message"] + "<br><p><b>Warning:</b> With only 2 stimuli, many random designs have repetitions larger than " + \
             str(desdata.MaxRepeat) + \
             ".  We increased the number of random designs per generation, but this might slow down the optimisation.  </p>"
     if desdata.S>5 and desdata.L>200 and desdata.ITImax>3 and (desdata.Restnum<30 and desdata.Resdur>30) and desdata.C.shape[0]>5:
