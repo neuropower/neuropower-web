@@ -51,11 +51,15 @@
   <div class="col-md-9 col-xs-12"> {{ L }} trials </div>
   <div class="col-xs-12"><br></div>
 {% endif %}
-{% if L %}
+{% if duration %}
 <div class="col-md-3 col-xs-12"><b> Total duration </b></div>
 <div class="col-md-9 col-xs-12"> {{ duration }} seconds </div>
 <div class="col-xs-12"><br></div>
 {% endif %}
+
+<div class="col-md-3 col-xs-12"><b> Stimulus duration </b></div>
+<div class="col-md-9 col-xs-12"> {{ stim_duration }} seconds </div>
+<div class="col-xs-12"><br></div>
 
   <div class="col-md-3 col-xs-12"><b> Probabilities </b></div>
   <div class="col-md-9 col-xs-12"><div class="table"><table>{{Phtml|safe}}</table></div></div>

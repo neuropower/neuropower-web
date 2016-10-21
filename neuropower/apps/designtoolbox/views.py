@@ -342,6 +342,7 @@ def review(request):
     context["Whtml"] = weights_html(desdata.W)
     context["order"] = desdata.ConfoundOrder
     context["repeat"] = desdata.MaxRepeat
+    context['stim_duration'] = desdata.stim_duration
 
     context["message"] = ""
     if desdata.HardProb == True:

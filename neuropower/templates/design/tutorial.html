@@ -32,12 +32,12 @@
     <h1 style="align-text:center;padding-top:140px; float:right" id="step_title">Getting Started</h1>
   </div>
 </div>
-<!-- <div class="row">
-    <div class="col-md-12">
-        <a class="btn btn-primary btn" style="border-radius:30px;float:right;position:relative; top:-20px" id="save_pdf"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a>
-        <div id="editor"></div>
-    </div>
-</div> -->
+<div class="row">
+  <div class="col-md-12">
+      <a class="btn btn-primary btn" style="border-radius:30px;float:right;position:relative; top:-20px" id="save_pdf"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a>
+      <div id="editor"></div>
+  </div>
+</div>
 
 <div class="row" id="pdf-content">
   <div class="panel panel-default" id="step0-content">
@@ -198,8 +198,6 @@
           <td>Pre-run generations</td><td>To have an accurate scale of the optimality criteria, we have to do a prerun to find the optimal efficiency and detection power.  This should be more or less equal to the number of generations in the genetic algorithm.</td>
           </tr>
         </table>
-        <br><br>
-       <!-- Next and previous buttons -->
        <a class="btn btn-primary btn-md step-button" text="Input" id="previous2">Previous: Input</a>
        <a class="btn btn-primary btn-md step-button" text="Genetic Algorithm" id="next4" style="float:right">Next: Genetic Algorithm</a>
      </div>
@@ -220,15 +218,7 @@
      </div>
     </div>
   </div>
-
-
-
-
 </div>
-
-
-
-
 {% endblock %}
 
 {% block scripts %}
@@ -262,6 +252,7 @@ $(document).ready(function(){
     })
 
     // Save docs to pdf on click
+    // Save docs to pdf on click
     $("#save_pdf").click(function(){
 
       $("body").scrollTop(0)
@@ -282,9 +273,6 @@ $(document).ready(function(){
             .replace(/<img[^>]*>/g,"")
             .replace(/<button[^>]*>/g,"")
             .replace(/<hr>/g,"")
-            .replace(/&pi;/g,"pi")      // not currenly working
-            .replace(/&#956;/g,"mu")    // not currenly working
-            .replace(/&#963;/g,"sigma") // not currenly working
 
         doc.fromHTML(html, 15, 15, {
 	   'width': 170,
@@ -293,7 +281,7 @@ $(document).ready(function(){
 
         // Callback function to save
         function(dispose) {
-           doc.save('neuropower-docs.pdf');
+           doc.save('NeuroDesignDocs.pdf');
            $("#fade").hide();
            $("#loader").hide();
          });
