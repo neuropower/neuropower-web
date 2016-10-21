@@ -230,7 +230,7 @@ class DesignMainForm(forms.ModelForm):
             css_class='row-md-12 col-xs-12'
             ),
         HTML("""<br><br><br><br><br>"""),
-        ButtonHolder(Submit('Submit', 'Save', css_class='btn-black')),
+        ButtonHolder(Submit('Submit', 'Save and next', css_class='btn-black')),
         HTML("""<br><br><br><br><br>"""),
         Div(Field('mainpars',type='hidden'),css_class='col-xs-12')
         )
@@ -273,7 +273,7 @@ class DesignNestedForm(forms.ModelForm):
             HTML("<br><br><br><br>")
             )
         self.helper.layout.append(
-            ButtonHolder(Submit('Submit', 'Save', css_class='btn-secondary'))
+            ButtonHolder(Submit('Submit', 'Save and next', css_class='btn-secondary'))
             )
         super(DesignNestedForm,self).__init__(*args,**kwargs)
 
@@ -395,7 +395,7 @@ class DesignConsForm(forms.ModelForm):
             HTML("<br><br><br><br>")
             )
         self.helper.layout.append(
-            ButtonHolder(Submit('Submit', 'Save', css_class='btn-secondary'))
+            ButtonHolder(Submit('Submit', 'Save and next', css_class='btn-secondary'))
             )
 
         # initiate the form
@@ -565,7 +565,7 @@ class DesignNestedConsForm(forms.ModelForm):
             HTML("<br><br><br><br>")
             )
         self.helper.layout.append(
-            ButtonHolder(Submit('Submit', 'Save', css_class='btn-secondary'))
+            ButtonHolder(Submit('Submit', 'Save and next', css_class='btn-secondary'))
             )
 
         # initiate the form
@@ -615,7 +615,7 @@ class DesignReviewForm(forms.ModelForm):
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
         HTML("""<br><br><br><br><br>"""),
-        ButtonHolder(Submit('Save', 'Save', css_class='btn-black')),
+        ButtonHolder(Submit('Save', 'Save and next', css_class='btn-black')),
         HTML("""<br><br><br><br><br>"""),
         )
 
