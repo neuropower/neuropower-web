@@ -148,6 +148,7 @@ class DesignMainForm(forms.ModelForm):
             Div(
             HTML("""<h5 style="margin-left: 15px">Fill out either the total duration or the number of trials.</h5><p style="margin-left: 20px"> <ul><li><b>If you give duration</b>: number of trials = duration/(trialduration + mean ITI)</li><li><b>If you give number of trials</b>: duration = (trialduration + mean ITI)* number of trials</li></ul><br>"""),
             Div(Field('durspec'),css_class='col-md-12 col-sm-12 col-xs-12',css_id="durspec")),
+            HTML("<br><br>")
         ),
         Fieldset(
             '',
@@ -168,6 +169,7 @@ class DesignMainForm(forms.ModelForm):
             Div(
             HTML("""<br><h5 style="margin-left: 15px">Inter Trial Interval (ITI)</h5><p style="margin-left: 20px"><p>The ITI's can be fixed or variable.   Variable ITI's can be sampled from a uniform model or a truncated exponential model.</p> <br>"""),
             Div(Field('ITImodel'),css_class='col-md-12 col-sm-12 col-xs-12',css_id="ITImodel")),
+            HTML("<br><br>")
         ),
         Fieldset(
             '',
