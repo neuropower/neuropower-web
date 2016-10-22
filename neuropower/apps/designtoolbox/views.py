@@ -165,14 +165,13 @@ def maininput(request, end_session=False):
             weightsform.ITImean = (desdata.ITImin+desdata.ITImax)/2
 
         # get duration in seconds
-        print(desdata.duration_unitfree)
-        if desdata.duration_unit == 2:
-            weightsform.duration = weightsform.duration_unitfree*60
-        elif desdata.duration_unit == 1:
-            weightsform.duration = weightsform.duration_unitfree
-        print(weightsform.duration)
+        if desdata.duration_unitfree:
+            if desdata.duration_unit == 2:
+                weightsform.duration = desdata.duration_unitfree*60
+            elif desdata.duration_unit == 1:
+                weightsform.duration = desdata.duration_unitfree
+            print(weightsform.duration)
         weightsform.save()
-
 
         if desdata.nested and desdata.nest_classes == None:
             context['message'] = "For a nested design, please specify the number of classes."
