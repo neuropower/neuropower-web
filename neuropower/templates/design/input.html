@@ -19,6 +19,7 @@
   {% endif %}
   <div class="col-md-12">
     <form id="inputform" method='POST' action='.' enctype="multipart/form-data">
+
       {% csrf_token %}
       {% load crispy_forms_tags %}
       {% crispy inputform %}
@@ -32,4 +33,44 @@
 $(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();
 });
+
+$(document).ready(function(){
+    $("#id_durspec").change(function(){
+        $(this).find("option:selected").each(function(){
+          console.log($(this).attr("value"));
+            if($(this).attr("value")==1){
+              $("#duration").show();
+              $("#trialcount").hide();
+            }
+            else if($(this).attr("value")==2){
+              $("#duration").hide();
+              $("#trialcount").show();
+            }
+        });
+    }).change();
+});
+
+$(document).ready(function(){
+    $("#ITImodel").change(function(){
+        $(this).find("option:selected").each(function(){
+          console.log($(this).attr("value"));
+            if($(this).attr("value")==1){
+              $("#uniform").hide();
+              $("#exp").hide();
+              $("#fixed").show();
+            }
+            else if($(this).attr("value")==2){
+              $("#uniform").hide();
+              $("#exp").show();
+              $("#fixed").hide();
+            }
+            else if($(this).attr("value")==3){
+              $("#uniform").show();
+              $("#exp").hide();
+              $("#fixed").hide();
+            }
+        });
+    }).change();
+});
+
 </script>{% endblock %}

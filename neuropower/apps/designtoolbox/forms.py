@@ -9,14 +9,17 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['ITImin','ITImax','ITImean','stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','duration_unitfree','duration_unit']
-        # fields.append(['nested','nest_classes'])
+        fields = ['stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','duration_unitfree','duration_unit','durspec','ITImodel','ITIfixed','ITIunifmin','ITIunifmax','ITItruncmin','ITItruncmax','ITItruncmean']
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
-        self.fields['ITImin'].label = "Minimum ITI (seconds)"
-        self.fields['ITImean'].label = "Average ITI (seconds)"
-        self.fields['ITImax'].label = "Maximum ITI (seconds)"
+        self.fields['ITImodel'].label = "Choose a model to sample ITI's from"
+        self.fields['ITIfixed'].label = "ITI duration (seconds)"
+        self.fields['ITIunifmin'].label = "Minimum ITI (seconds)"
+        self.fields['ITIunifmax'].label = "Maximum ITI (seconds)"
+        self.fields['ITItruncmin'].label = "Minimum ITI (seconds)"
+        self.fields['ITItruncmax'].label = "Maximum ITI (seconds)"
+        self.fields['ITItruncmean'].label = "Average ITI (seconds)"
         self.fields['TR'].label = "Scanner TR (seconds)"
         self.fields['S'].label = "Number of stimulus types"
         self.fields['stim_duration'].label = "Stimulus duration (seconds)"
@@ -33,6 +36,7 @@ class DesignMainForm(forms.ModelForm):
         self.fields['W2'].label = 'Detection power'
         self.fields['W3'].label = 'Trial probabilities'
         self.fields['W4'].label = 'Psychological confounds'
+        self.fields['durspec'].label = ""
         # self.fields['nested'].label = "Check for a nested design"
         # self.fields['nest_classes'].label = "If the design is nested, how many classes of stimulus types are there?"
 
@@ -60,12 +64,17 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("ConfoundOrder")>10:
             raise forms.ValidationError("Sorry, at the moment we can only model designs with a confoundorder smaller than 10. Parameters not saved.")
 
-        if cleaned_data.get("ITImin")==None and cleaned_data.get("ITImax")==None and cleaned_data.get("ITImean")==None:
-            raise forms.ValidationError("You need to specify at least either a range of ITI, or the average (fixed) ITI.")
+        if cleaned_data.get("ITItruncmean")>np.mean([cleaned_data.get("ITItruncmin"),cleaned_data.get("ITItruncmax")]):
+            raise forms.ValidationError("To use a truncated exponential ITI model, the mean ITI has to be smaller than the average between the minimum and the maximum ITI.")
 
-        if (cleaned_data.get("ITImin")==None and not cleaned_data.get("ITImax")==None) or (cleaned_data.get("ITImax")==None and not cleaned_data.get("ITImin")==None):
-            raise forms.ValidationError("You specified either a minimum or a maximum ITI.  You need to fill out both.")
-
+        # if cleaned_data.get("ITImin")==None and cleaned_data.get("ITImax")==None and cleaned_data.get("ITImean")==None:
+        #     raise forms.ValidationError("You need to specify at least either a range of ITI, or the average (fixed) ITI.")
+        #
+        # if (cleaned_data.get("ITImin")==None and not cleaned_data.get("ITImax")==None) or (cleaned_data.get("ITImax")==None and not cleaned_data.get("ITImin")==None):
+        #     raise forms.ValidationError("You specified either a minimum or a maximum ITI.  You need to fill out both.")
+        #
+        if (cleaned_data.get("RestNum")>0 and cleaned_data.get("RestDur")==0):
+            raise forms.ValidationError("You wanted restblocks but you didn't specify their duration.")
 
         if (cleaned_data.get("L")==None and cleaned_data.get("duration_unitfree")==None) or (not cleaned_data.get("L")==None and not cleaned_data.get("duration_unitfree")==None):
             raise forms.ValidationError("You need to specify either the total duration of the experiment or the number of trials. Not both.")
@@ -73,9 +82,12 @@ class DesignMainForm(forms.ModelForm):
 
         smaller = [
             cleaned_data.get("TR")<0,
-            cleaned_data.get("ITImin")<0,
-            cleaned_data.get("ITImean")<0,
-            cleaned_data.get("ITImax")<0,
+            cleaned_data.get("ITIunifmin")<0,
+            cleaned_data.get("ITIfixed")<0,
+            cleaned_data.get("ITIunifmax")<0,
+            cleaned_data.get("ITItruncmax")<0,
+            cleaned_data.get("ITItruncmin")<0,
+            cleaned_data.get("ITItruncmean")<0,
             cleaned_data.get("S")<0,
             cleaned_data.get("stim_duration")<0,
             cleaned_data.get("L")<0,
@@ -91,9 +103,12 @@ class DesignMainForm(forms.ModelForm):
         ]
         snone = [
             cleaned_data.get("TR")==None,
-            cleaned_data.get("ITImin")==None,
-            cleaned_data.get("ITImean")==None,
-            cleaned_data.get("ITImax")==None,
+            cleaned_data.get("ITIunifmin")==None,
+            cleaned_data.get("ITIfixed")==None,
+            cleaned_data.get("ITIunifmax")==None,
+            cleaned_data.get("ITItruncmax")==None,
+            cleaned_data.get("ITItruncmin")==None,
+            cleaned_data.get("ITItruncmean")==None,
             cleaned_data.get("S")==None,
             cleaned_data.get("stim_duration")==None,
             cleaned_data.get("L")==None,
@@ -128,23 +143,51 @@ class DesignMainForm(forms.ModelForm):
             css_class='row-md-12 col-xs-12'
             ),
             ),
-        HTML("<br><br>"),
+        HTML("<br>"),
+        Fieldset("",
+            Div(
+            HTML("""<h5 style="margin-left: 15px">Fill out either the total duration or the number of trials.</h5><p style="margin-left: 20px"> <ul><li><b>If you give duration</b>: number of trials = duration/(trialduration + mean ITI)</li><li><b>If you give number of trials</b>: duration = (trialduration + mean ITI)* number of trials</li></ul><br>"""),
+            Div(Field('durspec'),css_class='col-md-12 col-sm-12 col-xs-12',css_id="durspec")),
+        ),
         Fieldset(
             '',
-            HTML("""<br><h5 style="margin-left: 15px">Duration parameters.</h5><p style="margin-left: 20px"> Please either fill out the total duration of the experiment, or the number of trials.</p><ul><li><b>If you give duration</b>: number of trials = duration/(trialduration + mean ITI)</li></ul><br>"""),
             Div(
             Div(Field('duration_unitfree'),css_class='col-md-6 col-sm-6 col-xs-12'),
             Div(Field('duration_unit'),css_class='col-md-6 col-sm-6 col-xs-12'),
-            css_class='row-md-12 col-xs-12'
+            css_class='row-md-12 col-xs-12',
+            css_id = "duration"
+            ),
+            Div(
+            Div(Field('L'),css_class='col-md-12 col-sm-12 col-xs-12'),
+            css_class='row-md-12 col-xs-12',
+            css_id = "trialcount"
             ),
             ),
         HTML("<br><br>"),
+        Fieldset("",
+            Div(
+            HTML("""<br><h5 style="margin-left: 15px">Inter Trial Interval (ITI)</h5><p style="margin-left: 20px"><p>The ITI's can be fixed or variable.   Variable ITI's can be sampled from a uniform model or a truncated exponential model.</p> <br>"""),
+            Div(Field('ITImodel'),css_class='col-md-12 col-sm-12 col-xs-12',css_id="ITImodel")),
+        ),
         Fieldset(
             '',
-            HTML("""<br><ul><li><b>If you give number of trials</b>: duration = (trialduration + mean ITI)* number of trials</li></ul><br>"""),
             Div(
-            Div(Field('L'),css_class='col-md-12 col-sm-12 col-xs-12'),
-            css_class='row-md-12 col-xs-12'
+            Div(Field('ITIunifmin'),css_class='col-md-6 col-sm-6 col-xs-12'),
+            Div(Field('ITIunifmax'),css_class='col-md-6 col-sm-6 col-xs-12'),
+            css_class='row-md-12 col-xs-12',
+            css_id = "uniform"
+            ),
+            Div(
+            Div(Field('ITItruncmin'),css_class='col-md-4 col-sm-12 col-xs-12'),
+            Div(Field('ITItruncmax'),css_class='col-md-4 col-sm-12 col-xs-12'),
+            Div(Field('ITItruncmean'),css_class='col-md-4 col-sm-12 col-xs-12'),
+            css_class='row-md-12 col-xs-12',
+            css_id = "exp"
+            ),
+            Div(
+            Div(Field('ITIfixed'),css_class='col-md-12 col-sm-12 col-xs-12'),
+            css_class='row-md-12 col-xs-12',
+            css_id = "fixed"
             ),
             ),
         HTML("<br><br>"),
@@ -160,18 +203,6 @@ class DesignMainForm(forms.ModelForm):
             Div(Field('Clen'),css_class='col-lg-12'),
             css_class='row-md-12 col-xs-12'
             ),
-            ),
-        HTML("<br><br>"),
-        Fieldset(
-            '',
-            HTML("""<div class="col-lg-12"><h5 style="margin-left: 15px">In what range is the ITI?</h5>
-            <p style="margin-left: 20px">For a fixed ITI, only fill out the average ITI.  For ITI's uniformly distributed between two values, only fill out minimum and maximum ITI.</p><br></div> """),
-            Div(
-            Div(Field('ITImin'),css_class='col-md-4 col-sm-6 col-xs-12'),
-            Div(Field('ITImean'),css_class='col-md-4 col-sm-6 col-xs-12'),
-            Div(Field('ITImax'),css_class='col-md-4 col-sm-6 col-xs-12'),
-            css_class='row-md-12 col-xs-12'
-            )
             ),
         HTML("<br><br>"),
         Fieldset(

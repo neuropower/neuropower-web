@@ -157,20 +157,12 @@ def maininput(request, end_session=False):
             resfact = np.ceil(desdata.TR/desdata.resolution)
             weightsform.resolution = desdata.TR/resfact
 
-        # get ITI's streight
-        if not (desdata.ITImin or desdata.ITImax):
-            weightsform.ITImin = desdata.ITImean
-            weightsform.ITImax = desdata.ITImean
-        if not desdata.ITImean:
-            weightsform.ITImean = (desdata.ITImin+desdata.ITImax)/2
-
         # get duration in seconds
         if desdata.duration_unitfree:
             if desdata.duration_unit == 2:
                 weightsform.duration = desdata.duration_unitfree*60
             elif desdata.duration_unit == 1:
                 weightsform.duration = desdata.duration_unitfree
-            print(weightsform.duration)
         weightsform.save()
 
         if desdata.nested and desdata.nest_classes == None:
@@ -327,9 +319,6 @@ def review(request):
     # Set summary variables in context
 
     matrices = probs_and_cons(sid)
-    context['ITImin'] = desdata.ITImin
-    context['ITImean'] = desdata.ITImean
-    context['ITImax'] = desdata.ITImax
     context['TR'] = desdata.TR
     context['S'] = desdata.S
     if desdata.L:
@@ -355,8 +344,14 @@ def review(request):
         context['message'] = context['message']+"<br><p><b>Warning:</b>This is a long and complex design.  Be aware that the optimisation will take a <b>long</b> time.</p>"
 
     # Duration
+    if desdata.ITImodel == 1:
+        mean = desdata.ITIfixed
+    elif desdata.ITImodel == 2:
+        mean = desdata.ITItruncmean
+    elif desdata.ITImodel == 3:
+        mean = (desdata.ITIunifmin+desdata.ITIunifmax)/2.
     if desdata.L:
-        dur = desdata.ITImean*desdata.L+desdata.RestNum*desdata.RestDur
+        dur = mean*desdata.L+desdata.RestNum*desdata.RestDur
     elif desdata.duration:
         dur = desdata.duration
     if dur > 1800:

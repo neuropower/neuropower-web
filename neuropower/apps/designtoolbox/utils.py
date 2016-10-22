@@ -125,6 +125,8 @@ def prepare_download(sid):
     orders = desdata.optimalorder
     onsets = [round(x / desdata.resolution) *
               desdata.resolution for x in desdata.optimalonsets]
+    itis = desdata.optimalitis
+    print(itis)
 
     # if path already exist: remove
     if os.path.exists(desdata.onsetsfolder):
@@ -142,13 +144,20 @@ def prepare_download(sid):
             f.write(line)
             f.write("\n")
         f.close()
+    itifile = os.path.join(desdata.onsetsfolder,"itis.txt")
+    f = open(itifile, 'w+')
+    for line in itis:
+        f.write(str(line))
+        f.write("\n")
+    f.close()
+
 
     # combine in zipfile
     zip_subdir = "OptimalDesign"
     zip_filename = "%s.zip" % zip_subdir
     file = StringIO.StringIO()
     zf = zipfile.ZipFile(file, "w")
-    for fpath in filenames:
+    for fpath in filenames+[itifile]:
         fdir, fname = os.path.split(fpath)
         zip_path = os.path.join(zip_subdir, fname)
         zf.write(fpath, zip_path)

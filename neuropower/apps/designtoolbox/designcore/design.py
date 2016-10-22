@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 from numpy.linalg import inv
+import scipy
 from scipy import linalg
 from numpy import transpose as t
 from scipy.special import gamma
@@ -66,11 +67,14 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,ITI,TR,P,C,rho,weights,tapsfile,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=None,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None):
-        self.ITI = ITI
-        self.ITImin = ITI[0]
-        self.mnITI = ITI[1]
-        self.ITImax = ITI[2]
+    def __init__(self,TR,P,C,rho,weights,tapsfile,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=None,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None,ITImodel="uniform",ITIfixed=None,ITIunifmin=None,ITIunifmax=None,ITItruncmin=None,ITItruncmax=None,ITItruncmean=None):
+        self.ITImodel = ITImodel
+        self.ITIfixed = ITIfixed
+        self.ITIunifmin = ITIunifmin
+        self.ITIunifmax = ITIunifmax
+        self.ITItruncmin = ITItruncmin
+        self.ITItruncmax = ITItruncmax
+        self.ITItruncmean = ITItruncmean
         self.TR = TR
         self.n_trials = n_trials
         self.duration = duration
@@ -141,6 +145,17 @@ class GeneticAlgorithm(object):
         return self
 
     def CreateTsComp(self):
+        # ITI mean
+        if self.ITImodel == "uniform":
+            self.mnITI = float(self.ITIunifmin+self.ITIunifmax)/2
+        elif self.ITImodel == "fixed":
+            self.mnITI = self.ITIfixed
+        elif self.ITImodel == "truncated exponential":
+            self.mnITI = self.ITItruncmean
+            opt = scipy.optimize.minimize(self.diftexp,[1.5],args=(self.ITItruncmin,self.ITItruncmax,self.ITItruncmean,))
+            self.lam = opt.x
+
+            self.diftexp
         # compute number of timepoints (self.tp)
         resdur = 0
         if self.restnum>0:
@@ -772,23 +787,22 @@ class GeneticAlgorithm(object):
         return Design
 
     def smpl_ITI(self):
-        succes = 0
-        while succes == 0:
-            if self.ITImin == self.ITImax:
-                smp = np.random.uniform(self.min,self.max,self.n_trials)
-            else:
-                mn_pos = (self.mnITI + self.ITImin)/2
-                mn_neg = (self.ITImax + self.mnITI)/2
-                a = (mn_pos-self.mnITI)/(mn_pos-mn_neg)
-                b = 1-a
-                s1 = np.random.uniform(self.ITImin,self.mnITI,self.n_trials*a)
-                s2 = np.random.uniform(self.mnITI,self.ITImax,self.n_trials*b)
-                smp = np.concatenate((s1,s2))[:self.n_trials]
-
-            if np.sum(smp[1:])<(self.duration_norest-self.ITImin-self.n_trials*self.stim_duration):
-                succes = 1
-            else:
-                succes = 0
+        if self.ITImodel == "fixed":
+            smp = [self.ITIfixed]*self.n_trials
+        elif self.ITImodel == "uniform":
+            maxsmpdur = self.duration_norest-self.ITIunifmin-self.n_trials*self.stim_duration
+            success = 0
+            while success == 0:
+                smp = np.random.uniform(self.ITIunifmin,self.ITIunifmax,self.n_trials)
+                if np.sum(smp[1:])<maxsmpdur:
+                    success = 1
+        elif self.ITImodel == "truncated exponential":
+            maxsmpdur = self.duration_norest-self.ITItruncmin-self.n_trials*self.stim_duration
+            success = 0
+            while success == 0:
+                smp = self.rtexp(self.n_trials,self.lam,self.ITItruncmin,self.ITItruncmax)            
+                if np.sum(smp[1:])<maxsmpdur:
+                    success = 1
         return smp
 
     @staticmethod
@@ -806,3 +820,21 @@ class GeneticAlgorithm(object):
         s = np.array(s)
         res = (h-1)*np.log(s) + h*np.log(l) - l*s - np.log(gamma(h))
         return np.exp(res)
+
+    def itexp(self,x,lam,trunc):
+        i = -np.log(1-x*(1-np.exp(-trunc*lam)))/lam
+        return i
+
+    def rtexp(self,n,lam,min,max):
+        trunc = max-min
+        r = self.itexp(np.random.uniform(0,1,n),lam,trunc) + min
+        return r
+
+    def etexp(self,lam,min,max,mean):
+        trunc = max-min
+        exp = 1/lam-trunc*(np.exp(lam*trunc)-1)**(-1)+min
+        return exp
+
+    def diftexp(self,lam,min,max,mean):
+        exp = self.etexp(lam,min,max,mean)
+        return((exp-mean)**2)

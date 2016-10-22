@@ -30,9 +30,22 @@ def GeneticAlgorithm(sid,ignore_result=False):
 
     matrices = probs_and_cons(sid)
 
+    if desdata.ITImodel == 1:
+        model = "fixed"
+    elif desdata.ITImodel == 2:
+        model = "truncated exponential"
+    elif desdata.ITImodel == 3:
+        model = "uniform"
+
     des = design.GeneticAlgorithm(
         # design specific
-        ITI=[desdata.ITImin, desdata.ITImean, desdata.ITImax],
+        ITImodel = model,
+        ITIfixed = desdata.ITIfixed,
+        ITIunifmin = desdata.ITIunifmin,
+        ITIunifmax = desdata.ITIunifmax,
+        ITItruncmin = desdata.ITItruncmin,
+        ITItruncmax = desdata.ITItruncmax,
+        ITItruncmean = desdata.ITItruncmean,
         TR=desdata.TR,
         n_trials=desdata.L,
         duration=desdata.duration,
@@ -67,7 +80,6 @@ def GeneticAlgorithm(sid,ignore_result=False):
     form = runform.save(commit=False)
     form.running = 1
     form.save()
-
 
     # Create first generation
     des.GeneticAlgorithmInitiate()
@@ -125,6 +137,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
     form = runform.save(commit=False)
     form.optimalorder = Generation['order'][OptInd]
     form.optimalonsets = Generation['onsets'][OptInd]
+    form.optimalitis = Generation['ITIs'][OptInd]
     form.convergence = conv
     form.save()
 
