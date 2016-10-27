@@ -45,6 +45,11 @@ class DesignMainForm(forms.ModelForm):
 
         # if cleaned_data.get("ITI")<0:
         #     raise forms.ValidationError("ITI cannot be smaller than 0. Parameters not saved.")
+        if cleaned_data.get("duspec") == 1 and cleaned_data.get("duration_unitfree")==None:
+            raise forms.ValidationError("You need to specify the total duration of the experiment.")
+
+        if cleaned_data.get("duspec") == 2 and cleaned_data.get("L")==None:
+            raise forms.ValidationError("You need to specify the total number of trials.")
 
         if cleaned_data.get("TR")<0 or cleaned_data.get("TR")>5:
             raise forms.ValidationError("Are you sure about that TR? Parameters not saved.")
@@ -67,15 +72,14 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("ITImodel" == 1):
             if cleaned_data.get("ITIfixed")==None:
                 raise forms.ValidationError("For a fixed ITI, please fill out the duration of the ITI's.")
+
         if cleaned_data.get("ITImodel" == 2):
             if cleaned_data.get("ITItruncmin")==None or cleaned_data.get("ITItruncmax")==None or cleaned_data.get("ITItruncmean")==None:
                 raise forms.ValidationError("For a truncated ITI, please fill out mean, min and max.")
+
         if cleaned_data.get("ITImodel" == 3):
             if cleaned_data.get("ITIunifmin")==None or cleaned_data.get("ITIunifmax")==None:
                 raise forms.ValidationError("For ITI's sampled from a uniform distribution, please fill out the min and max.")
-
-        if cleaned_data.get("ITItruncmean")>np.mean([cleaned_data.get("ITItruncmin"),cleaned_data.get("ITItruncmax")]):
-            raise forms.ValidationError("To use a truncated exponential ITI model, the mean ITI has to be smaller than the average between the minimum and the maximum ITI.")
 
         # if cleaned_data.get("ITImin")==None and cleaned_data.get("ITImax")==None and cleaned_data.get("ITImean")==None:
         #     raise forms.ValidationError("You need to specify at least either a range of ITI, or the average (fixed) ITI.")
