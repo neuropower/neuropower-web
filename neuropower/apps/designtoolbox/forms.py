@@ -69,16 +69,13 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("ConfoundOrder")>10:
             raise forms.ValidationError("Sorry, at the moment we can only model designs with a confoundorder smaller than 10. Parameters not saved.")
 
-        if cleaned_data.get("ITImodel" == 1):
-            if cleaned_data.get("ITIfixed")==None:
+        if cleaned_data.get("ITImodel" == 1) and cleaned_data.get("ITIfixed")==None:
                 raise forms.ValidationError("For a fixed ITI, please fill out the duration of the ITI's.")
 
-        if cleaned_data.get("ITImodel" == 2):
-            if cleaned_data.get("ITItruncmin")==None or cleaned_data.get("ITItruncmax")==None or cleaned_data.get("ITItruncmean")==None:
+        if cleaned_data.get("ITImodel" == 2) and (cleaned_data.get("ITItruncmin")==None or cleaned_data.get("ITItruncmax")==None or cleaned_data.get("ITItruncmean")==None):
                 raise forms.ValidationError("For a truncated ITI, please fill out mean, min and max.")
 
-        print("hiere: "+str(cleaned_data.get("ITIunifmax")))
-        if cleaned_data.get("ITImodel" == 3) and cleaned_data.get("ITIunifmin")==None or cleaned_data.get("ITIunifmax")==None:
+        if cleaned_data.get("ITImodel" == 3) and (cleaned_data.get("ITIunifmin")==None or cleaned_data.get("ITIunifmax")==None):
                 raise forms.ValidationError("For ITI's sampled from a uniform distribution, please fill out the min and max.")
 
         # if cleaned_data.get("ITImin")==None and cleaned_data.get("ITImax")==None and cleaned_data.get("ITImean")==None:
