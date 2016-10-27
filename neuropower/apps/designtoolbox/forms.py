@@ -77,8 +77,8 @@ class DesignMainForm(forms.ModelForm):
             if cleaned_data.get("ITItruncmin")==None or cleaned_data.get("ITItruncmax")==None or cleaned_data.get("ITItruncmean")==None:
                 raise forms.ValidationError("For a truncated ITI, please fill out mean, min and max.")
 
-        if cleaned_data.get("ITImodel" == 3):
-            if cleaned_data.get("ITIunifmin")==None or cleaned_data.get("ITIunifmax")==None:
+        print("hiere: "+str(cleaned_data.get("ITIunifmax")))
+        if cleaned_data.get("ITImodel" == 3) and cleaned_data.get("ITIunifmin")==None or cleaned_data.get("ITIunifmax")==None:
                 raise forms.ValidationError("For ITI's sampled from a uniform distribution, please fill out the min and max.")
 
         # if cleaned_data.get("ITImin")==None and cleaned_data.get("ITImax")==None and cleaned_data.get("ITImean")==None:
