@@ -69,8 +69,6 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("ConfoundOrder")>10:
             raise forms.ValidationError("Sorry, at the moment we can only model designs with a confoundorder smaller than 10. Parameters not saved.")
 
-        print("ITImodel:"+str(cleaned_data.get("ITImodel" == 1) ))
-
         if cleaned_data.get("ITImodel") == 1 and cleaned_data.get("ITIfixed")==None:
                 raise forms.ValidationError("For a fixed ITI, please fill out the duration of the ITI's.")
 

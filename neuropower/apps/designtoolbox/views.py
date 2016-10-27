@@ -160,7 +160,7 @@ def maininput(request, end_session=False):
         # get duration in seconds
         if desdata.duration_unitfree:
             if desdata.duration_unit == 2:
-                weightsform.duration = desdata.duration_unitfree/60
+                weightsform.duration = desdata.duration_unitfree*60
             elif desdata.duration_unit == 1:
                 weightsform.duration = desdata.duration_unitfree
         weightsform.save()
