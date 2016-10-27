@@ -90,10 +90,6 @@ class DesignMainForm(forms.ModelForm):
         if (cleaned_data.get("RestNum")>0 and cleaned_data.get("RestDur")==0):
             raise forms.ValidationError("You wanted restblocks but you didn't specify their duration.")
 
-        if (cleaned_data.get("L")==None and cleaned_data.get("duration_unitfree")==None) or (not cleaned_data.get("L")==None and not cleaned_data.get("duration_unitfree")==None):
-            raise forms.ValidationError("You need to specify either the total duration of the experiment or the number of trials. Not both.")
-
-
         smaller = [
             cleaned_data.get("TR")<0,
             cleaned_data.get("ITIunifmin")<0,
