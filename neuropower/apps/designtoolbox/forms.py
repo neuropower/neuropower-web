@@ -64,6 +64,16 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("ConfoundOrder")>10:
             raise forms.ValidationError("Sorry, at the moment we can only model designs with a confoundorder smaller than 10. Parameters not saved.")
 
+        if cleaned_data.get("ITImodel" == 1):
+            if cleaned_data.get("ITIfixed")==None:
+                raise forms.ValidationError("For a fixed ITI, please fill out the duration of the ITI's.")
+        if cleaned_data.get("ITImodel" == 2):
+            if cleaned_data.get("ITItruncmin")==None or cleaned_data.get("ITItruncmax")==None or cleaned_data.get("ITItruncmean")==None:
+                raise forms.ValidationError("For a truncated ITI, please fill out mean, min and max.")
+        if cleaned_data.get("ITImodel" == 3):
+            if cleaned_data.get("ITIunifmin")==None or cleaned_data.get("ITIunifmax")==None:
+                raise forms.ValidationError("For ITI's sampled from a uniform distribution, please fill out the min and max.")
+
         if cleaned_data.get("ITItruncmean")>np.mean([cleaned_data.get("ITItruncmin"),cleaned_data.get("ITItruncmax")]):
             raise forms.ValidationError("To use a truncated exponential ITI model, the mean ITI has to be smaller than the average between the minimum and the maximum ITI.")
 
@@ -196,7 +206,7 @@ class DesignMainForm(forms.ModelForm):
         Fieldset(
             '',
             HTML("""<h5 style="margin-left: 15px">How many contrasts do you want to test?</h5>
-            <p style="margin-left: 20px">You can choose to include all pairwise comparisons.  You can also add custom contrasts.  You can do both.</p>"""),
+            <p style="margin-left: 20px">You can choose to include all pairwise comparisons.  You can also add custom contrasts (to be specified on the next page).  You can do both.</p>"""),
             Div(
             Div(Field('Call'),css_class='col-lg-3 col-sm-12'),
             css_class='row-lg-12'
