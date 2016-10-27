@@ -36,7 +36,7 @@ def end_session(request):
     try:
         desdata = DesignModel.objects.get(SID=sid)
         revoke(desdata.taskID,terminate=True,signal='KILL')
-    except KeyError:
+    except KeyError or DoesNotExist:
         pass
     try:
         request.session.flush()
