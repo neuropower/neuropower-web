@@ -55,6 +55,7 @@ RUN pip install redis && \
 
 env PATH=$PATH:/usr/lib/:/root/miniconda2/envs/crnenv/lib/
 ADD shelve.py /root/miniconda2/envs/crnenv/bin/
+ADD taps.p /code/
 
 # Clear apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
