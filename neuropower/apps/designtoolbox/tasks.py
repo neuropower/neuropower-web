@@ -68,7 +68,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         cycles=desdata.cycles,
         preruncycles=desdata.preruncycles,
         HardProb=desdata.HardProb,
-        tapsfile=os.path.join(settings.MEDIA_ROOT, "taps.p"),
+        tapsfile="/code/taps.p",
         write_score=desdata.genfile,
         write_design=desdata.desfile,
         convergence=desdata.conv_crit
@@ -79,6 +79,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.running = 1
+    form.cmd = des.cmd
     form.save()
 
     # Create first generation
@@ -92,8 +93,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         form.running = 2
         form.save()
         des.prerun = 'Fe'
-        NatSel = des.GeneticAlgorithmNaturalSelection(
-            cycles=des.preruncycles)
+        des.GeneticAlgorithmNaturalSelection()
         des.FeMax = np.max(NatSel['Best'])
 
     # Maximise Fd
@@ -104,8 +104,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         form.running = 3
         form.save()
         des.prerun = 'Fd'
-        NatSel = des.GeneticAlgorithmNaturalSelection(
-            cycles=des.preruncycles)
+        des.GeneticAlgorithmNaturalSelection()
         des.FdMax = np.max(NatSel['Best'])
 
     # Natural selection
@@ -115,30 +114,17 @@ def GeneticAlgorithm(sid,ignore_result=False):
     form.running = 4
     form.save()
     des.prerun = None
-    NatSel = des.GeneticAlgorithmNaturalSelection(
-        cycles=des.cycles)
+    des.GeneticAlgorithmNaturalSelection()
+    des.prepare_download()
 
     # Select optimal design
-    Generation = NatSel['Generation']
-    Best = NatSel['Best']
-    conv = NatSel['convergence']
-
     OptInd = np.min(np.arange(len(Generation['F']))[
                     Generation['F'] == np.max(Generation['F'])])
-    des.opt = {
-        'order': Generation['order'][OptInd],
-        'onsets': Generation['onsets'][OptInd],
-        'F': Generation['F'][OptInd],
-        'FScores': Best
-    }
 
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
-    form.optimalorder = Generation['order'][OptInd]
-    form.optimalonsets = Generation['onsets'][OptInd]
-    form.optimalitis = Generation['ITIs'][OptInd]
-    form.convergence = conv
+    form.convergence = des.conv
     form.save()
 
     subject = "NeuroDesign: optimisation process ended"
