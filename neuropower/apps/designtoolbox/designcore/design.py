@@ -70,7 +70,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,TR,P,C,rho,weights,tapsfile,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=100,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None,ITImodel="uniform",ITIfixed=None,ITIunifmin=None,ITIunifmax=None,ITItruncmin=None,ITItruncmax=None,ITItruncmean=None,folder=None):
+    def __init__(self,TR,P,C,rho,weights,tapsfile,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=100,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None,ITImodel="uniform",ITIfixed=None,ITIunifmin=None,ITIunifmax=None,ITItruncmin=None,ITItruncmax=None,ITItruncmean=None,folder=None,zip_filename=None,file=None):
         self.ITImodel = ITImodel
         self.ITIfixed = ITIfixed
         self.ITIunifmin = ITIunifmin
@@ -120,6 +120,8 @@ class GeneticAlgorithm(object):
         self.convergence=convergence
         self.seed = 1234
         self.folder = folder
+        self.zip_filename = zip_filename
+        self.file = file
 
         self.CreateTsComp()
         self.CreateLmComp()
@@ -992,4 +994,7 @@ class GeneticAlgorithm(object):
             zf.write(fpath, zip_path)
         zf.close()
 
-        return({"file":file, "zipfile":zip_filename})
+        self.file = file
+        self.zip_filename = zip_filename
+
+        return self
