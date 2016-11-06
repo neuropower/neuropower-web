@@ -840,6 +840,26 @@ class DesignDownloadForm(forms.ModelForm):
         ButtonHolder(Submit('Download', 'Download optimal sequence', css_class='btn-stanford')),
         )
 
+class DesignCodeForm(forms.ModelForm):
+    class Meta:
+        model = DesignModel
+        fields = []
+
+    def __init__(self,*args,**kwargs):
+        super(DesignCodeForm,self).__init__(*args,**kwargs)
+
+    def clean(self):
+        cleaned_data = super(DesignCodeForm,self).clean()
+        return cleaned_data
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.field_class = 'col-lg-12'
+    helper.label_class = 'col-lg-12'
+    helper.layout = Layout(
+        ButtonHolder(Submit('Download', 'Download script', css_class='btn-stanford')),
+        )
+
 class ContactForm(forms.Form):
     contact_name = forms.CharField(required=True)
     contact_email = forms.EmailField(required=True)
