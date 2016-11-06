@@ -1,8 +1,6 @@
 import requests
 import os
-import StringIO
 import shutil
-import zipfile
 
 os.environ['http_proxy']=''
 import urllib
@@ -118,52 +116,27 @@ def weights_html(weights):
     html_join = "".join(html)
     return html_join
 
-def prepare_download(sid):
+def download_code(sid):
     desdata = DesignModel.objects.get(SID=sid)
+    classinput = desdata.cmd
 
-    # round onsets to resolution
-    orders = desdata.optimalorder
-    onsets = [round(x / desdata.resolution) *
-              desdata.resolution for x in desdata.optimalonsets]
-    itis = desdata.optimalitis
-    print(itis)
+    totalcmd = "des = design.GeneticAlgorithm(" \
+    "{cmd} \n" \
+    ") \n" \
+    "des.GeneticAlgorithmInitiate() \n" \
+    "if des.weights[0]>0:  \n" \
+    "    des.prerun = 'Fe'  \n" \
+    "    des.GeneticAlgorithmNaturalSelection()  \n" \
+    "    des.FeMax = np.max(des.NatSel['Best'])  \n" \
+    "if des.weights[1]>0:  \n" \
+    "    des.prerun = 'Fd'  \n" \
+    "    des.GeneticAlgorithmNaturalSelection()  \n" \
+    "des.prerun=None  \n" \
+    "des.GeneticAlgorithmNaturalSelection()  \n" \
+    "des.prepare_download()".format(classinput)
 
-    # if path already exist: remove
-    if os.path.exists(desdata.onsetsfolder):
-        shutil.rmtree(desdata.onsetsfolder)
-    os.mkdir(desdata.onsetsfolder)
+    return totalcmd
 
-    # write onset files
-    filenames = [os.path.join(
-        desdata.onsetsfolder, "stimulus_" + str(stim) + ".txt") for stim in range(desdata.S)]
-    for stim in range(desdata.S):
-        onsubsets = [str(x) for x in np.array(
-            onsets)[np.array(orders) == stim]]
-        f = open(filenames[stim], 'w+')
-        for line in onsubsets:
-            f.write(line)
-            f.write("\n")
-        f.close()
-    itifile = os.path.join(desdata.onsetsfolder,"itis.txt")
-    f = open(itifile, 'w+')
-    for line in itis:
-        f.write(str(line))
-        f.write("\n")
-    f.close()
-
-
-    # combine in zipfile
-    zip_subdir = "OptimalDesign"
-    zip_filename = "%s.zip" % zip_subdir
-    file = StringIO.StringIO()
-    zf = zipfile.ZipFile(file, "w")
-    for fpath in filenames+[itifile]:
-        fdir, fname = os.path.split(fpath)
-        zip_path = os.path.join(zip_subdir, fname)
-        zf.write(fpath, zip_path)
-    zf.close()
-
-    return({"file":file, "zipfile":zip_filename})
 
 def get_design_steps(template_page,sid):
 
