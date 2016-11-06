@@ -591,14 +591,13 @@ def runGA(request):
 
         # If request = download
         if request.POST.get("Download") == "Download optimal sequence":
-
-            download = prepare_download(sid)
+            desdata = DesignModel.objects.get(SID=sid)
 
             resp = HttpResponse(
-                download['file'].getvalue(),
+                desdata.file.getvalue(),
                 content_type="application/x-zip-compressed"
                 )
-            resp['Content-Disposition'] = 'attachment; filename=%s' % download['zipfile']
+            resp['Content-Disposition'] = 'attachment; filename=%s' % desdata.zip_filename
 
             return resp
 
