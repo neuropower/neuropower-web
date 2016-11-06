@@ -126,6 +126,8 @@ def GeneticAlgorithm(sid,ignore_result=False):
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.convergence = des.conv
+    form.zip_filename = des.zip_filename
+    form.file = des.file
     form.save()
 
     subject = "NeuroDesign: optimisation process ended"

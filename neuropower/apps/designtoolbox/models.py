@@ -11,6 +11,8 @@ from django.conf import settings
 class DesignModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     shareID = models.CharField(max_length=300,default="")
+    zip_filename = models.CharField(max_length=300,default="")
+    file = models.CharField(max_length=300,default="")
     taskstatus = models.IntegerField(default=0)
     running = models.IntegerField(default=0)
     taskID = models.CharField(max_length=300,default="")
