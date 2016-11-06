@@ -15,6 +15,9 @@ from collections import Counter
 import os
 import sys
 import numpy as np
+import zipfile
+import StringIO
+import shutil
 
 class GeneticAlgorithm(object):
     '''
@@ -67,7 +70,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,TR,P,C,rho,weights,tapsfile,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=None,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None,ITImodel="uniform",ITIfixed=None,ITIunifmin=None,ITIunifmax=None,ITItruncmin=None,ITItruncmax=None,ITItruncmean=None):
+    def __init__(self,TR,P,C,rho,weights,tapsfile,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=100,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None,ITImodel="uniform",ITIfixed=None,ITIunifmin=None,ITIunifmax=None,ITItruncmin=None,ITItruncmax=None,ITItruncmean=None,folder=None):
         self.ITImodel = ITImodel
         self.ITIfixed = ITIfixed
         self.ITIunifmin = ITIunifmin
@@ -115,9 +118,13 @@ class GeneticAlgorithm(object):
         self.write_score = write_score
         self.write_design = write_design
         self.convergence=convergence
+        self.seed = 1234
+        self.folder = folder
 
         self.CreateTsComp()
         self.CreateLmComp()
+
+        self.printcmd()
 
     '''
     #########################################################################
@@ -125,14 +132,14 @@ class GeneticAlgorithm(object):
     #########################################################################
     '''
 
-    def canonical(self,RT):
+    def canonical(self,resolution):
         # translated from spm_hrf
         p=[6,16,1,1,6,0,32]
-        dt = RT/16.
+        dt = resolution/16.
         s = np.array(xrange(int(p[6]/dt+1)))
         #HRF sampled at 0.1 s
         hrf = self.spm_Gpdf(s,p[0]/p[2],dt/p[2]) - self.spm_Gpdf(s,p[1]/p[3],dt/p[3])/p[4]
-        hrf = hrf[[int(x) for x in np.array(xrange(int(p[6]/RT+1)))*16.]]
+        hrf = hrf[[int(x) for x in np.array(xrange(int(p[6]/resolution+1)))*16.]]
         self.hrf = hrf/np.sum(hrf)
         #self.hrf = self.hrf/np.max(self.hrf)
         # HRF sampled at resolution
@@ -155,7 +162,6 @@ class GeneticAlgorithm(object):
             opt = scipy.optimize.minimize(self.diftexp,[1.5],args=(self.ITItruncmin,self.ITItruncmax,self.ITItruncmean,))
             self.lam = opt.x
 
-            self.diftexp
         # compute number of timepoints (self.tp)
         resdur = 0
         if self.restnum>0:
@@ -203,12 +209,97 @@ class GeneticAlgorithm(object):
         return self
 
     '''
+    ######################################################
+    Functions related to initiating of design optimisation
+    ######################################################
+    '''
+
+    def GeneticAlgorithmInitiate(self):
+        self.GeneticAlgorithmCreateOrder()
+
+        nulorder = [np.argmin(self.P)]*self.n_trials
+        nulitis = [self.mnITI]*self.n_trials
+
+        NulDesign = {"order":nulorder,"ITIs":nulitis}
+        NulDesign = self.CreateDesignMatrix(NulDesign)
+        self.FfMax = self.FfCalc(NulDesign)['Ff']
+        self.FcMax = self.FcCalc(NulDesign)['Fc']
+
+        return self
+
+    def GeneticAlgorithmCreateOrder(self):
+        Designs = {}
+        nRandom = 10000
+        Designs['Blocked'] = self.GenerateOrderBlocked()
+        if not (self.n_stimuli == 6 or self.n_stimuli == 10):
+            Designs['Mseq'] = self.GenerateOrderMsequence()
+        Designs['Random'] = self.GenerateOrderRandom(nRandom)
+        self.Designs = Designs
+
+        return self
+
+    def GenerateOrderRandom(self,number):
+        orders = []
+        ITIs = []
+        for ind in xrange(number):
+            self.seed=self.seed+1
+            np.random.seed(self.seed)
+            mult = np.random.multinomial(1,self.P,self.n_trials)
+            order = [x.tolist().index(1) for x in mult]
+            orders.append(order)
+
+            ITI = self.smpl_ITI()
+            ITIs.append(ITI)
+
+        return {"orders":orders,"ITIs":ITIs}
+
+    def GenerateOrderMsequence(self):
+        order = mseq.Msequence()
+        order.GenMseq(mLen=self.n_trials,stimtypeno=len(self.P),tapsfile=self.tapsfile)
+        orders = order.orders
+
+        ITIs = []
+        for ind in xrange(len(orders)):
+            ITI = self.smpl_ITI()
+            ITIs.append(ITI)
+
+        return {"orders":orders,"ITIs":ITIs}
+
+    def GenerateOrderBlocked(self):
+        numBlocks = np.arange(3,self.maxrepeat)
+        orders = []
+        for blocks in numBlocks:
+            BlockSize = int(np.ceil(self.n_trials/(blocks*self.n_stimuli)))
+            perms = list(itertools.permutations(xrange(self.n_stimuli)))
+            if len(perms)>100:
+                self.seed=self.seed+1
+                np.random.seed(self.seed)
+                rind = np.random.randint(0,len(perms),100)
+                perms = [np.array(perms[k]) for k in rind]
+            for permut in perms:
+                order = np.tile(np.repeat(list(permut),BlockSize),blocks).tolist()
+                if len(order) > self.n_trials:
+                    order = order[:self.n_trials]
+                orders.append(order)
+
+        ITIs = []
+        for ind in xrange(len(orders)):
+            ITI = self.smpl_ITI()
+            ITIs.append(ITI)
+
+        return {"orders":orders,"ITIs":ITIs}
+
+    '''
     ###########################################
     Functions specific to the Genetic Algorithm
     ###########################################
     '''
 
-    def GeneticAlgorithmNaturalSelection(self,cycles):
+    def GeneticAlgorithmNaturalSelection(self):
+        if self.prerun=="Fe" or self.prerun=="Fd":
+            cycles=self.preruncycles
+        else:
+            cycles=self.cycles
         # sid is a parameter for monitoring
 
         Generation = self.GeneticAlgorithmCreateEmptyGeneration()
@@ -270,11 +361,11 @@ class GeneticAlgorithm(object):
                 with open(self.write_design,'w') as out2file:
                     json.dump(Seq,out2file)
 
-        NatSel = {"Best":Best,
-               "convergence": conv,
-               "Generation":Generation}
+        self.Best = Best
+        self.conv = conv
+        self.Generation = Generation
 
-        return NatSel
+        return self
 
     def GeneticAlgorithmCreateEmptyGeneration(self):
         # Create empty generation
@@ -291,19 +382,6 @@ class GeneticAlgorithm(object):
         }
 
         return Generation
-
-    def GeneticAlgorithmInitiate(self):
-        self.GeneticAlgorithmCreateOrder()
-
-        nulorder = [np.argmin(self.P)]*self.n_trials
-        nulitis = [self.mnITI]*self.n_trials
-
-        NulDesign = {"order":nulorder,"ITIs":nulitis}
-        NulDesign = self.CreateDesignMatrix(NulDesign)
-        self.FfMax = self.FfCalc(NulDesign)['Ff']
-        self.FcMax = self.FcCalc(NulDesign)['Fc']
-
-        return self
 
     def GeneticAlgorithmGeneration(self,Generation):
 
@@ -405,6 +483,8 @@ class GeneticAlgorithm(object):
         # Randomly select partners and loop over couples for babies
         noparents = int(len(Generation['order']))
         npairs = int(noparents/2.)
+        self.seed=self.seed+1
+        np.random.seed(self.seed)
         CouplingRnd = np.random.choice(noparents,size=(npairs*2),replace=True)
         CouplingRnd = [[CouplingRnd[i],CouplingRnd[i+1]] for i in np.arange(0,npairs*2,2)]
         for couple in CouplingRnd:
@@ -438,9 +518,13 @@ class GeneticAlgorithm(object):
         for order,ITIs in zip(Generation['order'],Generation['ITIs']):
 
             # randomly select the trials that will be mutated
+            self.seed=self.seed+1
+            np.random.seed(self.seed)
             mutated = np.random.choice(self.n_trials,int(round(self.n_trials*self.q)),replace=False)
 
             # replace mutated trials by a randomly chosen stimulus
+            self.seed=self.seed+1
+            np.random.seed(self.seed)
             mutatedorder = [np.random.choice(self.n_stimuli,1)[0] if ind in mutated else value for ind,value in enumerate(order)]
             mutatedbaby = {'order':mutatedorder}
             mutatedbaby['ITIs'] = ITIs
@@ -478,17 +562,6 @@ class GeneticAlgorithm(object):
     ####################################
     '''
 
-    def GeneticAlgorithmCreateOrder(self):
-        Designs = {}
-        nRandom = 1000
-        Designs['Blocked'] = self.GenerateOrderBlocked()
-        if not (self.n_stimuli == 6 or self.n_stimuli == 10):
-            Designs['Mseq'] = self.GenerateOrderMsequence(tapsfile=self.tapsfile)
-        Designs['Random'] = self.GenerateOrderRandom(nRandom)
-        self.Designs = Designs
-
-        return self
-
     def GeneticAlgorithmAddOrder(self,Generation,r):
 
         # r how many of each kind?
@@ -504,14 +577,20 @@ class GeneticAlgorithm(object):
         tRandom = []
 
         if nBlocked>0:
+            self.seed=self.seed+1
+            np.random.seed(self.seed)
             iBlocked = np.random.choice(len(self.Designs['Blocked']['orders']),nBlocked,replace=True).tolist()
             oBlocked = [self.Designs['Blocked']['orders'][i] for i in iBlocked]
             tBlocked = [self.Designs['Blocked']['ITIs'][i] for i in iBlocked]
         if nMseq>0:
+            self.seed=self.seed+1
+            np.random.seed(self.seed)
             iMseq = np.random.choice(len(self.Designs['Mseq']['orders']),nMseq,replace=True).tolist()
             oMseq = [self.Designs['Mseq']['orders'][i] for i in iMseq]
             tMseq = [self.Designs['Mseq']['ITIs'][i] for i in iMseq]
         if nRandom>0:
+            self.seed=self.seed+1
+            np.random.seed(self.seed)
             iRandom = np.random.choice(len(self.Designs['Random']['orders']),nRandom,replace=True).tolist()
             oRandom = [self.Designs['Random']['orders'][i] for i in iRandom]
             tRandom = [self.Designs['Random']['ITIs'][i] for i in iRandom]
@@ -543,54 +622,6 @@ class GeneticAlgorithm(object):
             Generation = self.GeneticAlgorithmAddDestoGen(Generation,NewDesign)
 
         return Generation
-
-    def GenerateOrderRandom(self,number):
-        orders = []
-        ITIs = []
-        for ind in xrange(number):
-            seed = np.random.randint(0,10**10)
-            mult = np.random.multinomial(1,self.P,self.n_trials)
-            order = [x.tolist().index(1) for x in mult]
-            orders.append(order)
-
-            ITI = self.smpl_ITI()
-            ITIs.append(ITI)
-
-        return {"orders":orders,"ITIs":ITIs}
-
-    def GenerateOrderMsequence(self,tapsfile):
-        order = mseq.Msequence()
-        order.GenMseq(mLen=self.n_trials,stimtypeno=len(self.P),tapsfile=self.tapsfile)
-        orders = order.orders
-
-        ITIs = []
-        for ind in xrange(len(orders)):
-            ITI = self.smpl_ITI()
-            ITIs.append(ITI)
-
-        return {"orders":orders,"ITIs":ITIs}
-
-    def GenerateOrderBlocked(self):
-        numBlocks = np.arange(3,self.maxrepeat)
-        orders = []
-        for blocks in numBlocks:
-            BlockSize = int(np.ceil(self.n_trials/(blocks*self.n_stimuli)))
-            perms = list(itertools.permutations(xrange(self.n_stimuli)))
-            if len(perms)>100:
-                rind = np.random.randint(0,len(perms),100)
-                perms = [np.array(perms[k]) for k in rind]
-            for permut in perms:
-                order = np.tile(np.repeat(list(permut),BlockSize),blocks).tolist()
-                if len(order) > self.n_trials:
-                    order = order[:self.n_trials]
-                orders.append(order)
-
-        ITIs = []
-        for ind in xrange(len(orders)):
-            ITI = self.smpl_ITI()
-            ITIs.append(ITI)
-
-        return {"orders":orders,"ITIs":ITIs}
 
     '''
     ###############################
@@ -638,6 +669,7 @@ class GeneticAlgorithm(object):
 
         # round onsets to resolution
         onsetX = [round(x/self.resolution)*self.resolution for x in Design['onsets']]
+        Design['onsets'] = onsetX
 
         # find indices in resolution scale of stimuli
         XindStim = [int(np.where(self.r_tp==y)[0]) for y in onsetX]
@@ -793,6 +825,8 @@ class GeneticAlgorithm(object):
             maxsmpdur = self.duration_norest-self.ITIunifmin-self.n_trials*self.stim_duration
             success = 0
             while success == 0:
+                self.seed=self.seed+1
+                np.random.seed(self.seed)
                 smp = np.random.uniform(self.ITIunifmin,self.ITIunifmax,self.n_trials)
                 if np.sum(smp[1:])<maxsmpdur:
                     success = 1
@@ -800,10 +834,103 @@ class GeneticAlgorithm(object):
             maxsmpdur = self.duration_norest-self.ITItruncmin-self.n_trials*self.stim_duration
             success = 0
             while success == 0:
-                smp = self.rtexp(self.n_trials,self.lam,self.ITItruncmin,self.ITItruncmax)            
+                smp = self.rtexp(self.n_trials,self.lam,self.ITItruncmin,self.ITItruncmax)
                 if np.sum(smp[1:])<maxsmpdur:
                     success = 1
         return smp
+
+    def itexp(self,x,lam,trunc):
+        i = -np.log(1-x*(1-np.exp(-trunc*lam)))/lam
+        return i
+
+    def rtexp(self,n,lam,min,max):
+        trunc = max-min
+        self.seed=self.seed+1
+        np.random.seed(self.seed)
+        r = self.itexp(np.random.uniform(0,1,n),lam,trunc) + min
+        return r
+
+    def etexp(self,lam,min,max,mean):
+        trunc = max-min
+        exp = 1/lam-trunc*(np.exp(lam*trunc)-1)**(-1)+min
+        return exp
+
+    def diftexp(self,lam,min,max,mean):
+        exp = self.etexp(lam,min,max,mean)
+        return((exp-mean)**2)
+
+    def printcmd(self):
+        self.cmd = "ITImodel = '{0}', \n" \
+        "ITIfixed = {1}, \n" \
+        "ITIunifmin = {2}, \n" \
+        "ITIunifmax = {3}, \n" \
+        "ITItruncmin = {4}, \n" \
+        "ITItruncmax = {5}, \n" \
+        "ITItruncmean = {6}, \n" \
+        "TR = {7}, \n" \
+        "n_trials = {8}, \n" \
+        "duration = {9}, \n" \
+        "n_cons = {10}, \n" \
+        "n_stimuli = {11}, \n" \
+        "stim_duration = {12}, \n" \
+        "P = {13}, \n" \
+        "C = {14}, \n" \
+        "rho = {15}, \n" \
+        "restnum = {16}, \n" \
+        "restlength = {17}, \n"\
+        "Aoptimality = {18}, \n" \
+        "saturation = {19}, \n" \
+        "resolution = {20}, \n" \
+        "weights = {21}, \n" \
+        "G = {22}, \n" \
+        "q = {23}, \n" \
+        "I = {24}, \n" \
+        "cycles = {25}, \n" \
+        "ConfoundOrder = {26}, \n" \
+        "preruncycles = {27}, \n" \
+        "maxrepeat = {28}, \n" \
+        "HardProb = {29}, \n" \
+        "tapsfile = {30}, \n" \
+        "prerun = {31}, \n" \
+        "convergence = {32}, \n" \
+        "seed = {33} \n".format(
+            self.ITImodel,
+            self.ITIfixed,
+            self.ITIunifmin,
+            self.ITIunifmax,
+            self.ITItruncmin,
+            self.ITItruncmax,
+            self.ITItruncmean,
+            self.TR,
+            self.n_trials,
+            self.duration,
+            self.n_cons,
+            self.n_stimuli,
+            self.stim_duration,
+            self.P,
+            self.C,
+            self.rho,
+            self.restnum,
+            self.restlength,
+            self.Aoptimality,
+            self.saturation,
+            self.resolution,
+            self.weights,
+            self.G,
+            self.q,
+            self.I,
+            self.cycles,
+            self.ConfoundOrder,
+            self.preruncycles,
+            self.maxrepeat,
+            self.HardProb,
+            self.tapsfile,
+            self.prerun,
+            self.convergence,
+            self.seed
+        )
+
+        return self
 
     @staticmethod
     def drift(s,deg=3):
@@ -821,20 +948,48 @@ class GeneticAlgorithm(object):
         res = (h-1)*np.log(s) + h*np.log(l) - l*s - np.log(gamma(h))
         return np.exp(res)
 
-    def itexp(self,x,lam,trunc):
-        i = -np.log(1-x*(1-np.exp(-trunc*lam)))/lam
-        return i
+    def prepare_download(self):
+        OptInd = np.min(np.arange(len(self.Generation['F']))[
+                        self.Generation['F'] == np.max(self.Generation['F'])])
 
-    def rtexp(self,n,lam,min,max):
-        trunc = max-min
-        r = self.itexp(np.random.uniform(0,1,n),lam,trunc) + min
-        return r
+        orders = self.Generation['order'][OptInd]
+        onsets = self.Generation['onsets'][OptInd]
+        itis = self.Generation['ITIs'][OptInd]
 
-    def etexp(self,lam,min,max,mean):
-        trunc = max-min
-        exp = 1/lam-trunc*(np.exp(lam*trunc)-1)**(-1)+min
-        return exp
+        # if path already exist: remove
+        if os.path.exists(self.folder):
+            shutil.rmtree(self.folder)
+        os.mkdir(self.folder)
 
-    def diftexp(self,lam,min,max,mean):
-        exp = self.etexp(lam,min,max,mean)
-        return((exp-mean)**2)
+        # write onset files
+        stimuli = len(np.unique(orders))
+        filenames = [os.path.join(
+            self.folder, "stimulus_" + str(stim) + ".txt") for stim in range(self.n_stimuli)]
+        for stim in range(self.n_stimuli):
+            onsubsets = [str(x) for x in np.array(
+                onsets)[np.array(orders) == stim]]
+            f = open(filenames[stim], 'w+')
+            for line in onsubsets:
+                f.write(line)
+                f.write("\n")
+            f.close()
+        itifile = os.path.join(self.folder,"itis.txt")
+        f = open(itifile, 'w+')
+        for line in itis:
+            f.write(str(line))
+            f.write("\n")
+        f.close()
+
+
+        # combine in zipfile
+        zip_subdir = "OptimalDesign"
+        zip_filename = "%s.zip" % zip_subdir
+        file = StringIO.StringIO()
+        zf = zipfile.ZipFile(file, "w")
+        for fpath in filenames+[itifile]:
+            fdir, fname = os.path.split(fpath)
+            zip_path = os.path.join(zip_subdir, fname)
+            zf.write(fpath, zip_path)
+        zf.close()
+
+        return({"file":file, "zipfile":zip_filename})
