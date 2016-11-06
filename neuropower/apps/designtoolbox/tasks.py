@@ -71,7 +71,8 @@ def GeneticAlgorithm(sid,ignore_result=False):
         tapsfile="/code/taps.p",
         write_score=desdata.genfile,
         write_design=desdata.desfile,
-        convergence=desdata.conv_crit
+        convergence=desdata.conv_crit,
+        folder=desdata.onsetsfolder
     )
     des.counter = 0
 
