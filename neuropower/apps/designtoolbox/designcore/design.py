@@ -70,7 +70,7 @@ class GeneticAlgorithm(object):
             setting parameter to True makes hard limit on probabilities
     '''
 
-    def __init__(self,TR,P,C,rho,weights,tapsfile,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=100,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None,ITImodel="uniform",ITIfixed=None,ITIunifmin=None,ITIunifmax=None,ITItruncmin=None,ITItruncmax=None,ITItruncmean=None,folder=None,zip_filename=None,file=None):
+    def __init__(self,TR,P,C,rho,weights,stim_duration,n_trials=None,duration=None,restnum=0,restlength=0,Aoptimality=True,saturation=False,resolution=0.1,G=20,q=0.01,I=4,cycles=10000,preruncycles=10000,ConfoundOrder=3,MaxRepeat=100,write_score=False,write_design=False,HardProb=False,gui_sid=False,convergence=None,ITImodel="uniform",ITIfixed=None,ITIunifmin=None,ITIunifmax=None,ITItruncmin=None,ITItruncmax=None,ITItruncmean=None,folder="",zip_filename="",file="",seed=1234,n_stimuli=None,prerun=None,n_cons=None):
         self.ITImodel = ITImodel
         self.ITIfixed = ITIfixed
         self.ITIunifmin = ITIunifmin
@@ -101,9 +101,8 @@ class GeneticAlgorithm(object):
         self.preruncycles = preruncycles
         self.maxrepeat = MaxRepeat
         self.HardProb = HardProb
-        self.tapsfile = tapsfile
         self.counter = 0
-        self.prerun = None
+        self.prerun = prerun
         self.FeMax = 1
         self.FdMax = 1
         self.FfMax = 1
@@ -118,7 +117,7 @@ class GeneticAlgorithm(object):
         self.write_score = write_score
         self.write_design = write_design
         self.convergence=convergence
-        self.seed = 1234
+        self.seed = seed
         self.folder = folder
         self.zip_filename = zip_filename
         self.file = file
@@ -257,7 +256,7 @@ class GeneticAlgorithm(object):
 
     def GenerateOrderMsequence(self):
         order = mseq.Msequence()
-        order.GenMseq(mLen=self.n_trials,stimtypeno=len(self.P),tapsfile=self.tapsfile)
+        order.GenMseq(mLen=self.n_trials,stimtypeno=len(self.P))
         orders = order.orders
 
         ITIs = []
@@ -759,8 +758,7 @@ class GeneticAlgorithm(object):
             if self.prerun=="Fd":
                 Design['FdNorm']=Design['Fd']
             else:
-                Design['FdNorm']=Design['Fd']/self.FeMax
-            Design['FdNorm']=Design['Fd']/self.FdMax
+                Design['FdNorm']=Design['Fd']/self.FdMax
         if weightsFnc[2]>0:
             Design = self.FfCalc(Design)
             Design['FfNorm']=1-Design['Ff']/self.FfMax
@@ -862,6 +860,7 @@ class GeneticAlgorithm(object):
         return((exp-mean)**2)
 
     def printcmd(self):
+        cprep = list(self.C) if len(self.C.shape)==1 else [list(x) for x in self.C]
         self.cmd = "ITImodel = '{0}', \n" \
         "ITIfixed = {1}, \n" \
         "ITIunifmin = {2}, \n" \
@@ -875,8 +874,8 @@ class GeneticAlgorithm(object):
         "n_cons = {10}, \n" \
         "n_stimuli = {11}, \n" \
         "stim_duration = {12}, \n" \
-        "P = {13}, \n" \
-        "C = {14}, \n" \
+        "P = np.array({13}), \n" \
+        "C = np.array({14}), \n" \
         "rho = {15}, \n" \
         "restnum = {16}, \n" \
         "restlength = {17}, \n"\
@@ -890,12 +889,11 @@ class GeneticAlgorithm(object):
         "cycles = {25}, \n" \
         "ConfoundOrder = {26}, \n" \
         "preruncycles = {27}, \n" \
-        "maxrepeat = {28}, \n" \
+        "MaxRepeat = {28}, \n" \
         "HardProb = {29}, \n" \
-        "tapsfile = {30}, \n" \
-        "prerun = {31}, \n" \
-        "convergence = {32}, \n" \
-        "seed = {33} \n".format(
+        "prerun = {30}, \n" \
+        "convergence = {31}, \n" \
+        "seed = {32} \n".format(
             self.ITImodel,
             self.ITIfixed,
             self.ITIunifmin,
@@ -909,15 +907,15 @@ class GeneticAlgorithm(object):
             self.n_cons,
             self.n_stimuli,
             self.stim_duration,
-            self.P,
-            self.C,
+            list(self.P),
+            cprep,
             self.rho,
             self.restnum,
             self.restlength,
             self.Aoptimality,
             self.saturation,
             self.resolution,
-            self.weights,
+            list(self.weights),
             self.G,
             self.q,
             self.I,
@@ -926,7 +924,6 @@ class GeneticAlgorithm(object):
             self.preruncycles,
             self.maxrepeat,
             self.HardProb,
-            self.tapsfile,
             self.prerun,
             self.convergence,
             self.seed
