@@ -1,6 +1,7 @@
 import requests
 import os
 import shutil
+from django.conf import settings
 
 os.environ['http_proxy']=''
 import urllib
@@ -105,8 +106,6 @@ def combine_nested(sid):
 
     return {"G":G,"Ghtml":Ghtml,"empty":empty}
 
-
-
 def weights_html(weights):
     html = [
         "<tr><td>Estimation efficiency:&emsp;</td><td>"+str(weights[0])+"</td></tr>",
@@ -116,24 +115,15 @@ def weights_html(weights):
     html_join = "".join(html)
     return html_join
 
-def download_code(sid):
+def textify_code(sid):
     desdata = DesignModel.objects.get(SID=sid)
     classinput = desdata.cmd
 
-    totalcmd = "des = design.GeneticAlgorithm(" \
-    "{cmd} \n" \
-    ") \n" \
-    "des.GeneticAlgorithmInitiate() \n" \
-    "if des.weights[0]>0:  \n" \
-    "    des.prerun = 'Fe'  \n" \
-    "    des.GeneticAlgorithmNaturalSelection()  \n" \
-    "    des.FeMax = np.max(des.NatSel['Best'])  \n" \
-    "if des.weights[1]>0:  \n" \
-    "    des.prerun = 'Fd'  \n" \
-    "    des.GeneticAlgorithmNaturalSelection()  \n" \
-    "des.prerun=None  \n" \
-    "des.GeneticAlgorithmNaturalSelection()  \n" \
-    "des.prepare_download()".format(classinput)
+    totalcmd = "from neurodesign import geneticalgorithm, generate, msequence \n"+classinput+"\nPOP.naturalselection(seed=%s)\nPOP.download()" %(desdata.seed)
+
+    # file = open(desdata.codefile,'w+')
+    # print >> file, totalcmd
+    # file.close()
 
     return totalcmd
 

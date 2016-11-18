@@ -113,6 +113,14 @@
       </form>
     </div>
       {% endif %}
+      {% if codeform %}
+      <div class ='col-xs-12 col-md-6'>
+      <form id="codeform" method='POST' action='.'>
+        {% csrf_token %}
+        {% crispy codeform %}
+    </form>
+  </div>
+    {% endif %}
 
         {% endif %}
 

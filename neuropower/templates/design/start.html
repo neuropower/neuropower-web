@@ -13,6 +13,9 @@
 
 {% block content %}
 <div class="row">
+  {% if message %}
+  <div class="alert alert-info alert-dismissible" role="alert">{{ message }}</div>
+  {% endif %}
   <div class="col-xs-1"></div>
   <div class="col-xs-10">
     <h2> NeuroDesign </h2>

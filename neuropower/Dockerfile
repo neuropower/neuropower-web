@@ -6,14 +6,13 @@ RUN apt-get update && \
 
 ENV LANG C.UTF-8
 
-# Install pip
-RUN pip install --upgrade pip && \
-    pip install nose && \
-    pip install numpy && \
-    pip install scipy && \
-    pip install pandas && \
-    pip install matplotlib && \
-    pip install xvfbwrapper
+# Install conda
+RUN conda install nose && \
+    conda install numpy && \
+    conda install scipy && \
+    conda install pandas && \
+    conda install matplotlib && \
+    conda install xvfbwrapper
 
 RUN mkdir /code
 
@@ -27,20 +26,20 @@ RUN conda install psycopg2 mpld3==0.2 scikit-learn==0.17.1 cycler==0.9.0 && \
   pip install -r requirements.txt && \
   apt-get install -y libglib2.0-0 && \
   apt-get install -y libfreetype6-dev libxft-dev && \
-  pip install uwsgi && \
-  pip install -U Jinja2
+  conda install uwsgi && \
+  conda install Jinja2
 
-RUN pip install celery==3.0.19
-RUN pip install --upgrade celery
-RUN pip install SQLAlchemy
+RUN conda install celery
+RUN conda install SQLAlchemy
 RUN pip install neuropower
-RUN pip install django-celery
+RUN conda install django-celery
 RUN pip install opbeat
+#RUN conda install django
 RUN pip install django
 RUN pip install django-crispy-forms
 RUN pip install django-secure
 RUN pip install django-sslserver
-RUN conda install psycopg2
+RUN pip install psycopg2
 RUN pip install django-picklefield
 RUN pip install matplotlib
 RUN pip install palettable
@@ -48,14 +47,11 @@ RUN pip install mpld3
 RUN pip install jinja2
 RUN pip install sklearn
 RUN pip install nilearn
-RUN conda install sqlalchemy
-RUN pip install kombu==3.0.30
+RUN pip install sqlalchemy
+RUN pip install kombu
 RUN pip install redis && \
-    pip install celery[redis] && \
-
-env PATH=$PATH:/usr/lib/:/root/miniconda2/envs/crnenv/lib/
-ADD shelve.py /root/miniconda2/envs/crnenv/bin/
-ADD taps.p /code/
+    pip install celery[redis]
+RUN pip install neurodesign
 
 # Clear apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

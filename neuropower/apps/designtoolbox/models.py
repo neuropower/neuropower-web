@@ -4,15 +4,11 @@ from picklefield.fields import PickledObjectField
 import os
 from django.conf import settings
 
-#import tempfile
-
-#temp_dir = tempfile.gettempdir()
-
 class DesignModel(models.Model):
     SID = models.CharField(max_length=300,default="")
     shareID = models.CharField(max_length=300,default="")
     zip_filename = models.CharField(max_length=300,default="")
-    file = models.CharField(max_length=300,default="")
+    zipfile = PickledObjectField(default="")
     taskstatus = models.IntegerField(default=0)
     running = models.IntegerField(default=0)
     taskID = models.CharField(max_length=300,default="")
@@ -33,6 +29,8 @@ class DesignModel(models.Model):
     duration_unitfree = models.FloatField(default = None,null=True,blank=True)
     durspec = models.IntegerField(choices=((1,"duration"),(2,"trial count")),default=1)
     stim_duration = models.FloatField(default=1,null=True,blank=True)
+    t_prestim = models.FloatField(default=0)
+    t_poststim = models.FloatField(default=0)
     nested = models.BooleanField(default=False)
     nest_classes = models.IntegerField(null=True, blank=True)
     nest_symmetry = models.BooleanField(default=False)
@@ -41,6 +39,7 @@ class DesignModel(models.Model):
     Clen = models.IntegerField(default=0,null=True, blank=True)
     RestNum = models.IntegerField(default=0,null=True,blank=True)
     RestDur = models.FloatField(default=0,null=True,blank=True)
+    seed = models.IntegerField(default=1)
     # nested structure
     G0 = models.FloatField(default=None, null=True, blank=True)
     G1 = models.FloatField(default=None, null=True, blank=True)
@@ -150,8 +149,11 @@ class DesignModel(models.Model):
     optimalitis = PickledObjectField(default="")
     desfile = PickledObjectField(default="")
     genfile = PickledObjectField(default="")
+    statusfile = models.CharField(default="",max_length=500)
     designoutput = PickledObjectField(default="")
     onsetsfolder = PickledObjectField(default="")
+    codefile = PickledObjectField(default="")
+    codefilename = PickledObjectField(default="")
     mainpars = models.BooleanField(default=False)
     conpars = models.BooleanField(default=False)
     nestpars = models.BooleanField(default=False)

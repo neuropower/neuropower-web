@@ -17,4 +17,4 @@ urlpatterns = [
     url(r'^methods/$',views.methods,name='DMethods'),
     url(r'^end/$',views.end_session,name='DReset'),
     url(r'^updatepage/$',views.updatepage,name='DUpdate'),
-    ]
+        ]

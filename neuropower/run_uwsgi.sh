@@ -1,5 +1,4 @@
 #!/bin/bash
-source activate crnenv
 source /usr/share/fsl/5.0/etc/fslconf/fsl.sh
 PATH=/usr/lib/python2.7:$PATH
 export PATH

@@ -9,7 +9,7 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','duration_unitfree','duration_unit','durspec','ITImodel','ITIfixed','ITIunifmin','ITIunifmax','ITItruncmin','ITItruncmax','ITItruncmean']
+        fields = ['stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','duration_unitfree','duration_unit','durspec','ITImodel','ITIfixed','ITIunifmin','ITIunifmax','ITItruncmin','ITItruncmax','ITItruncmean','t_prestim','t_poststim']
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
@@ -23,6 +23,8 @@ class DesignMainForm(forms.ModelForm):
         self.fields['TR'].label = "Scanner TR (seconds)"
         self.fields['S'].label = "Number of stimulus types"
         self.fields['stim_duration'].label = "Stimulus duration (seconds)"
+        self.fields['t_prestim'].label="Seconds before stimulus"
+        self.fields['t_poststim'].label="Seconds after stimulus"
         self.fields['L'].label = "Total number of trials"
         self.fields['duration_unitfree'].label = 'Total duration of the task'
         self.fields['duration_unit'].label = 'Unit of duration'
@@ -107,6 +109,8 @@ class DesignMainForm(forms.ModelForm):
             cleaned_data.get("W2")<0,
             cleaned_data.get("W3")<0,
             cleaned_data.get("W4")<0,
+            cleaned_data.get("t_prestim")<0,
+            cleaned_data.get("t_poststim")<0
         ]
         snone = [
             cleaned_data.get("TR")==None,
@@ -128,6 +132,8 @@ class DesignMainForm(forms.ModelForm):
             cleaned_data.get("W2")==None,
             cleaned_data.get("W3")==None,
             cleaned_data.get("W4")==None,
+            cleaned_data.get("t_prestim")==None,
+            cleaned_data.get("t_poststim")==None
         ]
         svalid = [True if a and not b else False for a,b in zip(smaller,snone)]
         if any(svalid):
@@ -144,19 +150,26 @@ class DesignMainForm(forms.ModelForm):
             'Design parameters',
             HTML("""<h5 style="margin-left: 15px">These parameters refer to your design and need your careful attention.</h5><br>"""),
             Div(
-            Div(Field('TR'),css_class='col-md-4 col-sm-6 col-xs-12'),
-            Div(Field('S'),css_class='col-md-4 col-sm-6 col-xs-12'),
-            Div(Field('stim_duration'),css_class='col-md-4 col-sm-6 col-xs-12'),
+            Div(Field('S'),css_class='col-md-6 col-sm-6 col-xs-12'),
+            Div(Field('TR'),css_class='col-md-6 col-sm-6 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             ),
             ),
-        HTML("<br>"),
+        HTML("<br><br><br>"),
         Fieldset("",
             Div(
-            HTML("""<h5 style="margin-left: 15px">Fill out either the total duration or the number of trials.</h5><p style="margin-left: 20px"> <ul><li><b>If you give duration</b>: number of trials = duration/(trialduration + mean ITI)</li><li><b>If you give number of trials</b>: duration = (trialduration + mean ITI)* number of trials</li></ul><br>"""),
+            HTML("""<h5 style="margin-left: 15px">Trial structure</h5><p style="margin-left: 20px"> What does one trial look like?  Probably there is some time before the stimulus of interest (the target), where a fixation cross is shown.  Maybe there is some time after the stimulus is presented.</p>"""),
+            Div(Field('t_prestim'),css_class='col-md-4 col-sm-4 col-xs-12'),
+            Div(Field('stim_duration'),css_class='col-md-4 col-sm-4 col-xs-12'),
+            Div(Field('t_poststim'),css_class='col-md-4 col-sm-4 col-xs-12'),
+        )),
+        HTML("<br><br><br>"),
+        Fieldset("",
+            Div(
+            HTML("""<h5 style="margin-left: 15px">Duration of experiment</h5><p style="margin-left: 20px"> <ul><li><b>If you give duration</b>: number of trials = duration/(trialduration + mean ITI)</li><li><b>If you give number of trials</b>: duration = (trialduration + mean ITI)* number of trials</li></ul><br>"""),
             Div(Field('durspec'),css_class='col-md-12 col-sm-12 col-xs-12',css_id="durspec")),
-            HTML("<br><br>")
         ),
+        HTML("<br>"),
         Fieldset(
             '',
             Div(
@@ -171,13 +184,13 @@ class DesignMainForm(forms.ModelForm):
             css_id = "trialcount"
             ),
             ),
-        HTML("<br><br>"),
+        HTML("<br><br><br>"),
         Fieldset("",
             Div(
-            HTML("""<br><h5 style="margin-left: 15px">Inter Trial Interval (ITI)</h5><p style="margin-left: 20px"><p>The ITI's can be fixed or variable.   Variable ITI's can be sampled from a uniform model or a truncated exponential model.</p> <br>"""),
+            HTML("""<br><h5 style="margin-left: 15px">Inter Trial Interval (ITI)</h5><p style="margin-left: 20px">The ITI's can be fixed or variable.   Variable ITI's can be sampled from a uniform model or a truncated exponential model.</p> <br>"""),
             Div(Field('ITImodel'),css_class='col-md-12 col-sm-12 col-xs-12',css_id="ITImodel")),
-            HTML("<br><br>")
         ),
+        HTML("<br>"),
         Fieldset(
             '',
             Div(
@@ -202,8 +215,8 @@ class DesignMainForm(forms.ModelForm):
         HTML("<br><br>"),
         Fieldset(
             '',
-            HTML("""<h5 style="margin-left: 15px">How many contrasts do you want to test?</h5>
-            <p style="margin-left: 20px">You can choose to include all pairwise comparisons.  You can also add custom contrasts (to be specified on the next page).  You can do both.</p>"""),
+            HTML("""<h5 style="margin-left: 15px">Contrasts</h5>
+            <p style="margin-left: 20px">How many contrasts do you want to optimise?  You can choose to include all pairwise comparisons.  You can also add custom contrasts (to be specified on the next page).  You can do both.</p>"""),
             Div(
             Div(Field('Call'),css_class='col-lg-3 col-sm-12'),
             css_class='row-lg-12'
@@ -216,15 +229,15 @@ class DesignMainForm(forms.ModelForm):
         HTML("<br><br>"),
         Fieldset(
             '',
-            HTML("""<h5 style="margin-left: 15px">Do you want to include rest blocks?</h5>
-            <p style="margin-left: 20px">If not: leave these boxes empty.</p><br> """),
+            HTML("""<h5 style="margin-left: 15px">Rest blocks</h5>
+            <p style="margin-left: 20px">Do you want to include rest blocks? If not: leave these boxes empty.</p><br> """),
             Div(
             Div(Field('RestNum'),css_class='col-md-4 col-sm-6 col-xs-12'),
             Div(Field('RestDur'),css_class='col-md-4 col-sm-6 col-xs-12'),
             css_class='row-md-12 col-xs-12'
             )
             ),
-        HTML("<br><br>"),
+        HTML("<br><br><br><br>"),
         # Fieldset(
         #     '',
         #     HTML("""<h5 style="margin-left: 15px">Nested designs: Is there a specific structure amongst the stimulus types?</h5>
@@ -857,7 +870,7 @@ class DesignCodeForm(forms.ModelForm):
     helper.field_class = 'col-lg-12'
     helper.label_class = 'col-lg-12'
     helper.layout = Layout(
-        ButtonHolder(Submit('Download', 'Download script', css_class='btn-stanford')),
+        ButtonHolder(Submit('Code', 'Download script', css_class='btn-stanford')),
         )
 
 class ContactForm(forms.Form):

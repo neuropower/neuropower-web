@@ -23,10 +23,11 @@ des.GeneticAlgorithmInitiate()
 if des.weights[0]>0:
     des.prerun = 'Fe'
     des.GeneticAlgorithmNaturalSelection()
-    des.FeMax = np.max(des.NatSel['Best'])
+    des.FeMax = np.max(des.Best)
 if des.weights[1]>0:
     des.prerun = 'Fd'
     des.GeneticAlgorithmNaturalSelection()
+    des.FdMax = np.max(des.Best)
 des.prerun=None
 des.GeneticAlgorithmNaturalSelection()
 des.prepare_download()

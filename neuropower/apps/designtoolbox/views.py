@@ -8,11 +8,10 @@ from django.conf import settings
 from scipy.stats import norm, t
 import os
 from django.contrib.sessions.backends.db import SessionStore
-from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested, prepare_download
-from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm, DesignSureForm, DesignMailForm
+from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested,textify_code
+from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm, DesignSureForm, DesignMailForm, DesignCodeForm
 from .models import DesignModel
 from .tasks import GeneticAlgorithm
-from designcore import design
 import numpy as np
 import time
 import json
@@ -52,16 +51,14 @@ def end_session(request):
 def DFAQ(request):
     return render(request, "design/DFAQ.html", {})
 
-
 def tutorial(request):
     return render(request, "design/tutorial.html", {})
-
 
 def methods(request):
     return render(request, "design/methods.html", {})
 
 
-def start(request):
+def start(request, end_session=False):
 
     # Get the template/step status
 
@@ -96,7 +93,7 @@ def start(request):
     return render(request, template, context)
 
 
-def maininput(request, end_session=False):
+def maininput(request):
 
     # Get the template/step status
 
@@ -135,13 +132,23 @@ def maininput(request, end_session=False):
         form.shareID = sid
         form.SID = sid
         form.mainpars = True
-        form.desfile = os.path.join(settings.MEDIA_ROOT, "designs",
-                            "design_" + str(sid) + ".json")
-        form.genfile = os.path.join(settings.MEDIA_ROOT, "designs",
-                            "generation_" + str(sid) + ".json")
-        form.onsetsfolder = os.path.join(settings.MEDIA_ROOT, "designonsets", str(sid))
-
+        form.onsetsfolder = os.path.join(settings.MEDIA_ROOT, "design_"+str(sid))
+        form.desfile = os.path.join(form.onsetsfolder, "design.json")
+        form.genfile = os.path.join(form.onsetsfolder,"metrics.json")
+        form.statusfile = os.path.join(form.onsetsfolder,"status.txt")
+        form.codefilename = "GeneticAlgorithm_"+str(sid)+".py"
+        form.codefile = os.path.join(form.onsetsfolder, form.codefilename)
         form.save()
+
+        # if os.path.exists(form.onsetsfolder):
+        #     files = os.listdir(form.onsetsfolder)
+        #     for f in files:
+        #         if os.path.isdir(os.path.join(form.onsetsfolder,f)):
+        #             shutil.rmtree(os.path.join(form.onsetsfolder,f))
+        #         else:
+        #             os.remove(os.path.join(form.onsetsfolder,f))
+        # else:
+        #     os.mkdir(form.onsetsfolder)
 
         # get data and change parameters
 
@@ -464,8 +471,7 @@ def runGA(request):
             form.taskstatus = 2
         elif ((task.status == "RETRY"
             or  task.status == "FAILURE"
-            or task.status == "SUCCESS")
-            and desdata.optimalorder):
+            or task.status == "SUCCESS")):
             form.taskstatus = 3
             form.running = 0
         else:
@@ -498,12 +504,16 @@ def runGA(request):
             pass
 
     # show downloadform if results are available
-
     desdata = DesignModel.objects.get(SID=sid)
     if desdata.taskstatus == 3:
         downform = DesignDownloadForm(
             request.POST or None, instance=desdata)
         context["downform"] = downform
+
+    if desdata.taskstatus>1:
+        codeform = DesignCodeForm(
+            request.POST or None, instance=desdata)
+        context['codeform'] = codeform
 
     # Responsive loop
 
@@ -590,11 +600,24 @@ def runGA(request):
 
 
         # If request = download
-        if request.POST.get("Download") == "Download optimal sequence":
+        if request.POST.get("Code") == "Download script":
+            cmd = textify_code(sid)
             desdata = DesignModel.objects.get(SID=sid)
 
             resp = HttpResponse(
-                desdata.file.getvalue(),
+                cmd
+                )
+            resp['Content-Disposition'] = 'attachment; filename=%s' % desdata.codefilename
+
+            return resp
+
+        # If request = download
+        if request.POST.get("Download") == "Download optimal sequence":
+            desdata = DesignModel.objects.get(SID=sid)
+            print(desdata.zipfile)
+
+            resp = HttpResponse(
+                desdata.zipfile.getvalue(),
                 content_type="application/x-zip-compressed"
                 )
             resp['Content-Disposition'] = 'attachment; filename=%s' % desdata.zip_filename
@@ -602,6 +625,22 @@ def runGA(request):
             return resp
 
     else:
+        #check_status
+        desdata = DesignModel.objects.get(SID=sid)
+        runform = DesignRunForm(None, instance=desdata)
+        form = runform.save(commit=False)
+        if os.path.isfile(desdata.statusfile):
+            f = open(desdata.statusfile)
+            status = f.read()
+            f.close()
+            if status == "Fe":
+                form.running = 2
+            elif status == "Fd":
+                form.running = 3
+            elif status == "optimalisation":
+                form.running = 4
+        form.save()
+
         desdata = DesignModel.objects.get(SID=sid)
         context["preruns"] = desdata.preruncycles
         context["runs"] = desdata.cycles

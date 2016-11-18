@@ -1,6 +1,6 @@
 from django.conf import settings
 from .models import DesignModel
-from designcore import design
+from neurodesign import geneticalgorithm, generate, msequence
 from .forms import DesignRunForm
 from celery import task, Celery
 import os
@@ -32,102 +32,76 @@ def GeneticAlgorithm(sid,ignore_result=False):
 
     if desdata.ITImodel == 1:
         model = "fixed"
+        ITImean = desdata.ITIfixed
+        ITImin = None
+        ITImax = None
     elif desdata.ITImodel == 2:
-        model = "truncated exponential"
+        model = "exponential"
+        ITImean = desdata.ITItruncmean
+        ITImin = desdata.ITItruncmin
+        ITImax = desdata.ITItruncmax
     elif desdata.ITImodel == 3:
         model = "uniform"
+        ITImin = desdata.ITIunifmin
+        ITImax = desdata.ITIunifmax
+        ITImean = (desdata.ITIunifmin+desdata.ITIunifmax)/2.
 
-    des = design.GeneticAlgorithm(
-        # design specific
+    EXP = geneticalgorithm.experiment(
+        TR = desdata.TR,
+        n_trials = desdata.L,
+        P = matrices['P'],
+        C = matrices['C'],
+        duration = desdata.duration,
+        n_stimuli = desdata.S,
+        rho = desdata.rho,
+        resolution = desdata.resolution,
+        stim_duration = desdata.stim_duration,
+        restnum = desdata.RestNum,
+        restdur = desdata.RestDur,
         ITImodel = model,
-        ITIfixed = desdata.ITIfixed,
-        ITIunifmin = desdata.ITIunifmin,
-        ITIunifmax = desdata.ITIunifmax,
-        ITItruncmin = desdata.ITItruncmin,
-        ITItruncmax = desdata.ITItruncmax,
-        ITItruncmean = desdata.ITItruncmean,
-        TR=desdata.TR,
-        n_trials=desdata.L,
-        duration=desdata.duration,
-        P=matrices["P"],
-        C=matrices["C"],
-        stim_duration=desdata.stim_duration,
-        weights=desdata.W,
-        ConfoundOrder=desdata.ConfoundOrder,
-        MaxRepeat=desdata.MaxRepeat,
-        restnum=desdata.RestNum,
-        restlength=desdata.RestDur,
-        # general/defaulted
-        rho=desdata.rho,
-        Aoptimality=True if desdata.Aoptimality == 1 else False,
-        saturation=True if desdata.Saturation == 1 else False,
-        resolution=desdata.resolution,
-        G=desdata.G,
-        q=desdata.q,
-        I=desdata.I,
-        cycles=desdata.cycles,
-        preruncycles=desdata.preruncycles,
-        HardProb=desdata.HardProb,
-        tapsfile="/code/taps.p",
-        write_score=desdata.genfile,
-        write_design=desdata.desfile,
-        convergence=desdata.conv_crit,
-        folder=desdata.onsetsfolder
+        ITImin = ITImin,
+        ITImean = ITImean,
+        ITImax = ITImax,
+        maxrep = desdata.MaxRepeat,
+        hardprob = desdata.HardProb,
+        t_prestim = desdata.t_prestim,
+        t_poststim = desdata.t_poststim
     )
-    des.counter = 0
 
+    POP = geneticalgorithm.population(
+        experiment = EXP,
+        confoundorder = desdata.ConfoundOrder,
+        G = desdata.G,
+        R = [0.4,0.4,0.2],
+        q = desdata.q,
+        weights = desdata.W,
+        I = desdata.I,
+        preruncycles = desdata.preruncycles,
+        cycles = desdata.cycles,
+        convergence=desdata.conv_crit,
+        folder=desdata.onsetsfolder,
+        Aoptimality = True if desdata.Aoptimality == 1 else False
+    )
+
+    POP.print_cmd()
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.running = 1
-    form.cmd = des.cmd
+    form.seed = np.random.randint(10000)
+    form.cmd = POP.cmd
     form.save()
 
-    # Create first generation
-    des.GeneticAlgorithmInitiate()
-
-    # Maximise Fe
-    if des.weights[0] > 0 and des.preruncycles > 0:
-        desdata = DesignModel.objects.get(SID=sid)
-        runform = DesignRunForm(None, instance=desdata)
-        form = runform.save(commit=False)
-        form.running = 2
-        form.save()
-        des.prerun = 'Fe'
-        des.GeneticAlgorithmNaturalSelection()
-        des.FeMax = np.max(NatSel['Best'])
-
-    # Maximise Fd
-    if des.weights[1] > 0 and des.preruncycles > 0:
-        desdata = DesignModel.objects.get(SID=sid)
-        runform = DesignRunForm(None, instance=desdata)
-        form = runform.save(commit=False)
-        form.running = 3
-        form.save()
-        des.prerun = 'Fd'
-        des.GeneticAlgorithmNaturalSelection()
-        des.FdMax = np.max(NatSel['Best'])
-
-    # Natural selection
-    desdata = DesignModel.objects.get(SID=sid)
-    runform = DesignRunForm(None, instance=desdata)
-    form = runform.save(commit=False)
-    form.running = 4
-    form.save()
-    des.prerun = None
-    des.GeneticAlgorithmNaturalSelection()
-    des.prepare_download()
+    POP.naturalselection(seed=form.seed)
+    POP.download()
 
     # Select optimal design
-    OptInd = np.min(np.arange(len(Generation['F']))[
-                    Generation['F'] == np.max(Generation['F'])])
-
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
-    form.convergence = des.conv
-    form.zip_filename = des.zip_filename
-    form.file = des.file
+    form.convergence = POP.finished
+    form.zip_filename = POP.zip_filename
+    form.zipfile = POP.file
     form.save()
 
     subject = "NeuroDesign: optimisation process ended"
