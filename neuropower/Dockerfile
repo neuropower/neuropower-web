@@ -51,7 +51,16 @@ RUN pip install sqlalchemy
 RUN pip install kombu
 RUN pip install redis && \
     pip install celery[redis]
-RUN pip install neurodesign
+RUN pip install progressbar
+RUN pip install neurodesign>0.0.6
+RUN pip install reportlab
+RUN pip install seaborn
+RUN pip install pdfrw
+
+RUN npm install colorsys
+
+ADD colorsys.py /usr/local/miniconda/lib/python2.7/site-packages/
+
 
 # Clear apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
