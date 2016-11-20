@@ -101,12 +101,12 @@
               </tr><tr>
               <td>Stimulus duration</td><td>How long does one stimulus last on the screen?  We expect brain activation for the duration of the stimulus.  Please exclude the duration of non-target parts of a trial (such as fixation crosses) and add this duration to the ITI.</td>
               </tr><tr>
-              <td>Stimulus duration</td><td>How long does one stimulus last on the screen?  We expect brain activation for the duration of the stimulus.  Please exclude the duration of non-target parts of a trial (such as fixation crosses) and add this duration to the ITI.</td>
-              </tr><tr>
               <td>Total number of trials</td><td>How many trials does the experiment consist of in total?</td>
               </tr>
             </table>
           </div>
+          <h5> Trial structure<h5>
+          <p>We ask to specify the stimulus duration.  However, very often your trial consists of fixation cross etc, where you don't expect activation.  Therefore, you should specify the duration of the trial before the stimulus (or target) and the duration of the trial after the stimulus.</p>
         <h5>Contrasts</h5>
         <p>If you are comparing conditions (or a condition with baseline), you need to prepare contrasts for your analysis.  The optimisation of your design also depends on these contrasts.  If you have 3 conditions, and you want to compare all of those, your contrast matrix would be:<p>
           <div class="table">
@@ -129,14 +129,10 @@
             </table>
           </div>
         <h5>Inter-trial interval (ITI)</h5>
-        <p>You want to specify the time between stimuli, the inter-trial interval (ITI) or also known as the inter-stimulus interval (ISI).  You can specify a fixed ITI, but also a variable ITI.  We strongly suggest a variable ITI for a better estimation of the activation.  For a fixed ITI, you only have to fill out the average ITI; for a variable ITI, uniform between two values, you should fill out the minimum and the maximum.  You can also specify a minimum and a maximum <b><i>and</i></b> a mean that is not exactly between the minimum and the maximum. <p>
+        <p>You want to specify the time between stimuli, the inter-trial interval (ITI) or also known as the inter-stimulus interval (ISI).  You can specify a fixed ITI, but also a variable ITI.  We strongly suggest a variable ITI for a better estimation of the activation.  For a fixed ITI, you only have to fill out the average ITI; for a variable ITI, you can either sample from a uniform or a truncated exponential distribution.  You can also specify a minimum and a maximum <b><i>and</i></b>. For a truncated exponential distribution, you can additionally add the mean of the ITI's (which should be smaller than the mean between the minimum and the maximum).<p>
         <h5>Rest blocks</h5>
         <p>Very often, a researcher would include some rest blocks during the experiment to let the subject rest and refocus.  You can choose how long these rest blocks are and how many trials there are between rest blocks. </p>
         <p><b>Note</b> that if you're modeling a very long experiment, it might be advisable to optimise 2 different runs rather than 1 long run with a long rest block.</p>
-        <h5>Nested designs</h5>
-        <p>Often, you have nested designs: certain conditions are nested within other conditions.  You can specify this structure in this toolbox.</p>
-        <p>On the first input page, you're asked how many classes of stimuli you have.  This will take you to a next page to specify the structure of your stimuli.</p>
-        <p>This option is only to make input easier.  If you prefer to handle the stimuli as independent, this will not impact the results.</p>
         <h4>Design optimisation parameters</h4>
         <p>On the previous page in the tutorial, we explained the different optimisation criteria.  Here, you are asked to give weights to each of those criteria.  Each criterium is scaled between 0 and 1, with higher being better.  The total optimisation will be the weighted average of those criteria.
         <h4>Psychological confounding factors</h4>
