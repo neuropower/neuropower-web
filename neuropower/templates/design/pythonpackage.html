@@ -1,0 +1,48 @@
+{% extends 'main/base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  Beyond the GUI | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{% include 'main/navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <br>
+  <br>
+  <div class="col-xs-1"></div>
+  <div class="col-xs-10">
+    <h2> NeuroDesign - beyond the gui </h2>
+    <br>
+    <h4> Python package </h4>
+    <p>Behind the GUI of this app is a powerful python package doing the math.  If you don't like GUI, but you prefer coding up the optimisation yourself, you can find the package on <a href="https://pypi.python.org/pypi/neurodesign">pypi</a> with the package documentation on <a href="http://neurodesign.readthedocs.io/en/latest/">readthedocs</a>.  You can find a few examples of what to do with the package on <a href="https://github.com/neuropower/neurodesign">our github page</a>. </p>
+    <p>If you want to install the package on your computer, type the following in a terminal:</p>
+    <pre><code>pip install neurodesign</code></pre>
+
+    <br>
+
+    <h4> Reproduce results locally </h4>
+    <p>Imagine one day in the near of faraway future, you wonder where your results came from.  Luckily during your optimisation, you can download a python script.  If you rerun the script, the results will be saved to the folder <code>/local</code> on your computer.  If you don't have a <code>/local</code> folder, you can change this line in the script.  To run the script, first install the package as explained above, and then simply run this command:  </p>
+    <pre><code>python location_where_the_script_is/script.py</code></pre>
+
+    <br>
+    <h4> Reproduce results in a container </h4>
+    <p>We largely value the reproducibility of research.  If you locally rerun the code, it might depend on some local libraries and could result in another optimal design.  However, to produce the results through our GUI, we use a container, which is a little piece of software that mocks a whole operating system.  As such, if you run the code through the same container, you will avoid all local libraries and package versions and get exactly the same results.  If you don't know docker, this is probably not the place to learn about it.  If you have docker installed, you can pull our docker container from <a href="https://hub.docker.com/r/joke/neuropower/">docker hub</a> like this:</p>
+
+    <pre><code>docker pull joke/neuropower</code></pre>
+
+    <p>To rerun the script through the docker container, do the following:</p>
+
+    <pre><code>docker run -v /location_where_the_script_is/:/local -it joke/neuropower python /local/name_of_the_script.py </code></pre>
+
+
+
+
+  </div>
+  <div class="col-xs-1"></div>
+</div>
+{% endblock %}
