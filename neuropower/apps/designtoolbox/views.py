@@ -143,7 +143,8 @@ def maininput(request):
         form.codefile = os.path.join(form.onsetsfolder, form.codefilename)
         form.save()
 
-        os.mkdir(form.onsetsfolder)
+        if not os.path.exists(form.onsetsfolder):
+            os.mkdir(form.onsetsfolder)
 
         # if os.path.exists(form.onsetsfolder):
         #     files = os.listdir(form.onsetsfolder)
