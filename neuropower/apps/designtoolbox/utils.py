@@ -45,8 +45,12 @@ def probs_and_cons(sid):
                 Ccustom[line,:] = Ccustom[line,:]/cor
 
     if desdata.Call == True:
-        Cfull = np.zeros([(desdata.S*(desdata.S-1)/2),desdata.S])
+        Cfull = np.zeros([(desdata.S*(desdata.S+1)/2),desdata.S])
         line = -1
+        for stim in range(desdata.S):
+                line = line+1
+                Cfull[line,stim] = 1
+
         for stim in range(desdata.S):
             for stim2 in np.arange(stim+1,desdata.S):
                 line = line+1
