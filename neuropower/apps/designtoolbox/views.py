@@ -45,7 +45,7 @@ def end_session(request):
         DesignModel.objects.filter(SID=sid).delete()
     except KeyError:
         pass
-    return maininput(request, end_session=True)
+    return start(request, end_session=True)
 
 
 def DFAQ(request):
@@ -56,6 +56,9 @@ def tutorial(request):
 
 def methods(request):
     return render(request, "design/methods.html", {})
+
+def package(request):
+    return render(request, "design/pythonpackage.html", {})
 
 
 def start(request, end_session=False):
@@ -139,6 +142,8 @@ def maininput(request):
         form.codefilename = "GeneticAlgorithm_"+str(sid)+".py"
         form.codefile = os.path.join(form.onsetsfolder, form.codefilename)
         form.save()
+
+        os.mkdir(form.onsetsfolder)
 
         # if os.path.exists(form.onsetsfolder):
         #     files = os.listdir(form.onsetsfolder)
@@ -326,18 +331,10 @@ def review(request):
     # Set summary variables in context
 
     matrices = probs_and_cons(sid)
-    context['TR'] = desdata.TR
-    context['S'] = desdata.S
-    if desdata.L:
-        context['L'] = desdata.L
-    if desdata.duration:
-        context['duration'] = desdata.duration
     context["Phtml"] = matrices["Phtml"]
     context["Chtml"] = matrices["Chtml"]
     context["Whtml"] = weights_html(desdata.W)
-    context["order"] = desdata.ConfoundOrder
-    context["repeat"] = desdata.MaxRepeat
-    context['stim_duration'] = desdata.stim_duration
+    context['desdata'] = desdata
 
     context["message"] = ""
     if desdata.HardProb == True:
@@ -352,11 +349,18 @@ def review(request):
 
     # Duration
     if desdata.ITImodel == 1:
+        context['ITImodel'] = "fixed"
         mean = desdata.ITIfixed
+        context['ITI'] = "The ITI's are equal to "+str(mean)+" seconds."
     elif desdata.ITImodel == 2:
+        context['ITImodel'] = 'truncated exponential'
         mean = desdata.ITItruncmean
+        context['ITI'] = "The ITI's are between "+str(desdata.ITItruncmin)+" and "+str(desdata.ITItruncmax)+" seconds and on average "+str(mean)+" seconds."
     elif desdata.ITImodel == 3:
+        context['ITImodel'] = 'uniform'
         mean = (desdata.ITIunifmin+desdata.ITIunifmax)/2.
+        context['ITI'] = "The ITI's are between "+str(desdata.ITIunifmin)+" and "+str(desdata.ITIunifmax)+" seconds and on average "+str(mean)+" seconds."
+
     if desdata.L:
         dur = mean*desdata.L+desdata.RestNum*desdata.RestDur
     elif desdata.duration:
