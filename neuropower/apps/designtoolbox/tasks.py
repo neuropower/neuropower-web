@@ -1,6 +1,6 @@
 from django.conf import settings
 from .models import DesignModel
-from neurodesign import geneticalgorithm, generate, msequence
+from neurodesign import geneticalgorithm, generate, msequence, report
 from .forms import DesignRunForm
 from celery import task, Celery
 import os
