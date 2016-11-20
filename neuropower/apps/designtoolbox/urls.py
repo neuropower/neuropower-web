@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^DFAQ/$',views.DFAQ,name='DFAQ'),
     url(r'^tutorial/$',views.tutorial,name='DTutorial'),
     url(r'^methods/$',views.methods,name='DMethods'),
+    url(r'^package/$',views.package,name='DPackage'),
     url(r'^end/$',views.end_session,name='DReset'),
     url(r'^updatepage/$',views.updatepage,name='DUpdate'),
         ]
