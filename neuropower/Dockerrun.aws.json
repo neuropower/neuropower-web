@@ -1,0 +1,19 @@
+{
+    "AWSEBDockerrunVersion": "2",
+    "containerDefinitions": [
+        {
+            "command": ["/code/manage.py","runserver","0.0.0.0:80"],
+            "entrypoint": ["python"],
+            "essential": "true",
+            "image": "neuropower/neuropower",
+            "memory": 128,
+            "name": "uwsgi",
+            "portMappings": [
+              {
+                "hostPort": 80,
+                "containerPort": 80
+              }
+            ]
+        }
+    ]
+}

@@ -68,6 +68,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         t_poststim = desdata.t_poststim
     )
 
+    seed = np.random.randint(10000)
     POP = geneticalgorithm.population(
         experiment = EXP,
         confoundorder = desdata.ConfoundOrder,
@@ -80,7 +81,8 @@ def GeneticAlgorithm(sid,ignore_result=False):
         cycles = desdata.cycles,
         convergence=desdata.conv_crit,
         folder=desdata.onsetsfolder,
-        Aoptimality = True if desdata.Aoptimality == 1 else False
+        Aoptimality = True if desdata.Aoptimality == 1 else False,
+        seed=seed
     )
 
     POP.print_cmd()
@@ -88,11 +90,11 @@ def GeneticAlgorithm(sid,ignore_result=False):
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.running = 1
-    form.seed = np.random.randint(10000)
+    form.seed = seed
     form.cmd = POP.cmd
     form.save()
 
-    POP.naturalselection(seed=form.seed)
+    POP.naturalselection()
     POP.download()
 
     # Select optimal design

@@ -52,7 +52,7 @@ RUN pip install kombu
 RUN pip install redis && \
     pip install celery[redis]
 RUN pip install progressbar
-RUN pip install neurodesign>0.0.6
+RUN pip install neurodesign>0.0.7
 RUN pip install reportlab
 RUN pip install seaborn
 RUN pip install pdfrw

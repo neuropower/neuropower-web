@@ -114,16 +114,38 @@ WSGI_APPLICATION = 'neuropowertools.wsgi.application'
 #     }
 # }
 #
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'postgres',
-        # The following settings are not used with sqlite3:
-        'USER': 'postgres',
-        'HOST': 'db',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '5432',        # Set to empty string for default.
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+#         'NAME': 'postgres',
+#         # The following settings are not used with sqlite3:
+#         'USER': 'postgres',
+#         'HOST': 'db',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+#         'PORT': '5432',        # Set to empty string for default.
+#     }
+# }
+if 'RDS_DB_NAME' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.environ['RDS_DB_NAME'],
+            'USER': os.environ['RDS_USERNAME'],
+            'PASSWORD': os.environ['RDS_PASSWORD'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'HOST': 'db',
+            'PORT': '5432',
+        }
+    }
+
 
 ## Caches
 CACHES = {
