@@ -31,13 +31,13 @@
 
     <br>
     <h4> Reproduce results in a container </h4>
-    <p>We largely value the reproducibility of research.  If you locally rerun the code, it might depend on some local libraries and could result in another optimal design.  However, to produce the results through our GUI, we use a container, which is a little piece of software that mocks a whole operating system.  As such, if you run the code through the same container, you will avoid all local libraries and package versions and get exactly the same results.  If you don't know docker, this is probably not the place to learn about it.  If you have docker installed, you can pull our docker container from <a href="https://hub.docker.com/r/joke/neuropower/">docker hub</a> like this:</p>
+    <p>We largely value the reproducibility of research.  If you locally rerun the code, it might depend on some local libraries and could result in another optimal design.  However, to produce the results through our GUI, we use a container, which is a little piece of software that mocks a whole operating system.  As such, if you run the code through the same container, you will avoid all local libraries and package versions and get exactly the same results.  If you don't know docker, this is probably not the place to learn about it.  If you have docker installed, you can pull our docker container from <a href="https://hub.docker.com/r/neuropower/neuropower/">docker hub</a> like this:</p>
 
-    <pre><code>docker pull joke/neuropower</code></pre>
+    <pre><code>docker pull neuropower/neuropower</code></pre>
 
     <p>To rerun the script through the docker container, do the following:</p>
 
-    <pre><code>docker run -v /location_where_the_script_is/:/local -it joke/neuropower python /local/name_of_the_script.py </code></pre>
+    <pre><code>docker run -v /location_where_the_script_is/:/local -it neuropower/neuropower python /local/name_of_the_script.py </code></pre>
 
 
 
