@@ -104,13 +104,13 @@ def GeneticAlgorithm(sid,ignore_result=False):
     form.convergence = POP.finished
     form.zip_filename = POP.zip_filename
     form.zipfile = POP.file
-    print("popfile: "+POP.file)
+    print("popfile: "+str(POP.file))
     form.save()
 
     subject = "NeuroDesign: optimisation process ended"
     sender = "NeuroDesign"
     sendermail = "joke.durnez@gmail.com"
-    message = "Your design optimisation has now ended.  You can download the results here:"+" http://development.neuropowertools.org/design/runGA/?retrieve="+str(desdata.SID)+". Thank you for using NeuroDesign."
+    message = "Your design optimisation has now ended.  You can download the results here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.SID)+". Thank you for using NeuroDesign."
     recipient = str(desdata.email)
     key = settings.MAILGUN_KEY
 
