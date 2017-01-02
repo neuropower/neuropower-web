@@ -1,6 +1,5 @@
 db:
   image: postgres
-  mem_limit: 128m
 
 uwsgi:
   restart: always
@@ -12,7 +11,6 @@ uwsgi:
   links:
     - db
     - redis
-  mem_limit: 128m
 
 nginx:
   restart: always
@@ -27,13 +25,11 @@ nginx:
     - uwsgi
   links:
     - uwsgi
-  mem_limit: 128m
 
 redis:
   restart: always
   image: redis
   command: redis-server --appendonly yes
-  mem_limit: 128m
 
 
 worker:
@@ -44,4 +40,3 @@ worker:
   links:
     - db
     - redis
-  mem_limit: 128m
