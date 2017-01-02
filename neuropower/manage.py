@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import encodings.idna
 import os
 import sys
 

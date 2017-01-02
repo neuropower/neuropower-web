@@ -123,7 +123,7 @@ def textify_code(sid):
     desdata = DesignModel.objects.get(SID=sid)
     classinput = desdata.cmd
 
-    totalcmd = "from neurodesign import geneticalgorithm, generate, msequence \n"+classinput+"\nPOP.naturalselection(seed=%s)\nPOP.download()" %(desdata.seed)
+    totalcmd = "from neurodesign import geneticalgorithm, generate, msequence \n"+classinput+"\nPOP.naturalselection()\nPOP.download()"
 
     # file = open(desdata.codefile,'w+')
     # print >> file, totalcmd

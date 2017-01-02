@@ -62,16 +62,16 @@ def GeneticAlgorithm(sid,ignore_result=False):
         ITImin = ITImin,
         ITImean = ITImean,
         ITImax = ITImax,
+        confoundorder = desdata.ConfoundOrder,
         maxrep = desdata.MaxRepeat,
         hardprob = desdata.HardProb,
-        t_prestim = desdata.t_prestim,
-        t_poststim = desdata.t_poststim
+        t_pre = desdata.t_prestim,
+        t_post = desdata.t_poststim
     )
 
     seed = np.random.randint(10000)
     POP = geneticalgorithm.population(
         experiment = EXP,
-        confoundorder = desdata.ConfoundOrder,
         G = desdata.G,
         R = [0.4,0.4,0.2],
         q = desdata.q,
@@ -104,6 +104,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
     form.convergence = POP.finished
     form.zip_filename = POP.zip_filename
     form.zipfile = POP.file
+    print("popfile: "+POP.file)
     form.save()
 
     subject = "NeuroDesign: optimisation process ended"
