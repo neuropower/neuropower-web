@@ -2,9 +2,9 @@ from __future__ import absolute_import
 import os
 
 from celery import Celery
-from neuropowertools import settings
+from settings import settings
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'neuropowertools.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.settings')
 nvcelery = Celery('neuropower')
 
 # Using a string here means the worker will not have to

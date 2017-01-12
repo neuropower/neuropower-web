@@ -1,19 +1,115 @@
 {
-    "AWSEBDockerrunVersion": "2",
-    "containerDefinitions": [
+  "AWSEBDockerrunVersion": 2,
+  "volumes": [
+    {
+      "name": "npcode",
+      "host": {
+        "sourcePath": "/var/app/current/"
+      }
+    },
+    {
+      "name": "nginx_conf",
+      "host": {
+        "sourcePath": "/var/app/current/nginx.conf"
+      }
+    },
+    {
+      "name": "uwsgi_params",
+      "host": {
+        "sourcePath": "/var/app/current/uwsgi_params.par"
+      }
+    },
+    {
+      "name": "static_usr",
+      "host": {
+        "sourcePath": "/var/www/static/"
+      }
+    },
+    {
+      "name": "media",
+      "host": {
+        "sourcePath": "/var/media/"
+      }
+    }
+  ],
+  "containerDefinitions": [
+    {
+      "name": "uwsgi",
+      "image": "neuropower/neuropower",
+      "essential": "true",
+      "entrypoint": ["bash"],
+      "memory": 500,
+      "command": ["/code/run_uwsgi.sh"],
+      "mountPoints": [
         {
-            "command": ["/code/manage.py","runserver","0.0.0.0:80"],
-            "entrypoint": ["python"],
-            "essential": "true",
-            "image": "neuropower/neuropower",
-            "memory": 128,
-            "name": "uwsgi",
-            "portMappings": [
-              {
-                "hostPort": 80,
-                "containerPort": 80
-              }
-            ]
+          "containerPath": "/code",
+          "sourceVolume": "npcode"
+        },
+        {
+          "containerPath": "/var/www/static",
+          "sourceVolume": "static_usr"
+        },
+        {
+          "containerPath": "/var/media",
+          "sourceVolume": "media"
         }
-    ]
+      ],
+      "links": [
+        "redis"
+      ]
+    },
+    {
+      "name": "nginx",
+      "image": "nginx",
+      "essential": "true",
+      "memory": 128,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80
+        }
+      ],
+      "mountPoints": [
+        {
+          "containerPath": "/etc/nginx/conf.d/default.conf",
+          "sourceVolume": "nginx_conf"
+        },
+        {
+          "containerPath": "/etc/nginx/uwsgi_params.par",
+          "sourceVolume": "uwsgi_params"
+        },
+        {
+          "containerPath": "/var/www/static",
+          "sourceVolume": "static_usr"
+        }
+      ],
+      "links": [
+           "uwsgi"
+      ]
+    },
+    {
+      "name": "redis",
+      "image": "redis",
+      "essential": "true",
+      "memory": 500,
+      "command": ["redis-server","--appendonly","yes"]
+    },
+    {
+      "name": "worker",
+      "image": "neuropower/neuropower",
+      "entrypoint": ["bash"],
+      "command": ["/code/run_worker.sh"],
+      "memory": 500,
+      "links": [
+        "uwsgi",
+        "redis"
+      ],
+      "mountPoints": [
+        {
+          "containerPath": "/code",
+          "sourceVolume": "npcode"
+        }
+      ]
+    }
+  ]
 }

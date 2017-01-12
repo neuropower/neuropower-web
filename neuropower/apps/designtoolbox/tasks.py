@@ -4,13 +4,16 @@ from neurodesign import geneticalgorithm, generate, msequence, report
 from .forms import DesignRunForm
 from celery import task, Celery
 import os
-from utils import probs_and_cons
+import sys
+from utils import probs_and_cons, push_to_s3
 import numpy as np
+sys.path.append("/usr/local/miniconda/lib/python2.7/")
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'neuropower.settings')
 app = Celery('neuropower')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 @app.task
 def GeneticAlgorithm(sid,ignore_result=False):
@@ -19,14 +22,13 @@ def GeneticAlgorithm(sid,ignore_result=False):
     subject = "NeuroDesign: optimisation process started"
     sender = "NeuroDesign"
     sendermail = "joke.durnez@gmail.com"
-    message = "Your design optimisation has now started.  You can follow the progress here:"+" http://development.neuropowertools.org/design/runGA/?retrieve="+str(desdata.shareID)+". Thank you for using NeuroDesign."
+    message = "Your design optimisation has now started.  You can follow the progress here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.shareID)+". Thank you for using NeuroDesign."
     recipient = str(desdata.email)
     key = settings.MAILGUN_KEY
 
     command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
         " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
     os.system(command)
-
 
     matrices = probs_and_cons(sid)
 
@@ -80,7 +82,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         preruncycles = desdata.preruncycles,
         cycles = desdata.cycles,
         convergence=desdata.conv_crit,
-        folder=desdata.onsetsfolder,
+        folder=desdata.onsets_folder,
         Aoptimality = True if desdata.Aoptimality == 1 else False,
         seed=seed
     )
@@ -94,26 +96,127 @@ def GeneticAlgorithm(sid,ignore_result=False):
     form.cmd = POP.cmd
     form.save()
 
-    POP.naturalselection()
+    local_naturalselection(POP,sid)
     POP.download()
+
+    # list all files (with full path) for report
+    infiles = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(desdata.onsets_folder)) for f in fn]
+    # strip away /var/tmp --> design_suffix/xxx
+    outfiles = [x[9:] for x in infiles]
+    print(outfiles)
+    for file in range(len(infiles)):
+        push_to_s3(infiles[file],"designs/"+outfiles[file])
 
     # Select optimal design
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.convergence = POP.finished
-    form.zip_filename = POP.zip_filename
-    form.zipfile = POP.file
-    print("popfile: "+str(POP.file))
+    form.files = outfiles
     form.save()
 
     subject = "NeuroDesign: optimisation process ended"
     sender = "NeuroDesign"
     sendermail = "joke.durnez@gmail.com"
-    message = "Your design optimisation has now ended.  You can download the results here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.SID)+". Thank you for using NeuroDesign."
+    message = "Your design optimisation has now ended.  You can download the results here:"+" http://development.neuropowertools.org/design/runGA/?retrieve="+str(desdata.SID)+". Thank you for using NeuroDesign."
     recipient = str(desdata.email)
     key = settings.MAILGUN_KEY
 
     command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
         " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
     os.system(command)
+
+def local_naturalselection(POP,sid):
+    '''
+    Function to run natural selection for design optimization
+    '''
+
+    if (POP.exp.FcMax == 1 and POP.exp.FfMax==1):
+        POP.max_eff()
+
+    if POP.weights[0] > 0:
+        desdata = DesignModel.objects.get(SID=sid)
+        runform = DesignRunForm(None, instance=desdata)
+        form = runform.save(commit=False)
+        form.running = 2
+        form.save()
+        # add new designs
+        POP.clear()
+        POP.add_new_designs(weights=[1,0,0,0])
+        # loop
+        for generation in range(POP.preruncycles):
+            POP.to_next_generation(seed=POP.seed,weights=[1,0,0,0])
+            if generation % 10 == 10:
+                save_RDS(POP,sid,generation)
+            if POP.finished:
+                continue
+        POP.exp.FeMax = np.max(POP.bestdesign.F)
+
+    if POP.weights[1] > 0:
+        desdata = DesignModel.objects.get(SID=sid)
+        runform = DesignRunForm(None, instance=desdata)
+        form = runform.save(commit=False)
+        form.running = 3
+        form.save()
+        POP.clear()
+        POP.add_new_designs(weights=[1,0,0,0])
+        # loop
+        for generation in range(POP.preruncycles):
+            POP.to_next_generation(seed=POP.seed,weights=[0,1,0,0])
+            if generation % 10 == 0:
+                save_RDS(POP,sid,generation)
+            if POP.finished:
+                continue
+        POP.exp.FdMax = np.max(POP.bestdesign.F)
+
+    # clear all attributes
+    POP.clear()
+    POP.add_new_designs()
+
+    # loop
+    desdata = DesignModel.objects.get(SID=sid)
+    runform = DesignRunForm(None, instance=desdata)
+    form = runform.save(commit=False)
+    form.running = 4
+    form.save()
+    for generation in range(POP.cycles):
+        POP.to_next_generation(seed=POP.seed)
+        if generation % 10 == 0:
+            save_RDS(POP,sid,generation)
+        if POP.finished:
+            continue
+
+    return POP
+
+def save_RDS(POP,sid,generation):
+
+    desdata = DesignModel.objects.get(SID=sid)
+
+    # make metrics dictionary
+
+    if not isinstance(desdata.metrics,dict):
+        Out = {"FBest": [], 'FeBest': [], 'FfBest': [],'FcBest': [], 'FdBest': [], 'Gen': []}
+    else:
+        Out = desdata.metrics
+    opt = [POP.bestdesign.F,POP.bestdesign.Fe,POP.bestdesign.Ff,POP.bestdesign.Fc,POP.bestdesign.Fd]
+    k = 0
+    for key in ['FBest','FeBest','FfBest','FcBest','FdBest']:
+        Out[key].append(opt[k])
+        k = k+1
+    Out['Gen'].append(generation)
+
+    # make bestdesign dictionary
+
+    keys = ["Stimulus_"+str(i) for i in range(POP.exp.n_stimuli)]
+    Seq = {}
+    for s in keys:
+        Seq.update({s:[]})
+    for stim in range(POP.exp.n_stimuli):
+        Seq["Stimulus_"+str(stim)]=POP.bestdesign.Xconv[:,stim].tolist()
+    Seq.update({"tps":POP.bestdesign.experiment.r_tp.tolist()})
+
+    runform = DesignRunForm(None, instance=desdata)
+    form = runform.save(commit=False)
+    form.metrics = Out
+    form.bestdesign = Seq
+    form.save()

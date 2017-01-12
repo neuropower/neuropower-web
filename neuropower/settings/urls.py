@@ -1,4 +1,4 @@
-"""neuropowertools URL Configuration
+"""tutorial URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.9/topics/http/urls/
@@ -14,10 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
-from django.contrib import admin
 import django.views.defaults
-
-admin.autodiscover()
 
 urlpatterns = [
     # Notice the expression does not end in $,

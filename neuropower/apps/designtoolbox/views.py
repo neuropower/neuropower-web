@@ -24,6 +24,7 @@ import urllib2
 from celery import task
 from celery.task.control import revoke, inspect
 from celery.result import AsyncResult
+import requests
 
 
 def end_session(request):
@@ -135,27 +136,22 @@ def maininput(request):
         form.shareID = sid
         form.SID = sid
         form.mainpars = True
-        form.onsetsfolder = os.path.join(settings.MEDIA_ROOT, "design_"+str(sid))
-        form.desfile = os.path.join(form.onsetsfolder, "design.json")
-        form.genfile = os.path.join(form.onsetsfolder,"metrics.json")
-        form.statusfile = os.path.join(form.onsetsfolder,"status.txt")
+        form.local_folder = "/var/tmp/"
+        form.design_suffix = "design_"+str(sid)
+        form.onsets_folder = form.local_folder + form.design_suffix
         form.codefilename = "GeneticAlgorithm_"+str(sid)+".py"
-        form.codefile = os.path.join(form.onsetsfolder, form.codefilename)
+        form.codefile = os.path.join(form.onsets_folder, form.codefilename)
         form.save()
 
-        if not os.path.exists(form.onsetsfolder):
-            os.mkdir(form.onsetsfolder)
-
-        # if os.path.exists(form.onsetsfolder):
-        #     files = os.listdir(form.onsetsfolder)
-        #     for f in files:
-        #         if os.path.isdir(os.path.join(form.onsetsfolder,f)):
-        #             shutil.rmtree(os.path.join(form.onsetsfolder,f))
-        #         else:
-        #             os.remove(os.path.join(form.onsetsfolder,f))
-        # else:
-        #     os.mkdir(form.onsetsfolder)
-
+        if os.path.exists(form.onsets_folder):
+            files = os.listdir(form.onsets_folder)
+            for f in files:
+                if os.path.isdir(os.path.join(form.onsets_folder,f)):
+                    shutil.rmtree(os.path.join(form.onsets_folder,f))
+                else:
+                    os.remove(os.path.join(form.onsets_folder,f))
+        else:
+            os.mkdir(form.onsets_folder)
         # get data and change parameters
 
         desdata = DesignModel.objects.get(SID=sid)
@@ -489,24 +485,14 @@ def runGA(request):
 
     # pass results for visualisation
 
-    if os.path.isfile(desdata.genfile):
-        jsonfile = open(desdata.genfile).read()
-        try:
-            data = json.loads(jsonfile)
-            data = json.dumps(data)
-            context['optim'] = data
-        except ValueError:
-            pass
+    if isinstance(desdata.metrics,dict):
+        data = json.dumps(desdata.metrics)
+        context['optim'] = data
 
-    if os.path.isfile(desdata.desfile):
-        jsonfile = open(desdata.desfile).read()
-        try:
-            data = json.loads(jsonfile)
-            data = json.dumps(data)
-            context['design'] = data
-            context['stim'] = desdata.S
-        except ValueError:
-            pass
+    if isinstance(desdata.bestdesign,dict):
+        data = json.dumps(desdata.bestdesign)
+        context['design'] = data
+        context['stim'] = desdata.S
 
     # show downloadform if results are available
     desdata = DesignModel.objects.get(SID=sid)
@@ -619,33 +605,55 @@ def runGA(request):
         # If request = download
         if request.POST.get("Download") == "Download optimal sequence":
             desdata = DesignModel.objects.get(SID=sid)
-            print(desdata.zipfile)
+
+            if os.path.exists(form.onsets_folder):
+                files = os.listdir(form.onsets_folder)
+                for f in files:
+                    if os.path.isdir(os.path.join(form.onsets_folder,f)):
+                        shutil.rmtree(os.path.join(form.onsets_folder,f))
+                    else:
+                        os.remove(os.path.join(form.onsets_folder,f))
+            else:
+                os.mkdir(form.onsets_folder)
+
+            localfiles = []
+            for fl in desdata.files:
+                # check if part right after "design_sid" is a folder, if yes: make folder
+                stripped = fl.split("/")[1]
+                if len(stripped.split("."))==1:
+                    # means it's a folder under onsetsfolder
+                    folder = desdata.onsets_folder+"/"+stripped
+                    if not os.path.exists(folder):
+                        os.mkdir(folder)
+                aws_url = "http://"+settings.AWS_S3_CUSTOM_DOMAIN+"/designs/"+fl
+                local = desdata.local_folder+fl
+
+                response = requests.get(aws_url)
+                if response.status_code == 200:
+                    with open(local,"wb") as f:
+                        f.write(response.content)
+
+                localfiles.append(local)
+
+            # zip up
+            zip_subdir = "OptimalDesign"
+            zip_filename = "%s.zip" % zip_subdir
+            popfile = StringIO.StringIO()
+            zf = zipfile.ZipFile(popfile,"w")
+
+            for fpath in localfiles:
+                zf.write(os.path.join(desdata.design_suffix,fpath),os.path.join(zip_subdir,fpath))
+            zf.close()
 
             resp = HttpResponse(
-                desdata.zipfile.getvalue(),
+                popfile.getvalue(),
                 content_type="application/x-zip-compressed"
                 )
-            resp['Content-Disposition'] = 'attachment; filename=%s' % desdata.zip_filename
+            resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
 
             return resp
 
     else:
-        #check_status
-        desdata = DesignModel.objects.get(SID=sid)
-        runform = DesignRunForm(None, instance=desdata)
-        form = runform.save(commit=False)
-        if os.path.isfile(desdata.statusfile):
-            f = open(desdata.statusfile)
-            status = f.read()
-            f.close()
-            if status == "Fe":
-                form.running = 2
-            elif status == "Fd":
-                form.running = 3
-            elif status == "optimalisation":
-                form.running = 4
-        form.save()
-
         desdata = DesignModel.objects.get(SID=sid)
         context["preruns"] = desdata.preruncycles
         context["runs"] = desdata.cycles
