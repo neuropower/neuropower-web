@@ -57,8 +57,7 @@ RUN pip install seaborn
 RUN pip install pdfrw
 
 RUN pip install neurodesign > 0.0.10
-RUN pip install awscli
-RUN pip install wget
+RUN pip install django-cors-headers
 
 # Clear apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
