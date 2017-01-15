@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'storages',
+    'corsheaders',
     # own
     'apps.main',
     'apps.designtoolbox',
@@ -89,6 +90,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware'
 ]
 
 FILE_UPLOAD_HANDLERS = [
@@ -179,7 +182,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/static/'
 
 MEDIA_URL= "https://%s/" % AWS_S3_CUSTOM_DOMAIN
-MEDIA_ROOT='/var/media/'
+MEDIA_ROOT='/'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 
 # Celery config
@@ -203,6 +206,8 @@ CELERY_TRACK_STARTED = True
 
 ## App specific settings
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 LOGGING = {
     'version': 1,

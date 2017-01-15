@@ -1,6 +1,6 @@
 uwsgi:
   restart: always
-  image: joke/neuropowertest
+  image: neuropower/neuropower
   command: /code/run_uwsgi.sh
   volumes:
     - .:/code
@@ -38,7 +38,7 @@ redis:
 
 
 worker:
-  image: joke/neuropowertest
+  image: neuropower/neuropower
   command: /code/run_worker.sh
   volumes_from:
     - uwsgi

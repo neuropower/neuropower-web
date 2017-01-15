@@ -1,23 +1,24 @@
-from .models import ParameterModel, PeakTableModel, MixtureModel, PowerTableModel,PowerModel
+from .models import NeuropowerModel
 from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import PrependedAppendedText
 from crispy_forms.helper import FormHelper
 from django.core import exceptions
 from django import forms
+import numpy as np
 
 class ParameterForm(forms.ModelForm):
     class Meta:
-        model = ParameterModel
-        fields = ['url','spmfile','maskfile','ZorT','Exc','Subj','Samples',
+        model = NeuropowerModel
+        fields = ['map_url','spmfile','maskfile','ZorT','Exc','Subj','Samples',
                   'alpha','SmoothEst','Smoothx','Smoothy','Smoothz','Voxx','Voxy','Voxz']
 
     def __init__(self,*args,**kwargs):
         self.default_url = kwargs.pop('default_url')
         self.err = kwargs.pop('err')
         super(ParameterForm,self).__init__(*args,**kwargs)
-        self.fields['url'].widget = forms.URLInput(attrs={'placeholder':self.default_url})
-        self.fields['url'].label = "URL"
-        self.fields['url'].required = False
+        self.fields['map_url'].widget = forms.URLInput(attrs={'placeholder':self.default_url})
+        self.fields['map_url'].label = "URL"
+        self.fields['map_url'].required = False
         self.fields['spmfile'].label = "Upload"
         self.fields['spmfile'].required = False
         #self.fields['maskfile'].label = "Upload a full brain mask or a Region-of-Interest mask."
@@ -51,16 +52,22 @@ class ParameterForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ParameterForm,self).clean()
-        url = cleaned_data.get('url')
+        map_url = cleaned_data.get('map_url')
         spmfile = cleaned_data.get('spmfile')
         maskfile = cleaned_data.get('maskfile')
         exc = cleaned_data.get('Exc')
         subj = cleaned_data.get("Subj")
         alpha = cleaned_data.get("alpha")
         smoothest = cleaned_data.get("SmoothEst")
+        smooth = np.array([cleaned_data.get('Smoothx'),cleaned_data.get('Smoothy'),cleaned_data.get('Smoothz'),cleaned_data.get('Voxx'),cleaned_data.get('Voxy'),cleaned_data.get('Voxz')])
 
         if smoothest == 2:
             pass
+        else:
+            print(smooth)
+            if np.sum(np.equal(smooth,None))>0:
+                raise forms.ValidationError("For manual selection of smoothness, please fill out the smoothness and voxelsize in all three dimensions.")
+
 
         if self.err == "dim":
             raise forms.ValidationError("The selected statistical map and mask do not have the same dimensions.")
@@ -71,17 +78,24 @@ class ParameterForm(forms.ModelForm):
         if self.err == "shape":
             raise forms.ValidationError("Are you sure this is a statistical map?  Your map has more than 3 dimensions.")
 
-        if url and not spmfile == None:
+        if map_url and not spmfile == None:
             raise forms.ValidationError("Please choose: either paste a link to the data or upload your map.  Not both.")
 
-        if not url and spmfile == None:
+        if not map_url and spmfile == None:
             raise forms.ValidationError("Please tell us where to find the data: either paste a link to the data or upload your map.")
 
-        if url and spmfile == None:
-            if not (url.endswith('.nii.gz') or url.endswith('.nii.gz')):
+        if map_url and spmfile == None:
+            if not (map_url.endswith('.nii.gz') or map_url.endswith('.nii.gz')):
                 raise forms.ValidationError("The statistical map has the wrong format: please choose a nifti-file")
 
-        if not url and not spmfile == None:
+        print(spmfile.name)
+        if " " in spmfile.name:
+            raise forms.ValidationError("The app currently can't handle filenames that have spaces.  Please rename the statistical map without spaces.")
+
+        if " " in maskfile.name:
+            raise forms.ValidationError("The app currently can't handle filenames that have spaces.  Please rename the mask without spaces.")
+
+        if not map_url and not spmfile == None:
             if not (spmfile.name.endswith('.nii') or spmfile.name.endswith('.nii.gz')):
                 raise forms.ValidationError("The statistical map has the wrong format: please choose a nifti-file")
             if spmfile.size > 10**7:
@@ -115,7 +129,7 @@ class ParameterForm(forms.ModelForm):
         Fieldset(
             'Data location',
             HTML("""<h6 style="margin-left: 15px">Either paste a link to the online nifti-file <b>OR</b> upload your statistical map.</h6>"""),
-            'url',
+            'map_url',
             'spmfile'
             ),
         HTML("""<br><br>"""),
@@ -150,17 +164,17 @@ class ParameterForm(forms.ModelForm):
 
 class PeakTableForm(forms.ModelForm):
     class Meta:
-        model = PeakTableModel
+        model = NeuropowerModel
         fields = '__all__'
 
 class MixtureForm(forms.ModelForm):
     class Meta:
-        model = MixtureModel
+        model = NeuropowerModel
         fields = '__all__'
 
 class PowerTableForm(forms.ModelForm):
     class Meta:
-        model = PowerTableModel
+        model = NeuropowerModel
         fields = '__all__'
 
 class PowerForm(forms.ModelForm):
@@ -168,8 +182,8 @@ class PowerForm(forms.ModelForm):
     reqPow = forms.DecimalField(required=False,label = "Power")
     reqSS = forms.IntegerField(required=False,label = "Sample size")
     class Meta:
-        model = PowerModel
-        fields = '__all__'
+        model = NeuropowerModel
+        fields = ['MCP','reqSS','reqPow']
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.field_class = 'col-lg-12'

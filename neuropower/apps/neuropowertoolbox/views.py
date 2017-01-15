@@ -2,11 +2,11 @@ from __future__ import unicode_literals
 import sys
 sys.path = sys.path[1:]
 from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
-from .models import PeakTableModel, ParameterModel, MixtureModel, PowerTableModel, PowerModel
-from .utils import get_url, get_neuropower_steps, get_db_entries, get_session_id, create_temporary_copy
+from .models import NeuropowerModel
+from .utils import get_url, get_neuropower_steps, get_db_entries, get_session_id, create_local_copy, get_neurovault_form
 from neuropowercore import cluster, BUM, neuropowermodels
 from django.http import HttpResponseRedirect
-from plots import plotPower
+from plots import plotPower, plotModel
 from django.shortcuts import render
 from django.conf import settings
 from scipy.stats import norm, t
@@ -39,7 +39,7 @@ def end_session(request):
         request.session.flush()
     except KeyError:
         pass
-    return neuropowerinput(request,end_session=True)
+    return neuropowerstart(request)
 
 ### NEUROPOWER TEMPLATE PAGES
 
@@ -61,212 +61,241 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
     # Create the session id for the user
     sid = get_session_id(request)
 
+    # get DB entry for sid
+    try:
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+    except NeuropowerModel.DoesNotExist:
+        neuropowerdata = None
+
     # Get the template/step status
     template = "neuropower/neuropowerinput.html"
     context = {}
     steps = get_neuropower_steps(template,sid)
+    context["steps"] = steps
 
+    # Initiate parameter form
     parsform = ParameterForm(request.POST or None,
                              request.FILES or None,
+                             instance=neuropowerdata,
                              default_url="URL to nifti image",
                              err="")
 
-    neurovault_id = request.GET.get('neurovault','')
-    context["steps"] = steps
+    # Check if a message is passed
     message = request.GET.get('message','')
     context['message'] = message
 
-    # If the user has ended their session, give message
-    if end_session == True:
-        context["message"] = "Session has been successfully reset."
+    # Check if redirect from neurovault
+    neurovault_id = request.GET.get('neurovault','')
 
     if neurovault_id:
-        neurovault_image = get_url("http://neurovault.org/api/images/%s/?format=json" %(neurovault_id))
-        collection_id = str(neurovault_image['collection_id'])
+        neurovault_data = get_neurovault_form(neurovault_id)
 
-        if not (neurovault_image['map_type'] == 'Z map' or neurovault_image['map_type'] == 'T map' or neurovault_image['analysis_level']==None):
-            context["message"] = "Power analyses can only be performed on Z or T maps."
-        if not (neurovault_image['analysis_level'] == 'group' or neurovault_image['analysis_level']==None):
-            context["message"] = "Power analyses can only be performed on group statistical maps."
+        context['parsform'] = neurovault_data["parsform"]
+        if not neurovault_data["message"] == None:
+            context['message'] = neurovault_data["message"]
 
-        parsform = ParameterForm(request.POST or None,
-                                 request.FILES or None,
-                                 default_url = "",
-                                 err = '',
-                                 initial = {"url":neurovault_image["file"],
-                                            "ZorT":"T" if neurovault_image["map_type"] =="T map" else "Z",
-                                            "Subj":neurovault_image["number_of_subjects"]})
-        context["parsform"] = parsform
         return render(request,template,context)
 
+    # Check if new user or if parameterform is invalid
     if not request.method=="POST" or not parsform.is_valid():
         context["parsform"] = parsform
+
         return render(request,template,context)
 
     else:
-        form = parsform.save(commit=False)
+        form = parsform.save(commit = False)
         form.SID = sid
-        mapID = "%s_%s" %(str(sid),str(uuid.uuid4()))
-        form.mapID = mapID
         form.save()
 
-        # handle data: copy to temporary location
-        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        mapID = "%s_%s" %(str(sid),str(uuid.uuid4()))
-        form.mapID = mapID
-        if not parsdata.url == "":
-            url = parsform.cleaned_data['url']
-            location = create_temporary_copy(url,mapID,mask=False,url=True)
-        elif not parsdata.spmfile == "":
-            spmfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.spmfile))
-            location = create_temporary_copy(spmfile,mapID,mask=False, url=False)
-        form.location = location
+        # handle data: copy to local drive
+
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+
+        # create folder to save map local
+
+        if not os.path.exists("/var/maps/"):
+            os.mkdir("/var/maps/")
+
+        # make local copies of map and mask
+
+        map_local = "/var/maps/"+sid+"_map"
+        mask_local = "/var/maps/"+sid+"_mask"
+
+        if not neuropowerdata.map_url == "":
+            map_url = neuropowerdata.map_url
+        else:
+            map_url = "https://"+settings.AWS_S3_CUSTOM_DOMAIN+str(neuropowerdata.spmfile.name)
+
+        map_local = create_local_copy(map_url,map_local)
+
+        if not neuropowerdata.maskfile == "":
+            mask_url = "https://"+settings.AWS_S3_CUSTOM_DOMAIN+str(neuropowerdata.maskfile.name)
+            mask_local = create_local_copy(mask_url,mask_local)
+
+        # save map locations to database
+
+        form = parsform.save(commit = False)
+        form.map_url = map_url
+        form.map_local = map_local
+        if not neuropowerdata.maskfile == "":
+            form.mask_url = mask_url
+            form.mask_local = mask_local
+        else:
+            form.mask_local = mask_local
         form.save()
-        parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-        SPM = nib.load(parsdata.location)
+
+        # perform some higher level cleaning
+
+        error = None
+
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+        SPM = nib.load(neuropowerdata.map_local)
         if len(SPM.shape)>3:
             if not SPM.shape[4]==1 or len(SPM.shape)>4:
-                parsform = ParameterForm(request.POST or None,
-                                         request.FILES or None,
-                                         default_url = "URL to nifti image",
-                                         err = "shape")
-                context["parsform"] = parsform
-                return render(request,template,context)
-
+                error = "shape"
 
         # check if the IQR is realistic (= check whether these are Z- or T-values)
         IQR = np.subtract(*np.percentile(SPM.get_data(),[75,25]))
         if IQR > 20:
-            parsform = ParameterForm(request.POST or None,
-                                     request.FILES or None,
-                                     default_url = "URL to nifti image",
-                                     err = "median")
-            context["parsform"] = parsform
-            return render(request,template,context)
+            error = "median"
 
         # save other parameters
-        form.DoF = parsdata.Subj-1 if parsdata.Samples==1 else parsdata.Subj-2
-        form.ExcZ = float(parsdata.Exc) if float(parsdata.Exc)>1 else -norm.ppf(float(parsdata.Exc))
 
-        # handle mask
-        if parsdata.maskfile == "":
+        form.DoF = neuropowerdata.Subj-1 if neuropowerdata.Samples==1 else neuropowerdata.Subj-2
+        form.ExcZ = float(neuropowerdata.Exc) if float(neuropowerdata.Exc)>1 else -norm.ppf(float(neuropowerdata.Exc))
+
+        # if mask does not exist: create
+        if neuropowerdata.maskfile == "":
             mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
             nvox = np.sum(mask.get_data())
-            masklocation = os.path.join(settings.MEDIA_ROOT,"maps/mask_"+mapID+".nii.gz")
-            nib.save(mask,masklocation)
+            form.mask_local = neuropowerdata.mask_local+".nii.gz"
+            nib.save(mask,form.mask_local)
             form.nvox = nvox
+        # if mask is given: check dimensions
         else:
-            maskfile = os.path.join(settings.MEDIA_ROOT,str(parsdata.maskfile))
-            masklocation = create_temporary_copy(maskfile,mapID,mask=True,url=False)
-            mask = nib.load(masklocation).get_data()
-
-            # return error when dimensions are different
+            mask = nib.load(neuropowerdata.mask_local).get_data()
             if SPM.get_data().shape != mask.shape:
-                parsform = ParameterForm(request.POST or None,
-                                         request.FILES or None,
-                                         default_url="URL to nifti image",
-                                         err="dim")
-                context["parsform"] = parsform
-                return render(request,template,context)
+                error = "dim"
             else:
                 form.nvox = np.sum(mask)
-        form.masklocation = masklocation
-        form.save()
 
-        if parsdata.spmfile == "":
-            return HttpResponseRedirect('../neuropowerviewer/')
+        # throw error if detected
+        if error:
+            parsform = ParameterForm(request.POST or None,
+                                     request.FILES or None,
+                                     default_url="URL to nifti image",
+                                     err=error)
+            context["parsform"] = parsform
+            return render(request,template,context)
         else:
-            return HttpResponseRedirect('../neuropowertable/')
+            form.save()
 
+        return HttpResponseRedirect('../neuropowertable/')
 
 def neuropowerviewer(request):
-    # Get the template
+
+    # Create the session id for the user
     sid = get_session_id(request)
+
+    # get DB entry for sid
+    try:
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+    except NeuropowerModel.DoesNotExist:
+        neuropowerdata = None
+
+    # Get the template/step status
     template = "neuropower/neuropowerviewer.html"
     context = {}
+    steps = get_neuropower_steps(template,sid)
+    context["steps"] = steps
 
+    # check for unauthorised page visit
     link = get_db_entries(template,sid)
     if not link == "":
         return HttpResponseRedirect(link)
 
-    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-    if parsdata.url == "":
-        context["text"] = "The viewer is only available for publicly available data (specify a url in the input)."
-    else:
-        context["url"] = parsdata.url
-        context["thr"] = parsdata.Exc
-        context["viewer"] = "<div class='papaya' data-params='params'></div>"
-
-    context["steps"] = get_neuropower_steps(template,sid)
+    context["url"] = neuropowerdata.map_url
+    context["thr"] = neuropowerdata.Exc
+    context["viewer"] = "<div class='papaya' data-params='params'></div>"
 
     return render(request,template,context)
 
 def neuropowertable(request):
 
-    # Get the template/step status
+    # Create the session id for the user
     sid = get_session_id(request)
+
+    # get DB entry for sid
+    try:
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+    except NeuropowerModel.DoesNotExist:
+        neuropowerdata = None
+
+    # Get the template/step status
     template = "neuropower/neuropowertable.html"
     context = {}
-
-    message = request.GET.get('message','')
-    context['message'] = message
+    steps = get_neuropower_steps(template,sid)
+    context["steps"] = steps
 
     link = get_db_entries(template,sid)
     if not link == "":
         return HttpResponseRedirect(link)
 
+    # Check if a message is passed
+    message = request.GET.get('message','')
+    context['message'] = message
+
     # Initiate peak table
-    peakform = PeakTableForm()
+    peakform = PeakTableForm(instance = neuropowerdata)
     form = peakform.save(commit=False)
     form.SID = sid
 
-    # Load model data
-    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-
     # Compute peaks
-    SPM = nib.load(parsdata.location).get_data()
-    MASK = nib.load(parsdata.masklocation).get_data()
-    if parsdata.ZorT == 'T':
-        SPM = -norm.ppf(t.cdf(-SPM,df=float(parsdata.DoF)))
-    peaks = cluster.PeakTable(SPM,float(parsdata.ExcZ),MASK)
+    SPM = nib.load(neuropowerdata.map_local).get_data()
+    MASK = nib.load(neuropowerdata.mask_local).get_data()
+    if neuropowerdata.ZorT == 'T':
+        SPM = -norm.ppf(t.cdf(-SPM,df=float(neuropowerdata.DoF)))
+    peaks = cluster.PeakTable(SPM,float(neuropowerdata.ExcZ),MASK)
 
     if len(peaks) < 30:
         context["text"] = "There are too few peaks for a good estimation.  Either the ROI is too small or the screening threshold is too high."
         form.err = context["text"]
     else:
-        pvalues = np.exp(-float(parsdata.ExcZ)*(np.array(peaks.peak)-float(parsdata.ExcZ)))
+        pvalues = np.exp(-float(neuropowerdata.ExcZ)*(np.array(peaks.peak)-float(neuropowerdata.ExcZ)))
         pvalues = [max(10**(-6),p) for p in pvalues]
         peaks['pval'] = pvalues
-        form.data = peaks
+        form.peaktable = peaks
         context["peaks"] = peaks.to_html(classes=["table table-striped"])
     form.save()
-
-    # Get step status
-    context["steps"] = get_neuropower_steps(template,sid)
 
     return render(request,template,context)
 
 def neuropowermodel(request):
 
-    # Get the template
+    # Create the session id for the user
     sid = get_session_id(request)
+
+    # get DB entry for sid
+    try:
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+    except NeuropowerModel.DoesNotExist:
+        neuropowerdata = None
+
+    # Get the template/step status
     template = "neuropower/neuropowermodel.html"
     context = {}
-
-    message = request.GET.get('message','')
-    context['message'] = message
+    steps = get_neuropower_steps(template,sid)
+    context["steps"] = steps
 
     link = get_db_entries(template,sid)
     if not link == "":
         return HttpResponseRedirect(link)
 
-    # Load model data
-    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-    peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
-    if not peakdata.err == "":
-        context["text"] = peakdata.err
-        return render(request,template,context)
-    peaks = peakdata.data
+    peaks = neuropowerdata.peaktable
+
+    # Check if a message is passed
+    message = request.GET.get('message','')
+    context['message'] = message
 
     # Estimate pi1
     bum = BUM.EstimatePi1(peaks.pval.tolist(),starts=20) # :)
@@ -278,12 +307,12 @@ def neuropowermodel(request):
     # Estimate mixture model
     modelfit = neuropowermodels.modelfit(peaks.peak.tolist(),
                                          bum['pi1'],
-                                         exc = float(parsdata.ExcZ),
+                                         exc = float(neuropowerdata.ExcZ),
                                          starts=20,
                                          method="RFT")
 
     # Save estimates to form
-    mixtureform = MixtureForm()
+    mixtureform = MixtureForm(instance = neuropowerdata)
     form = mixtureform.save(commit=False)
     form.SID = sid
     form.pi1 = bum['pi1']
@@ -296,65 +325,73 @@ def neuropowermodel(request):
         form.sigma = 0
     form.save()
 
-    # Get step status
-    context["steps"] = get_neuropower_steps(template,sid,bum['pi1'])
+    # context["link"] = plotModel(sid)
 
     return render(request,template,context)
 
 def neuropowersamplesize(request):
 
-    # Get the template/step status
+    # Create the session id for the user
     sid = get_session_id(request)
+
+    # get DB entry for sid
+    try:
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+    except NeuropowerModel.DoesNotExist:
+        neuropowerdata = None
+
+    # Get the template/step status
     template = "neuropower/neuropowersamplesize.html"
     context = {}
-
-    message = request.GET.get('message','')
-    context['message'] = message
+    steps = get_neuropower_steps(template,sid)
+    context["steps"] = steps
 
     link = get_db_entries(template,sid)
     if not link == "":
         return HttpResponseRedirect(link)
 
+    # Check if a message is passed
+    message = request.GET.get('message','')
+    context['message'] = message
+
+
     # Load model data
     context['texttop'] = "Hover over the lines to see detailed power predictions"
-    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-    peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
-    if not peakdata.err == "":
-        context["text"] = peakdata.err
+    if not neuropowerdata.err == "":
+        context["text"] = neuropowerdata.err
         return render(request,template,context)
-    mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
-    peaks = peakdata.data
+    peaks = neuropowerdata.peaktable
 
-    powerinputform = PowerForm(request.POST or None)
+    powerinputform = PowerForm(request.POST or None,instance=neuropowerdata)
 
-    if mixdata.mu==0:
+    if neuropowerdata.mu==0:
         context['message']=message+"\n Our model can't find evidence that there is non-null activation in this contrast.  As such, a power analysis will not be possible..."
     else:
         context["plot"] = True
-        if mixdata.pi1<0.1:
+        if neuropowerdata.pi1<0.1:
             context['message']=message+"\nWARNING: The estimates prevalence of activation is very low.  The estimation procedure gets rather unstable in this case. Proceed with caution."
         # Estimate smoothness
-        if parsdata.SmoothEst==1:
+        if neuropowerdata.SmoothEst==1:
             #Manual
-            FWHM = np.array([float(parsdata.Smoothx),float(parsdata.Smoothy),float(parsdata.Smoothz)])
-            voxsize = np.array([float(parsdata.Voxx),float(parsdata.Voxy),float(parsdata.Voxz)])
-        elif parsdata.SmoothEst==2:
+            FWHM = np.array([float(neuropowerdata.Smoothx),float(neuropowerdata.Smoothy),float(neuropowerdata.Smoothz)])
+            voxsize = np.array([float(neuropowerdata.Voxx),float(neuropowerdata.Voxy),float(neuropowerdata.Voxz)])
+        elif neuropowerdata.SmoothEst==2:
             # Estimate from data
-            cmd_smooth = "smoothest -V -z "+parsdata.location+" -m "+parsdata.masklocation
+            cmd_smooth = "smoothest -V -z "+neuropowerdata.map_local+" -m "+neuropowerdata.mask_local
             tmp = os.popen(cmd_smooth).read()
             FWHM = np.array([float(x[8:15]) for x in tmp.split("\n")[16].split(",")])
             voxsize=np.array([1,1,1])
 
         # Compute thresholds and standardised effect size
-        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(parsdata.nvox),alpha=float(parsdata.alpha),exc=float(parsdata.ExcZ))
-        effect_cohen = float(mixdata.mu)/np.sqrt(float(parsdata.Subj))
+        thresholds = neuropowermodels.threshold(peaks.peak,peaks.pval,FWHM=FWHM,voxsize=voxsize,nvox=float(neuropowerdata.nvox),alpha=float(neuropowerdata.alpha),exc=float(neuropowerdata.ExcZ))
+        effect_cohen = float(neuropowerdata.mu)/np.sqrt(float(neuropowerdata.Subj))
 
         # Compute predicted power
         power_predicted = []
-        newsubs = range(parsdata.Subj,parsdata.Subj+600)
+        newsubs = range(neuropowerdata.Subj,neuropowerdata.Subj+600)
         for s in newsubs:
             projected_effect = float(effect_cohen)*np.sqrt(float(s))
-            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
+            powerpred =  {k:1-neuropowermodels.altCDF([v],projected_effect,float(neuropowerdata.sigma),exc=float(neuropowerdata.ExcZ),method="RFT")[0] for k,v in thresholds.items() if not v == 'nan'}
             power_predicted.append(powerpred)
 
         # Check if there are thresholds (mainly BH) missing
@@ -365,7 +402,7 @@ def neuropowersamplesize(request):
         # Save power calculation to table and model
         powertable = pd.DataFrame(power_predicted)
         powertable['newsamplesize']=newsubs
-        powertableform = PowerTableForm()
+        powertableform = PowerTableForm(instance=neuropowerdata)
 
         savepowertableform = powertableform.save(commit=False)
         savepowertableform.SID = sid
@@ -380,57 +417,61 @@ def neuropowersamplesize(request):
                 savepowerinputform = powerinputform.save(commit=False)
                 savepowerinputform.SID = sid
                 savepowerinputform.save()
-                powerinputdata = PowerModel.objects.filter(SID=sid)[::-1][0]
-                pow = float(powerinputdata.reqPow)
-                ss = powerinputdata.reqSS
-                plotpower = plotPower(sid,powerinputdata.MCP,pow,ss)
+                neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+                pow = float(neuropowerdata.reqPow)
+                ss = neuropowerdata.reqSS
+                plotpower = plotPower(sid,neuropowerdata.MCP,pow,ss)
                 context['plothtml'] = plotpower['code']
                 context["textbottom"] = plotpower['text']
 
     context["powerinputform"] = powerinputform
 
-    # Get step status
-    context["steps"] = get_neuropower_steps(template,sid)
-
     return render(request,template,context)
 
 def neuropowercrosstab(request):
 
-    # Get the template/step status
+    # Create the session id for the user
     sid = get_session_id(request)
+
+    # get DB entry for sid
+    try:
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+    except NeuropowerModel.DoesNotExist:
+        neuropowerdata = None
+
+    # Get the template/step status
     template = "neuropower/neuropowercrosstab.html"
     context = {}
+    steps = get_neuropower_steps(template,sid)
+    context["steps"] = steps
 
     link = get_db_entries(template,sid)
     if not link == "":
         return HttpResponseRedirect(link)
 
-    mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
+    # Check if a message is passed
+    message = request.GET.get('message','')
+    context['message'] = message
 
-    if mixdata.mu==0:
+    if neuropowerdata.mu==0:
         context['message']="\n Our model can't find evidence that there is non-null activation.  As such, a power analysis will not be possible..."
     else:
-        if mixdata.pi1<0.1:
+        if neuropowerdata.pi1<0.1:
             context['message']="\nWARNING: The estimates prevalence of activation is very low.  The estimation procedure gets rather unstable in this case. Proceed with caution."
 
         # Load model data
-        peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
-        if not peakdata.err == "":
+        if not neuropowerdata.err == "":
             context["text"] = peakdata.err
             return render(request,template,context)
-        powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
 
         # Restyle power table for export
-        names = powerdata.data.columns.tolist()[:-1]
+        names = neuropowerdata.data.columns.tolist()[:-1]
         names.insert(0,'newsamplesize')
-        powertable = powerdata.data[names].round(decimals=2)
+        powertable = neuropowerdata.data[names].round(decimals=2)
         repldict = {'BF':'Bonferroni','BH':'Benjamini-Hochberg','UN':'Uncorrected','RFT':'Random Field Theory','newsamplesize':'Samplesize'}
         for word, initial in repldict.items():
             names=[i.replace(word,initial) for i in names]
         powertable.columns=names
         context["power"] = powertable.to_html(index=False,col_space='120px',classes=["table table-striped"])
-
-    # Get step status
-    context["steps"] = get_neuropower_steps(template,sid)
 
     return render(request,template,context)

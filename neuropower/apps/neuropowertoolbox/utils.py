@@ -1,4 +1,4 @@
-from .models import ParameterModel, MixtureModel, PeakTableModel, PowerTableModel
+from .models import NeuropowerModel
 import requests
 import os
 os.environ['http_proxy']=''
@@ -6,9 +6,11 @@ import urllib
 from django.conf import settings
 from django.http import HttpResponseRedirect
 
-def get_neuropower_steps(template_page,session_id=None,pi1=None):
+def get_neuropower_steps(template_page,sid,pi1=None):
+
     '''get_neuropower_steps returns a complete dictionary object with button colors, active status, and  currently active based on a template page and session data object.
     '''
+
     # template name, step class, and color
     pages = {"neuropower/neuropowerstart.html": {"class":"overview","color":"#F7F7F7","enabled":"yes"},
              "neuropower/neuropowerinput.html": {"class":"start","color":"#F7941E","enabled":"yes"},
@@ -19,35 +21,39 @@ def get_neuropower_steps(template_page,session_id=None,pi1=None):
              "neuropower/neuropowercrosstab.html": {"class":"power-table","color":"#25AAE1","enabled":"yes"}}
 
     # Set enabled or disabled page status depending on session data
-    if not ParameterModel.objects.filter(SID=session_id):
+    if not NeuropowerModel.objects.filter(SID=sid):
         pages["neuropower/neuropowerviewer.html"]["enabled"] = "no"
         pages["neuropower/neuropowertable.html"]["enabled"] = "no"
         pages["neuropower/neuropowermodel.html"]["enabled"] = "no"
         pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
         pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
-    if not PeakTableModel.objects.filter(SID=session_id):
-        pages["neuropower/neuropowermodel.html"]["enabled"] = "no"
-        pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
-        pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+    else:
+        neuropowerdata = NeuropowerModel.objects.get(SID=sid)
 
-    if not MixtureModel.objects.filter(SID=session_id):
-        pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
-        pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+        if neuropowerdata.step == 1:
+            pages["neuropower/neuropowermodel.html"]["enabled"] = "no"
+            pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
+            pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
-    if not PowerTableModel.objects.filter(SID=session_id):
-        pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+        if neuropowerdata.step == 2:
+            pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
+            pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
-    if pi1==0:
-        pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
-        pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+        if neuropowerdata.step == 3:
+            pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+
+        if pi1==0:
+            pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
+            pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
     # Set the active page
     pages["active"] = pages[template_page]
     return pages
 
 
-def get_db_entries(template_page,session_id=None):
+def get_db_entries(template_page,sid):
+
     '''get_db_entries checks which db models have entries, and can as such redirect to right page if a certain model is missing.
     '''
     # template name, step class, and color
@@ -64,36 +70,42 @@ def get_db_entries(template_page,session_id=None):
     err = ""
 
     if template_page == "neuropower/neuropowerviewer.html":
-        if not ParameterModel.objects.filter(SID=session_id):
+        if not NeuropowerModel.objects.filter(SID=sid):
             err = "pm"
 
     elif template_page == "neuropower/neuropowertable.html":
-        if not ParameterModel.objects.filter(SID=session_id):
+        if not NeuropowerModel.objects.filter(SID=sid):
             err = "pm"
 
     elif template_page == "neuropower/neuropowermodel.html":
-        if not ParameterModel.objects.filter(SID=session_id):
+        if not NeuropowerModel.objects.filter(SID=sid):
             err = "pm"
-        elif not PeakTableModel.objects.filter(SID=session_id):
-            err = "ptm"
+        else:
+            neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+            if neuropowerdata.step == 1:
+                err = "ptm"
 
     elif template_page == "neuropower/neuropowersamplesize.html":
-        if not ParameterModel.objects.filter(SID=session_id):
+        if not NeuropowerModel.objects.filter(SID=sid):
             err = "pm"
-        elif not PeakTableModel.objects.filter(SID=session_id):
-            err = "ptm"
-        elif not MixtureModel.objects.filter(SID=session_id):
-            err = "mm"
+        else:
+            neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+            if neuropowerdata.step == 1:
+                err = "ptm"
+            elif neuropowerdata.step == 2:
+                err = "mm"
 
     elif template_page == "neuropower/neuropowercrosstab.html":
-        if not ParameterModel.objects.filter(SID=session_id):
+        if not NeuropowerModel.objects.filter(SID=sid):
             err = "pm"
-        elif not PeakTableModel.objects.filter(SID=session_id):
-            err = "ptm"
-        elif not MixtureModel.objects.filter(SID=session_id):
-            err = "mm"
-        elif not PowerTableModel.objects.filter(SID=session_id):
-            err = "powerm"
+        else:
+            neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+            if neuropowerdata.step == 1:
+                err = "ptm"
+            elif neuropowerdata.step == 2:
+                err = "mm"
+            elif neuropowerdata.step == 3:
+                err = "powerm"
 
     if not err == "":
         link = "http://www.neuropowertools.org/"+relink[err]+"/?message="+message[err]
@@ -122,18 +134,40 @@ def get_session_id(request):
     return(sid)
 
 
-def create_temporary_copy(file,mapID,mask=False,url=False):
-    temp_dir = os.path.join(settings.MEDIA_ROOT,"maps")
-    end = file[-3:]
-    newext = ".nii.gz" if end == ".gz" else ".nii"
-    if not mask:
-        newfilename = os.path.join(temp_dir,'SPM_'+mapID+newext)
+def create_local_copy(map_url,map_local):
+    if map_url.split(".")[-1] == "gz":
+        map_local = map_local+".nii.gz"
     else:
-        newfilename = os.path.join(temp_dir,"mask_"+mapID+newext)
+        map_local = map_local+".nii"
+    urllib.urlretrieve(map_url,map_local)
+    # response = requests.get(map_url,stream=True)
+    # if response.status_code == 200:
+    #     with open(map_local,"wb") as f:
+    #         f.write(response.raw.read())
 
-    if url:
-        newfilename = os.path.join(temp_dir,'SPM_'+mapID+newext)
-        urllib.urlretrieve(file, newfilename)
-    else:
-        os.rename(file,newfilename)
-    return newfilename
+    return map_local
+
+def get_neurovault_form(neurovault_id):
+    neurovault_image = get_url("http://neurovault.org/api/images/%s/?format=json" %(neurovault_id))
+    collection_id = str(neurovault_image['collection_id'])
+
+    message = None
+    if not (neurovault_image['map_type'] == 'Z map' or neurovault_image['map_type'] == 'T map' or neurovault_image['analysis_level']==None):
+        message = "Power analyses can only be performed on Z or T maps."
+    if not (neurovault_image['analysis_level'] == 'group' or neurovault_image['analysis_level']==None):
+        message = "Power analyses can only be performed on group statistical maps."
+
+    parsform = ParameterForm(request.POST or None,
+                             request.FILES or None,
+                             default_url = "",
+                             err = '',
+                             initial = {"url":neurovault_image["file"],
+                                        "ZorT":"T" if neurovault_image["map_type"] =="T map" else "Z",
+                                        "Subj":neurovault_image["number_of_subjects"]})
+
+    out = {
+        "parsform": parsform,
+        "message": message
+    }
+
+    return out

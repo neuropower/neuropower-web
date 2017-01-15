@@ -1,6 +1,6 @@
 import matplotlib as mpl
 mpl.use('Agg')
-from models import MixtureModel, ParameterModel, PeakTableModel, PowerTableModel
+from models import NeuropowerModel
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from palettable.colorbrewer.qualitative import Paired_12,Set1_9
 from django.http import HttpResponse, HttpResponseRedirect
@@ -16,22 +16,20 @@ import mpld3
 def plotModel(request):
     plt.switch_backend('agg')
     sid = get_session_id(request)
-    peakdata = PeakTableModel.objects.filter(SID=sid)[::-1][0]
-    mixdata = MixtureModel.objects.filter(SID=sid)[::-1][0]
-    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-    if not peakdata.err == "":
+    neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+    if not neuropowerdata.err == "":
         fig=plt.figure(facecolor="white")
     else:
-        peaks = peakdata.data
+        peaks = neuropowerdata.peaktable
         twocol = Paired_12.mpl_colors
-        if mixdata.pi1>0:
+        if neuropowerdata.pi1>0:
             xn = np.arange(-10,30,0.01)
-            nul = [1-float(mixdata.pi1)]*neuropowermodels.nulPDF(xn,exc=float(parsdata.ExcZ),method="RFT")
-            alt = float(mixdata.pi1)*neuropowermodels.altPDF(xn,mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
-            mix = neuropowermodels.mixPDF(xn,pi1=float(mixdata.pi1),mu=float(mixdata.mu),sigma=float(mixdata.sigma),exc=float(parsdata.ExcZ),method="RFT")
+            nul = [1-float(neuropowerdata.pi1)]*neuropowermodels.nulPDF(xn,exc=float(neuropowerdata.ExcZ),method="RFT")
+            alt = float(neuropowerdata.pi1)*neuropowermodels.altPDF(xn,mu=float(neuropowerdata.mu),sigma=float(neuropowerdata.sigma),exc=float(neuropowerdata.ExcZ),method="RFT")
+            mix = neuropowermodels.mixPDF(xn,pi1=float(neuropowerdata.pi1),mu=float(neuropowerdata.mu),sigma=float(neuropowerdata.sigma),exc=float(neuropowerdata.ExcZ),method="RFT")
         xn_p = np.arange(0,1,0.01)
-        alt_p = float(mixdata.pi1)*scipy.stats.beta.pdf(xn_p, float(mixdata.a), 1)+1-float(mixdata.pi1)
-        null_p = [1-float(mixdata.pi1)]*len(xn_p)
+        alt_p = float(neuropowerdata.pi1)*scipy.stats.beta.pdf(xn_p, float(neuropowerdata.a), 1)+1-float(neuropowerdata.pi1)
+        null_p = [1-float(neuropowerdata.pi1)]*len(xn_p)
         mpl.rcParams['font.size']='11.0'
 
         fig,axs=plt.subplots(1,2,figsize=(14,5))
@@ -44,20 +42,20 @@ def plotModel(request):
         axs[0].plot(xn_p,null_p,color=twocol[3],lw=2,label="null distribution")
         axs[0].plot(xn_p,alt_p,color=twocol[5],lw=2,label="alternative distribution")
         axs[0].legend(loc="upper right",frameon=False)
-        axs[0].set_title("Distribution of "+str(len(peaks))+" peak p-values \n $\pi_1$ = "+str(round(float(mixdata.pi1),2)))
+        axs[0].set_title("Distribution of "+str(len(peaks))+" peak p-values \n $\pi_1$ = "+str(round(float(neuropowerdata.pi1),2)))
         axs[0].set_xlabel("Peak p-values")
         axs[0].set_ylabel("Density")
         axs[1].hist(peaks.peak,lw=0,facecolor=twocol[0],normed=True,bins=np.arange(min(peaks.peak),30,0.3),label="observed distribution")
-        axs[1].set_xlim([float(parsdata.ExcZ),np.max(peaks.peak)+1])
+        axs[1].set_xlim([float(neuropowerdata.ExcZ),np.max(peaks.peak)+1])
         axs[1].set_ylim([0,1.3])
 
-        if not mixdata.pi1==0:
+        if not neuropowerdata.pi1==0:
             axs[1].plot(xn,nul,color=twocol[3],lw=2,label="null distribution")
             axs[1].plot(xn,alt,color=twocol[5],lw=2, label="alternative distribution")
             axs[1].plot(xn,mix,color=twocol[1],lw=2,label="total distribution")
             axs[1].legend(loc="upper right",frameon=False)
 
-        peak_heights_string = str(round(float(mixdata.mu)/np.sqrt(parsdata.Subj),2))
+        peak_heights_string = str(round(float(neuropowerdata.mu)/np.sqrt(neuropowerdata.Subj),2))
         axs[1].set_title("Distribution of peak heights \n $\delta_1$ = %s" %(peak_heights_string))
         axs[1].set_xlabel("Peak heights (z-values)")
         axs[1].set_ylabel("Density")
@@ -67,12 +65,11 @@ def plotModel(request):
     return response
 
 def plotPower(sid,MCP='',pow=0,ss=0):
-    powerdata = PowerTableModel.objects.filter(SID=sid)[::-1][0]
-    parsdata = ParameterModel.objects.filter(SID=sid)[::-1][0]
-    powtab = powerdata.data
+    neuropowerdata = NeuropowerModel.objects.get(SID=sid)
+    powtab = neuropowerdata.data
     powtxt = powtab.round(2)
     cols = dict(zip(['BF','BH','RFT','UN'],Set1_9.mpl_colors))
-    sub = int(parsdata.Subj)
+    sub = int(neuropowerdata.Subj)
     newsubs = powtab.newsamplesize
     amax = int(np.min(powtab.newsamplesize)+50)
 

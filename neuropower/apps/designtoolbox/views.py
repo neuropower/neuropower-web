@@ -625,7 +625,7 @@ def runGA(request):
                     folder = desdata.onsets_folder+"/"+stripped
                     if not os.path.exists(folder):
                         os.mkdir(folder)
-                aws_url = "http://"+settings.AWS_S3_CUSTOM_DOMAIN+"/designs/"+fl
+                aws_url = "https://"+settings.AWS_S3_CUSTOM_DOMAIN+"/designs/"+fl
                 local = desdata.local_folder+fl
 
                 response = requests.get(aws_url)

@@ -8,11 +8,14 @@ from django.conf import settings
 
 #temp_dir = tempfile.gettempdir()
 
-class ParameterModel(models.Model):
+class NeuropowerModel(models.Model):
     SID = models.CharField(max_length=300,default="")
-    mapID = models.CharField(max_length=300,default="")
-    peaktable = models.CharField(max_length=300,default="")
-    url = models.URLField(default="")
+    step = models.IntegerField(default=0) #0 = nothing, 1 = parameters, 2 = peaktable done, 3 = model fit, 4 = powertable done
+    map_url = models.URLField(default="")
+    mask_url = models.URLField(default="")
+    map_local = models.CharField(max_length=300,default="")
+    mask_local = models.CharField(max_length=300,default="")
+    peaktable = PickledObjectField(default="")
     location = models.CharField(max_length=300,default="")
     spmfile = models.FileField(upload_to=os.path.join(settings.MEDIA_ROOT,"maps"),default="")
     masklocation = models.CharField(max_length=300,default="")
@@ -35,33 +38,13 @@ class ParameterModel(models.Model):
     Voxx = models.DecimalField(max_digits=5,decimal_places=2,null=True)
     Voxy = models.DecimalField(max_digits=5,decimal_places=2,null=True)
     Voxz = models.DecimalField(max_digits=5,decimal_places=2,null=True)
-    def __unicode__(self): # Python 3: __str__
-        return "<ParameterModel:%s>" %self.SID
-
-class PeakTableModel(models.Model):
-    SID = models.CharField(max_length=300,default="")
     data = PickledObjectField(default="")
     err = models.CharField(max_length=1000,default="")
-    def __unicode__(self): # Python 3: __str__
-        return "<PeakTableModel:%s>" %self.SID
-
-class MixtureModel(models.Model):
-    SID = models.CharField(max_length=300,default="")
-    pi1 = models.DecimalField(max_digits=10,decimal_places=4)
+    pi1 = models.DecimalField(max_digits=10,decimal_places=4,null=True)
     a = models.DecimalField(max_digits=10,decimal_places=4,default="NaN")
-    mu = models.DecimalField(max_digits=10,decimal_places=4)
-    sigma = models.DecimalField(max_digits=10,decimal_places=4)
-    def __unicode__(self): # Python 3: __str__
-        return "<MixtureModel:%s>" %self.SID
-
-class PowerTableModel(models.Model):
-    SID = models.CharField(max_length=300,default="")
+    mu = models.DecimalField(max_digits=10,decimal_places=4,null=True)
+    sigma = models.DecimalField(max_digits=10,decimal_places=4,null=True)
     data = PickledObjectField(default="")
-    def __unicode__(self): # Python 3: __str__
-        return "<PowerTableModel:%s>" %self.SID
-
-class PowerModel(models.Model):
-    SID = models.CharField(max_length=300,default="")
     reqPow = models.DecimalField(max_digits=10,decimal_places=4,null=True, blank=True)
     reqSS = models.IntegerField(default=0,null=True, blank=True)
     MCP_c = (("RFT", "Random Field Theory"),("BH", "Benjamini-Hochberg"),("BF","Bonferroni"),("UN","Uncorrected"))
