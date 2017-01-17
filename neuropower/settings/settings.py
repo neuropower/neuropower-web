@@ -23,7 +23,7 @@ sys.path.append(os.path.join(BASE_DIR,"lib"))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'b(qp(8fikx6i=@pk23ew##3zb39!&ao2&@fazja*!ert0+on*!'
+SECRET_KEY = os.environ['DJANGO_KEY']
 
 OPBEAT={
     'ORGANIZATION_ID': os.environ['OPBEAT_ORG'],
@@ -34,7 +34,7 @@ MAILGUN_KEY = os.environ['MAILGUN_KEY']
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*','localhost']
 
