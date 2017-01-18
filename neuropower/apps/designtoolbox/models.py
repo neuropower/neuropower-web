@@ -168,5 +168,6 @@ class DesignModel(models.Model):
     convergence = models.BooleanField(default = False)
     name = models.CharField(default = "",max_length=500)
     email = models.CharField(default = "",max_length=500)
+    outdes = models.IntegerField(default=1)
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID

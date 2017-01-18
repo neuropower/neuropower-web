@@ -4,6 +4,7 @@ from crispy_forms.bootstrap import PrependedAppendedText, FormActions
 from crispy_forms.helper import FormHelper
 from django.core import exceptions
 from django import forms
+from neurodesign import generate
 import numpy as np
 
 class DesignMainForm(forms.ModelForm):
@@ -743,6 +744,7 @@ class DesignOptionsForm(forms.ModelForm):
         self.fields['preruncycles'].label = "Number of generations in the prerun to define the maximum efficiency and detection power."
         self.fields['conv_crit'].label = "Number of stable generations to reach convergence"
         self.fields['HardProb'].label = "Do you want a hard limit on the probabilities? (experimental)"
+        self.fields['outdes'].label = 'How many designs do you want to get?'
 
     def clean(self):
         cleaned_data = super(DesignOptionsForm,self).clean()
@@ -762,6 +764,7 @@ class DesignOptionsForm(forms.ModelForm):
             #Div(Field('Saturation'),css_class='col-xs-12'),
             Div(Field('resolution'),css_class='col-xs-12'),
             Div(Field('HardProb'),css_class='col-xs-4'),
+            Div(Field('outdes'),css_class='col-xs-4'),
             css_class='row-md-12 col-xs-12'
             )
             ),

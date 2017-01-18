@@ -15,6 +15,7 @@ uwsgi:
     - OPBEAT_APP_ID
     - OPBEAT_TOKEN
     - MAILGUN_KEY
+    - DJANGO_KEY
 
 
 nginx:
@@ -51,3 +52,4 @@ worker:
     - OPBEAT_APP_ID
     - OPBEAT_TOKEN
     - MAILGUN_KEY
+    - DJANGO_KEY

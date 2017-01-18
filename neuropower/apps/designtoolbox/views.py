@@ -155,6 +155,7 @@ def maininput(request):
         # get data and change parameters
 
         desdata = DesignModel.objects.get(SID=sid)
+        print(desdata.MaxRepeat)
         weightsform = DesignWeightsForm(None, instance=desdata)
         weightsform = weightsform.save(commit=False)
         W = np.array([desdata.W1, desdata.W2, desdata.W3, desdata.W4])
