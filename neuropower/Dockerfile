@@ -56,7 +56,7 @@ RUN pip install reportlab
 RUN pip install seaborn
 RUN pip install pdfrw
 
-RUN pip install neurodesign > 0.0.12
+RUN pip install neurodesign > 0.0.13
 RUN pip install django-cors-headers
 
 # Clear apt cache to reduce image size
