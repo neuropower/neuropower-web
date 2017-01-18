@@ -53,6 +53,7 @@ RUN pip install redis && \
     pip install celery[redis]
 RUN pip install progressbar
 RUN pip install reportlab
+RUN pip install --upgrade cycler
 RUN pip install seaborn
 RUN pip install pdfrw
 
