@@ -53,7 +53,7 @@ RUN pip install redis && \
     pip install celery[redis]
 RUN pip install progressbar
 RUN pip install reportlab
-RUN pip install seaborn == 0.7.1
+RUN pip install seaborn==0.7.1
 RUN pip install pdfrw
 
 RUN pip install neurodesign > 0.0.13
