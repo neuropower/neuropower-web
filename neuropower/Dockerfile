@@ -19,7 +19,7 @@ RUN mkdir /code
 WORKDIR /code
 ADD requirements.txt /code/
 
-RUN conda install psycopg2 mpld3==0.2 scikit-learn==0.17.1 cycler==0.9.0 && \
+RUN conda install psycopg2 mpld3==0.2 scikit-learn==0.17.1 cycler && \
   apt-get update && \
   apt-get install -y build-essential && \
   curl https://bootstrap.pypa.io/ez_setup.py -o - | python && \
@@ -53,7 +53,7 @@ RUN pip install redis && \
     pip install celery[redis]
 RUN pip install progressbar
 RUN pip install reportlab
-RUN pip install seaborn==0.7.1
+RUN pip install seaborn
 RUN pip install pdfrw
 
 RUN pip install neurodesign > 0.0.13
