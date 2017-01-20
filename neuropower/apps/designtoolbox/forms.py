@@ -729,7 +729,7 @@ class DesignProbsForm(forms.ModelForm):
 class DesignOptionsForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles','conv_crit','HardProb']
+        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles','conv_crit','HardProb','outdes']
 
     def __init__(self,*args,**kwargs):
         super(DesignOptionsForm,self).__init__(*args,**kwargs)
