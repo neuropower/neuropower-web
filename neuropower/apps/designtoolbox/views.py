@@ -34,20 +34,10 @@ def end_session(request):
 
     '''ends a session so the user can start a new one.'''
     try:
-        desdata = DesignModel.objects.get(SID=sid)
-        revoke(desdata.taskID,terminate=True,signal='KILL')
-    except KeyError or DoesNotExist:
-        pass
-    try:
         request.session.flush()
     except KeyError:
         pass
-    try:
-        DesignModel.objects.filter(SID=sid).delete()
-    except KeyError:
-        pass
-    return start(request, end_session=True)
-
+    return start(request)
 
 def DFAQ(request):
     return render(request, "design/DFAQ.html", {})
