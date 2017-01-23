@@ -88,12 +88,9 @@ class ParameterForm(forms.ModelForm):
             if not (map_url.endswith('.nii.gz') or map_url.endswith('.nii.gz')):
                 raise forms.ValidationError("The statistical map has the wrong format: please choose a nifti-file")
 
-        print(spmfile.name)
-        if " " in spmfile.name:
-            raise forms.ValidationError("The app currently can't handle filenames that have spaces.  Please rename the statistical map without spaces.")
-
-        if " " in maskfile.name:
-            raise forms.ValidationError("The app currently can't handle filenames that have spaces.  Please rename the mask without spaces.")
+        if spmfile.name:
+            if " " in spmfile.name:
+                raise forms.ValidationError("The app currently can't handle filenames that have spaces.  Please rename the statistical map without spaces.")
 
         if not map_url and not spmfile == None:
             if not (spmfile.name.endswith('.nii') or spmfile.name.endswith('.nii.gz')):
@@ -102,6 +99,8 @@ class ParameterForm(forms.ModelForm):
                 raise forms.ValidationError("Maximum file size for the statistical map: 100 MB")
 
         if not maskfile == None:
+            if " " in maskfile.name:
+                raise forms.ValidationError("The app currently can't handle filenames that have spaces.  Please rename the mask without spaces.")
             if not (maskfile.name.endswith('.nii') or maskfile.name.endswith('.nii.gz')):
                 raise forms.ValidationError("The mask has the wrong format: please choose a nifti-file")
             if maskfile.size > 10**7:
