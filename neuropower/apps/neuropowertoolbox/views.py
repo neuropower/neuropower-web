@@ -151,7 +151,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         neuropowerdata = NeuropowerModel.objects.get(SID=sid)
         SPM = nib.load(neuropowerdata.map_local)
         if len(SPM.shape)>3:
-            if not SPM.shape[4]==1 or len(SPM.shape)>4:
+            if not SPM.shape[3]==1 or len(SPM.shape)>4:
                 error = "shape"
 
         # check if the IQR is realistic (= check whether these are Z- or T-values)
