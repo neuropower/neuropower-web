@@ -11,6 +11,7 @@ class DesignModel(models.Model):
     zipfile = PickledObjectField(default="")
     taskstatus = models.IntegerField(default=0)
     running = models.IntegerField(default=0)
+    finished = models.BooleanField(default=False)
     taskID = models.CharField(max_length=300,default="")
     cmd = models.CharField(max_length=10000,default="")
     ITImodel = models.IntegerField(choices=((1,'fixed'),(2,'truncated exponential'),(3,'uniform')),default=3)

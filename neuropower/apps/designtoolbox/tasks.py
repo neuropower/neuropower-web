@@ -98,6 +98,9 @@ def GeneticAlgorithm(sid,ignore_result=False):
 
     local_naturalselection(POP,sid)
     POP.download()
+    form = runform.save(commit=False)
+    form.finished = True
+    form.save()
 
     # list all files (with full path) for report
     infiles = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(desdata.onsets_folder)) for f in fn]

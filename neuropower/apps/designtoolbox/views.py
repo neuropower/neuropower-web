@@ -459,6 +459,9 @@ def runGA(request):
         if task.status == "PENDING":
             form.taskstatus = 1
             form.running = 0
+            if desdata.finished == True:
+                form.taskstatus = 3
+                form.running = 0
         elif task.status == "STARTED":
             form.taskstatus = 2
         elif ((task.status == "RETRY"
@@ -549,6 +552,7 @@ def runGA(request):
             form = runform.save(commit=False)
             form.taskstatus = 0
             form.taskID = ""
+            form.finished = False
             form.convergence = False
             form.save()
 
