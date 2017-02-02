@@ -353,6 +353,8 @@ def review(request):
         dur = mean*desdata.L+desdata.RestNum*desdata.RestDur
     elif desdata.duration:
         dur = desdata.duration
+    else: 
+        dur == 0
     if dur > 1800:
         context['message'] = context['message'] + "<p><b>Warning:</b> The run you request is longer dan 30 minutes.  This optimisation will take <b>a long</b> time.  You could set the resolution lower, or split the experiment in multiple shorter runs.  Or you could grab a coffee and wait a few hours for the optimisation to complete.</p>"
     # If page was result of POST: show summary
