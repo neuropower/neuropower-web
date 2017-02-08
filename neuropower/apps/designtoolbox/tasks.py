@@ -162,7 +162,7 @@ def local_naturalselection(POP,sid):
         form.running = 3
         form.save()
         POP.clear()
-        POP.add_new_designs(weights=[1,0,0,0])
+        POP.add_new_designs(weights=[0,1,0,0])
         # loop
         for generation in range(POP.preruncycles):
             POP.to_next_generation(seed=POP.seed,weights=[0,1,0,0])
@@ -192,8 +192,10 @@ def local_naturalselection(POP,sid):
     return POP
 
 def save_RDS(POP,sid,generation):
-
-    desdata = DesignModel.objects.get(SID=sid)
+    try:
+        desdata = DesignModel.objects.get(SID=sid)
+    except DoesNotExist:
+        return None
 
     # make metrics dictionary
 
