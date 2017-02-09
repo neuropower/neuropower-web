@@ -7,6 +7,7 @@ import os
 import sys
 from utils import probs_and_cons, push_to_s3
 import numpy as np
+from datetime import datetime
 sys.path.append("/usr/local/miniconda/lib/python2.7/")
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'neuropower.settings')
@@ -91,6 +92,9 @@ def GeneticAlgorithm(sid,ignore_result=False):
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
+    form.taskstatus = 1
+    form.timestamp = str(datetime.now())
+    form.timestart = str(datetime.now())
     form.running = 1
     form.seed = seed
     form.cmd = POP.cmd
@@ -100,6 +104,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
     POP.download()
     form = runform.save(commit=False)
     form.finished = True
+    form.taskstatus = 3
     form.save()
 
     # list all files (with full path) for report
@@ -151,6 +156,11 @@ def local_naturalselection(POP,sid):
             POP.to_next_generation(seed=POP.seed,weights=[1,0,0,0])
             if generation % 10 == 10:
                 save_RDS(POP,sid,generation)
+                runform = DesignRunForm(None, instance=desdata)
+                form = runform.save(commit=False)
+                form.timestamp = str(datetime.now())
+                form.generation = generation
+                form.save()
             if POP.finished:
                 continue
         POP.exp.FeMax = np.max(POP.bestdesign.F)
@@ -168,6 +178,11 @@ def local_naturalselection(POP,sid):
             POP.to_next_generation(seed=POP.seed,weights=[0,1,0,0])
             if generation % 10 == 0:
                 save_RDS(POP,sid,generation)
+                runform = DesignRunForm(None, instance=desdata)
+                form = runform.save(commit=False)
+                form.timestamp = str(datetime.now())
+                form.generation = generation
+                form.save()
             if POP.finished:
                 continue
         POP.exp.FdMax = np.max(POP.bestdesign.F)
@@ -186,6 +201,11 @@ def local_naturalselection(POP,sid):
         POP.to_next_generation(seed=POP.seed)
         if generation % 10 == 0:
             save_RDS(POP,sid,generation)
+            runform = DesignRunForm(None, instance=desdata)
+            form = runform.save(commit=False)
+            form.timestamp = str(datetime.now())
+            form.generation = generation
+            form.save()
         if POP.finished:
             continue
 

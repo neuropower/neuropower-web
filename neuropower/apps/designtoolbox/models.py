@@ -151,17 +151,8 @@ class DesignModel(models.Model):
     onsets_folder = PickledObjectField(default="")
     design_suffix = PickledObjectField(default="")
     local_folder = PickledObjectField(default="")
-    # not sure if these are necessary
-    optimalorder = PickledObjectField(default="")
-    optimalonsets = PickledObjectField(default="")
-    optimalitis = PickledObjectField(default="")
-    desfile = PickledObjectField(default="")
-    genfile = PickledObjectField(default="")
-    statusfile = models.CharField(default="",max_length=500)
-    designoutput = PickledObjectField(default="")
     codefile = PickledObjectField(default="")
     codefilename = PickledObjectField(default="")
-    # until here
     mainpars = models.BooleanField(default=False)
     conpars = models.BooleanField(default=False)
     nestpars = models.BooleanField(default=False)
@@ -170,5 +161,8 @@ class DesignModel(models.Model):
     name = models.CharField(default = "",max_length=500)
     email = models.CharField(default = "",max_length=500)
     outdes = models.IntegerField(default=1)
+    timestart = models.CharField(default="",max_length=500)
+    timestamp = models.CharField(default="",max_length=500)
+    generation = models.IntegerField(default=0)
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID

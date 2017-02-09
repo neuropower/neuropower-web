@@ -21,6 +21,7 @@ import zipfile
 import StringIO
 import shutil
 import urllib2
+from datetime import datetime
 from celery import task
 from celery.task.control import revoke, inspect
 from celery.result import AsyncResult
@@ -353,7 +354,7 @@ def review(request):
         dur = mean*desdata.L+desdata.RestNum*desdata.RestDur
     elif desdata.duration:
         dur = desdata.duration
-    else: 
+    else:
         dur == 0
     if dur > 1800:
         context['message'] = context['message'] + "<p><b>Warning:</b> The run you request is longer dan 30 minutes.  This optimisation will take <b>a long</b> time.  You could set the resolution lower, or split the experiment in multiple shorter runs.  Or you could grab a coffee and wait a few hours for the optimisation to complete.</p>"
@@ -456,33 +457,47 @@ def runGA(request):
     # check status of job
 
     form = runform.save(commit=False)
-    if desdata.taskID:
-        task = AsyncResult(desdata.taskID)
-        if task.status == "PENDING":
-            form.taskstatus = 1
-            form.running = 0
-            if desdata.finished == True:
-                form.taskstatus = 3
-                form.running = 0
-        elif task.status == "STARTED":
-            form.taskstatus = 2
-        elif ((task.status == "RETRY"
-            or  task.status == "FAILURE"
-            or task.status == "SUCCESS")):
-            form.taskstatus = 3
-            form.running = 0
-        else:
-            form.taskstatus = 0
-            form.running = 0
-    else:
-        form.taskstatus = 0
+    if desdata.taskstatus == 0:
         form.running = 0
+    elif desdata.taskstatus == 1 or desdata.taskstatus == 2:
+        last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
+        now = datetime.now()
+        delta = now-last
+        deltamin = delta.days*24*60.+delta.seconds/60.
+        if deltamin > 10:
+            form.taskstatus = 4
+            form.running = 0
     form.save()
+
+    # This approach needs access to the workers which is not guaranteed with EB
+    # if desdata.taskID:
+    #     task = AsyncResult(desdata.taskID)
+    #     if task.status == "PENDING":
+    #         form.taskstatus = 1
+    #         form.running = 0
+    #         if desdata.finished == True:
+    #             form.taskstatus = 3
+    #             form.running = 0
+    #     elif task.status == "STARTED":
+    #         form.taskstatus = 2
+    #     elif ((task.status == "RETRY"
+    #         or  task.status == "FAILURE"
+    #         or task.status == "SUCCESS")):
+    #         form.taskstatus = 3
+    #         form.running = 0
+    #     else:
+    #         form.taskstatus = 0
+    #         form.running = 0
+    # else:
+    #     form.taskstatus = 0
+    #     form.running = 0
+    # form.save()
 
     # pass results for visualisation
 
     if isinstance(desdata.metrics,dict):
         data = json.dumps(desdata.metrics)
+        print(data)
         context['optim'] = data
 
     if isinstance(desdata.bestdesign,dict):
@@ -562,7 +577,7 @@ def runGA(request):
         if request.POST.get("GA") == "Run" or someonesure:
 
             desdata = DesignModel.objects.get(SID=sid)
-            if desdata.taskstatus > 0:
+            if desdata.taskstatus > 0 and not desdata.taskstatus == 4:
                 if desdata.taskstatus == 1:
                     context['message'] = "There is already an optimisation process queued.  You can only queue or run one design optimisation at a time."
                 elif desdata.taskstatus == 2:
@@ -657,15 +672,19 @@ def runGA(request):
         context["refrun"] = desdata.running
         context['status'] = "NOT RUNNING"
 
-        if desdata.taskstatus==1:
+        if desdata.taskstatus==0:
             context['status'] = "PENDING"
-        if desdata.taskstatus==2:
+        if desdata.taskstatus==1 or desdata.taskstatus==2:
             context['status'] = "RUNNING"
             if desdata.preruncycles<1000 or desdata.cycles<1000 or desdata.resolution>0.2:
                 context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application but the results will be sub-optimal.  For a good optimisation, go to the settings and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
         if desdata.taskstatus==3:
             context['refrun'] = 5
-            context['status'] = "STOPPED"
+            context['status'] = "FINISHED"
+        if desdata.taskstatus == 4:
+            context['refrun'] = 5
+            context['status'] = "FAILED"
+            context['alert'] = "Something went wrong and we don't know what.  Your optimisation has stopped.  You can see the optimisation below, but you can't download the results. Please contact us if the problem reoccurs."
 
 
         context["message"] = ""
