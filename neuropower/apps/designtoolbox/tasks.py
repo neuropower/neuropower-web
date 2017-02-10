@@ -92,7 +92,6 @@ def GeneticAlgorithm(sid,ignore_result=False):
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
-    form.taskstatus = 2
     form.timestamp = str(datetime.now())
     form.timestart = str(datetime.now())
     form.running = 1

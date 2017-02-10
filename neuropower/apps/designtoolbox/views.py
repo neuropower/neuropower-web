@@ -469,7 +469,7 @@ def runGA(request):
                 form.running = 0
         else:
             form.taskstatus = 4
-            form.running = 0        
+            form.running = 0
     elif desdata.taskstatus > 2:
         form.running = 0
     form.save()
@@ -598,6 +598,7 @@ def runGA(request):
                 res = GeneticAlgorithm.delay(sid)
                 form = runform.save(commit=False)
                 form.taskID = res.task_id
+                form.taskstatus = 2
                 form.taskstatus = 1
                 form.save()
                 desdata = DesignModel.objects.get(SID=sid)
