@@ -226,7 +226,7 @@ def local_naturalselection(POP,sid):
 def save_RDS(POP,sid,generation):
     try:
         desdata = DesignModel.objects.get(SID=sid)
-    except DoesNotExist:
+    except OperationalError:
         return None
 
     # make metrics dictionary
