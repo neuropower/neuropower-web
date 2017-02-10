@@ -88,7 +88,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
     neurovault_id = request.GET.get('neurovault','')
 
     if neurovault_id:
-        neurovault_data = get_neurovault_form(neurovault_id)
+        neurovault_data = get_neurovault_form(request,neurovault_id)
 
         context['parsform'] = neurovault_data["parsform"]
         if not neurovault_data["message"] == None:

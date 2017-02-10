@@ -148,7 +148,7 @@ def create_local_copy(map_url,map_local):
 
     return map_local
 
-def get_neurovault_form(neurovault_id):
+def get_neurovault_form(request,neurovault_id):
     neurovault_image = get_url("http://neurovault.org/api/images/%s/?format=json" %(neurovault_id))
     collection_id = str(neurovault_image['collection_id'])
 
