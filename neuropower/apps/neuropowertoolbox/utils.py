@@ -1,4 +1,5 @@
 from .models import NeuropowerModel
+from .forms import ParameterForm, PeakTableForm, MixtureForm, PowerTableForm, PowerForm
 import requests
 import os
 os.environ['http_proxy']=''
