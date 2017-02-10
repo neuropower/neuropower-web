@@ -146,7 +146,6 @@ def maininput(request):
         # get data and change parameters
 
         desdata = DesignModel.objects.get(SID=sid)
-        print(desdata.MaxRepeat)
         weightsform = DesignWeightsForm(None, instance=desdata)
         weightsform = weightsform.save(commit=False)
         W = np.array([desdata.W1, desdata.W2, desdata.W3, desdata.W4])
@@ -467,6 +466,8 @@ def runGA(request):
         if deltamin > 10:
             form.taskstatus = 4
             form.running = 0
+    elif desdata.taskstatus > 2:
+        form.running = 0
     form.save()
 
     # This approach needs access to the workers which is not guaranteed with EB
@@ -496,9 +497,8 @@ def runGA(request):
     # pass results for visualisation
 
     if isinstance(desdata.metrics,dict):
-        data = json.dumps(desdata.metrics)
-        print(data)
-        context['optim'] = data
+        optim = json.dumps(desdata.metrics)
+        context['optim'] = optim
 
     if isinstance(desdata.bestdesign,dict):
         data = json.dumps(desdata.bestdesign)
@@ -594,6 +594,7 @@ def runGA(request):
                 res = GeneticAlgorithm.delay(sid)
                 form = runform.save(commit=False)
                 form.taskID = res.task_id
+                form.taskstatus = 1
                 form.save()
                 desdata = DesignModel.objects.get(SID=sid)
                 context['refresh'] = True
