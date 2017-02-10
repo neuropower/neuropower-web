@@ -16,6 +16,12 @@ uwsgi:
     - OPBEAT_TOKEN
     - MAILGUN_KEY
     - DJANGO_KEY
+    - RDS_DB_NAME
+    - RDS_USERNAME
+    - RDS_PASSWORD
+    - RDS_HOSTNAME
+    - RDS_PORT
+
 
 
 nginx:
@@ -53,3 +59,8 @@ worker:
     - OPBEAT_TOKEN
     - MAILGUN_KEY
     - DJANGO_KEY
+    - RDS_DB_NAME
+    - RDS_USERNAME
+    - RDS_PASSWORD
+    - RDS_HOSTNAME
+    - RDS_PORT
