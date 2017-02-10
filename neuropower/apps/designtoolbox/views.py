@@ -459,13 +459,17 @@ def runGA(request):
     if desdata.taskstatus == 0:
         form.running = 0
     elif desdata.taskstatus == 1 or desdata.taskstatus == 2:
-        last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
-        now = datetime.now()
-        delta = now-last
-        deltamin = delta.days*24*60.+delta.seconds/60.
-        if deltamin > 10:
+        if not desdata.timestamp == "":
+            last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
+            now = datetime.now()
+            delta = now-last
+            deltamin = delta.days*24*60.+delta.seconds/60.
+            if deltamin > 10:
+                form.taskstatus = 4
+                form.running = 0
+        else:
             form.taskstatus = 4
-            form.running = 0
+            form.running = 0        
     elif desdata.taskstatus > 2:
         form.running = 0
     form.save()
