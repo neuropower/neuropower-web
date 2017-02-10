@@ -3,7 +3,9 @@
 <script type="text/javascript">
 
 var lineData = JSON.parse('{{ optim | escapejs }}');
-var percentage = Object.keys(lineData.Gen).length / {{preruns}};
+var percentage = (Object.keys(lineData.Gen).length*10) / {{preruns}};
+console.log({{preruns}});
+console.log(Object.keys(lineData.Gen).length);
 console.log(percentage);
 
 var chart = c3.generate({
