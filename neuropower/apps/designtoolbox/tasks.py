@@ -92,7 +92,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
     desdata = DesignModel.objects.get(SID=sid)
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
-    form.taskstatus = 1
+    form.taskstatus = 2
     form.timestamp = str(datetime.now())
     form.timestart = str(datetime.now())
     form.running = 1
@@ -102,8 +102,11 @@ def GeneticAlgorithm(sid,ignore_result=False):
 
     local_naturalselection(POP,sid)
     POP.download()
+    desdata = DesignModel.objects.get(SID=sid)
+    runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.finished = True
+    form.running = 0
     form.taskstatus = 3
     form.save()
 
@@ -111,7 +114,6 @@ def GeneticAlgorithm(sid,ignore_result=False):
     infiles = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(desdata.onsets_folder)) for f in fn]
     # strip away /var/tmp --> design_suffix/xxx
     outfiles = [x[9:] for x in infiles]
-    print(outfiles)
     for file in range(len(infiles)):
         push_to_s3(infiles[file],"designs/"+outfiles[file])
 
@@ -155,7 +157,9 @@ def local_naturalselection(POP,sid):
         for generation in range(POP.preruncycles):
             POP.to_next_generation(seed=POP.seed,weights=[1,0,0,0])
             if generation % 10 == 10:
+                print("optimisation for sid "+str(sid)+": generation "+str(generation))
                 save_RDS(POP,sid,generation)
+                desdata = DesignModel.objects.get(SID=sid)
                 runform = DesignRunForm(None, instance=desdata)
                 form = runform.save(commit=False)
                 form.timestamp = str(datetime.now())
@@ -170,6 +174,8 @@ def local_naturalselection(POP,sid):
         runform = DesignRunForm(None, instance=desdata)
         form = runform.save(commit=False)
         form.running = 3
+        form.metrics = ""
+        form.bestdesign = ''
         form.save()
         POP.clear()
         POP.add_new_designs(weights=[0,1,0,0])
@@ -177,7 +183,9 @@ def local_naturalselection(POP,sid):
         for generation in range(POP.preruncycles):
             POP.to_next_generation(seed=POP.seed,weights=[0,1,0,0])
             if generation % 10 == 0:
+                print("optimisation for sid "+str(sid)+": generation "+str(generation))
                 save_RDS(POP,sid,generation)
+                desdata = DesignModel.objects.get(SID=sid)
                 runform = DesignRunForm(None, instance=desdata)
                 form = runform.save(commit=False)
                 form.timestamp = str(datetime.now())
@@ -196,11 +204,15 @@ def local_naturalselection(POP,sid):
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.running = 4
+    form.metrics = ""
+    form.bestdesign = ''
     form.save()
     for generation in range(POP.cycles):
         POP.to_next_generation(seed=POP.seed)
         if generation % 10 == 0:
+            print("optimisation for sid "+str(sid)+": generation "+str(generation))
             save_RDS(POP,sid,generation)
+            desdata = DesignModel.objects.get(SID=sid)
             runform = DesignRunForm(None, instance=desdata)
             form = runform.save(commit=False)
             form.timestamp = str(datetime.now())
@@ -218,7 +230,6 @@ def save_RDS(POP,sid,generation):
         return None
 
     # make metrics dictionary
-
     if not isinstance(desdata.metrics,dict):
         Out = {"FBest": [], 'FeBest': [], 'FfBest': [],'FcBest': [], 'FdBest': [], 'Gen': []}
     else:
@@ -231,7 +242,6 @@ def save_RDS(POP,sid,generation):
     Out['Gen'].append(generation)
 
     # make bestdesign dictionary
-
     keys = ["Stimulus_"+str(i) for i in range(POP.exp.n_stimuli)]
     Seq = {}
     for s in keys:
@@ -239,7 +249,6 @@ def save_RDS(POP,sid,generation):
     for stim in range(POP.exp.n_stimuli):
         Seq["Stimulus_"+str(stim)]=POP.bestdesign.Xconv[:,stim].tolist()
     Seq.update({"tps":POP.bestdesign.experiment.r_tp.tolist()})
-
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.metrics = Out
