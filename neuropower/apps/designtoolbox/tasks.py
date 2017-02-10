@@ -8,7 +8,7 @@ import sys
 from utils import probs_and_cons, push_to_s3
 import numpy as np
 from datetime import datetime
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 
 sys.path.append("/usr/local/miniconda/lib/python2.7/")
@@ -228,7 +228,7 @@ def local_naturalselection(POP,sid):
 def save_RDS(POP,sid,generation):
     try:
         desdata = DesignModel.objects.get(SID=sid)
-    except OperationalError or ObjectDoesNotExist:
+    except OperationalError or ObjectDoesNotExist or DatabaseError:
         return None
 
     # make metrics dictionary
