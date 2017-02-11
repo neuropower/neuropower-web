@@ -7,7 +7,7 @@ sqlite
 *.csv
 *.nii.gz
 */secrets.py
-*/call_db.py
+call_db.py
 script.sh
 media/designs/*
 media/designonsets/*
