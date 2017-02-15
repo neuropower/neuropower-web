@@ -350,7 +350,10 @@ def review(request):
         context['ITI'] = "The ITI's are between "+str(desdata.ITIunifmin)+" and "+str(desdata.ITIunifmax)+" seconds and on average "+str(mean)+" seconds."
 
     if desdata.L:
-        dur = mean*desdata.L+desdata.RestNum*desdata.RestDur
+        if desdata.RestNum>0:
+            dur = mean*desdata.L+desdata.RestNum*desdata.RestDur
+        else:
+            dur = mean*desdata.L
     elif desdata.duration:
         dur = desdata.duration
     else:
