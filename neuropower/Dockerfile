@@ -2,8 +2,8 @@ FROM oesteban/crn_nipype:freesurfer
 
 # Update packages and install the minimal set of tools
 RUN apt-get update && \
+    apt-get dist-upgrade -y && \
     apt-get install -y curl git xvfb bzip2 apt-utils
-
 ENV LANG C.UTF-8
 
 # Install conda
