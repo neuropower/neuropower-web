@@ -32,6 +32,13 @@ def get_neuropower_steps(template_page,sid,pi1=None):
     else:
         neuropowerdata = NeuropowerModel.objects.get(SID=sid)
 
+        if neuropowerdata.step == 0:
+            pages["neuropower/neuropowerviewer.html"]["enabled"] = "no"
+            pages["neuropower/neuropowertable.html"]["enabled"] = "no"
+            pages["neuropower/neuropowermodel.html"]["enabled"] = "no"
+            pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
+            pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
+
         if neuropowerdata.step == 1:
             pages["neuropower/neuropowermodel.html"]["enabled"] = "no"
             pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
