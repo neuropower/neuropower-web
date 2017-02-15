@@ -18,7 +18,7 @@ def get_session_id(request):
     return(sid)
 
 def probs_and_cons(sid):
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
     empty = False
 
     # contrasts
@@ -94,7 +94,7 @@ def probs_and_cons(sid):
     return {"C":C,"P":P,"Phtml":Phtml,"Chtml":Chtml,"empty":empty}
 
 def combine_nested(sid):
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
     empty = False
 
     G = np.array(
@@ -120,7 +120,7 @@ def weights_html(weights):
     return html_join
 
 def textify_code(sid):
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
     classinput = desdata.cmd
 
     totalcmd = "from neurodesign import geneticalgorithm, generate, msequence \n"+classinput+"\nPOP.naturalselection()\nPOP.download()"
