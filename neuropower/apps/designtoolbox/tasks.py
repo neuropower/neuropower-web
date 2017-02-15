@@ -52,7 +52,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         ITImax = desdata.ITIunifmax
         ITImean = (desdata.ITIunifmin+desdata.ITIunifmax)/2.
 
-    if desdata.MaxRepeat>3 and desdata.S<3:
+    if desdata.MaxRepeat<4 and desdata.S<3:
         R = [0,1,0]
     else:
         R = [0.4,0.4,0.2]
