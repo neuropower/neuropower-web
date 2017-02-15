@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 @app.task
 def GeneticAlgorithm(sid,ignore_result=False):
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
 
     subject = "NeuroDesign: optimisation process started"
     sender = "NeuroDesign"
@@ -92,7 +92,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
     )
 
     POP.print_cmd()
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.timestamp = str(datetime.now())
@@ -104,7 +104,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
 
     local_naturalselection(POP,sid)
     POP.download()
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.finished = True
@@ -120,7 +120,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         push_to_s3(infiles[file],"designs/"+outfiles[file])
 
     # Select optimal design
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.convergence = POP.finished
@@ -147,7 +147,7 @@ def local_naturalselection(POP,sid):
         POP.max_eff()
 
     if POP.weights[0] > 0:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
         runform = DesignRunForm(None, instance=desdata)
         form = runform.save(commit=False)
         form.running = 2
@@ -161,7 +161,7 @@ def local_naturalselection(POP,sid):
             if generation % 10 == 10:
                 print("optimisation for sid "+str(sid)+": generation "+str(generation))
                 save_RDS(POP,sid,generation)
-                desdata = DesignModel.objects.get(SID=sid)
+                desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
                 form = runform.save(commit=False)
                 form.timestamp = str(datetime.now())
@@ -172,7 +172,7 @@ def local_naturalselection(POP,sid):
         POP.exp.FeMax = np.max(POP.bestdesign.F)
 
     if POP.weights[1] > 0:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
         runform = DesignRunForm(None, instance=desdata)
         form = runform.save(commit=False)
         form.running = 3
@@ -187,7 +187,7 @@ def local_naturalselection(POP,sid):
             if generation % 10 == 0:
                 print("optimisation for sid "+str(sid)+": generation "+str(generation))
                 save_RDS(POP,sid,generation)
-                desdata = DesignModel.objects.get(SID=sid)
+                desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
                 form = runform.save(commit=False)
                 form.timestamp = str(datetime.now())
@@ -202,7 +202,7 @@ def local_naturalselection(POP,sid):
     POP.add_new_designs()
 
     # loop
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
     runform = DesignRunForm(None, instance=desdata)
     form = runform.save(commit=False)
     form.running = 4
@@ -214,7 +214,7 @@ def local_naturalselection(POP,sid):
         if generation % 10 == 0:
             print("optimisation for sid "+str(sid)+": generation "+str(generation))
             save_RDS(POP,sid,generation)
-            desdata = DesignModel.objects.get(SID=sid)
+            desdata = DesignModel.objects.filter(SID=sid).last()
             runform = DesignRunForm(None, instance=desdata)
             form = runform.save(commit=False)
             form.timestamp = str(datetime.now())
@@ -227,7 +227,7 @@ def local_naturalselection(POP,sid):
 
 def save_RDS(POP,sid,generation):
     try:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
     except OperationalError or ObjectDoesNotExist or DatabaseError:
         return None
 

@@ -101,7 +101,7 @@ def maininput(request):
     context["steps"] = get_design_steps(template, sid)
 
     try:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
     except DesignModel.DoesNotExist:
         desdata = None
 
@@ -145,7 +145,7 @@ def maininput(request):
             os.mkdir(form.onsets_folder)
         # get data and change parameters
 
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
         weightsform = DesignWeightsForm(None, instance=desdata)
         weightsform = weightsform.save(commit=False)
         W = np.array([desdata.W1, desdata.W2, desdata.W3, desdata.W4])
@@ -189,7 +189,7 @@ def nested(request):
     context["steps"] = get_design_steps(template, sid)
 
     try:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
     except DesignModel.DoesNotExist:
         return HttpResponseRedirect('../maininput/')
 
@@ -246,7 +246,7 @@ def consinput(request):
     context["steps"] = get_design_steps(template, sid)
 
     try:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
     except DesignModel.DoesNotExist:
         return HttpResponseRedirect('../maininput/')
 
@@ -307,7 +307,7 @@ def review(request):
     context["steps"] = get_design_steps(template, sid)
 
     try:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
     except DesignModel.DoesNotExist:
         return HttpResponseRedirect('../maininput/')
 
@@ -386,7 +386,7 @@ def options(request):
     context["steps"] = get_design_steps(template, sid)
 
     try:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
     except DesignModel.DoesNotExist:
         pass
 
@@ -432,6 +432,14 @@ def runGA(request):
 
     # retrieve session information
 
+    try:
+        desdata = DesignModel.objects.filter(SID=sid).last()
+        context['no_data'] = False
+    except DesignModel.DoesNotExist:
+        context['no_data']=True
+
+        return render(request, template, context)
+
     retrieve_id = request.GET.get('retrieve','')
     if retrieve_id:
         desdata = DesignModel.objects.get(shareID=retrieve_id)
@@ -440,7 +448,7 @@ def runGA(request):
         context["steps"] = get_design_steps(template, sid)
 
     try:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
         context['no_data'] = False
     except DesignModel.DoesNotExist:
         context['no_data']=True
@@ -513,7 +521,7 @@ def runGA(request):
         context['stim'] = desdata.S
 
     # show downloadform if results are available
-    desdata = DesignModel.objects.get(SID=sid)
+    desdata = DesignModel.objects.filter(SID=sid).last()
     if desdata.taskstatus == 3:
         downform = DesignDownloadForm(
             request.POST or None, instance=desdata)
@@ -537,7 +545,7 @@ def runGA(request):
                 email=mailform.cleaned_data['email']
                 name=mailform.cleaned_data['name']
 
-                desdata = DesignModel.objects.get(SID=sid)
+                desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
                 form = runform.save(commit=False)
                 form.email = email
@@ -545,7 +553,7 @@ def runGA(request):
                 form.taskID = ""
                 form.save()
 
-                desdata = DesignModel.objects.get(SID=sid)
+                desdata = DesignModel.objects.filter(SID=sid).last()
 
                 context['mailform'] = None
                 context['runform'] = runform
@@ -559,7 +567,7 @@ def runGA(request):
                 context['message'] = "You want to stop the optimisation, but nothing is running."
             else:
                 revoke(desdata.taskID,terminate=True,signal='KILL')
-                desdata = DesignModel.objects.get(SID=sid)
+                desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
                 form = runform.save(commit=False)
                 form.taskstatus = 0
@@ -571,7 +579,7 @@ def runGA(request):
 
         if request.POST.get("Sure") == "I'm sure about this":
             someonesure = True
-            desdata = DesignModel.objects.get(SID=sid)
+            desdata = DesignModel.objects.filter(SID=sid).last()
             runform = DesignRunForm(None, instance=desdata)
             form = runform.save(commit=False)
             form.taskstatus = 0
@@ -583,7 +591,7 @@ def runGA(request):
         # If run is requested
         if request.POST.get("GA") == "Run" or someonesure:
 
-            desdata = DesignModel.objects.get(SID=sid)
+            desdata = DesignModel.objects.filter(SID=sid).last()
             if desdata.taskstatus > 0 and not desdata.taskstatus == 4:
                 if desdata.taskstatus == 1:
                     context['message'] = "There is already an optimisation process queued.  You can only queue or run one design optimisation at a time."
@@ -596,7 +604,7 @@ def runGA(request):
                     context['sureform'] = sureform
                 return render(request, template, context)
             else:
-                desdata = DesignModel.objects.get(SID=sid)
+                desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
                 res = GeneticAlgorithm.delay(sid)
                 form = runform.save(commit=False)
@@ -604,7 +612,7 @@ def runGA(request):
                 form.taskstatus = 2
                 form.taskstatus = 1
                 form.save()
-                desdata = DesignModel.objects.get(SID=sid)
+                desdata = DesignModel.objects.filter(SID=sid).last()
                 context['refresh'] = True
                 context['status'] = "PENDING"
                 context['message'] = "Job succesfully submitted."
@@ -614,7 +622,7 @@ def runGA(request):
         # If request = download
         if request.POST.get("Code") == "Download script":
             cmd = textify_code(sid)
-            desdata = DesignModel.objects.get(SID=sid)
+            desdata = DesignModel.objects.filter(SID=sid).last()
 
             resp = HttpResponse(
                 cmd
@@ -625,7 +633,7 @@ def runGA(request):
 
         # If request = download
         if request.POST.get("Download") == "Download optimal sequence":
-            desdata = DesignModel.objects.get(SID=sid)
+            desdata = DesignModel.objects.filter(SID=sid).last()
 
             if os.path.exists(form.onsets_folder):
                 files = os.listdir(form.onsets_folder)
@@ -675,7 +683,7 @@ def runGA(request):
             return resp
 
     else:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
         context["preruns"] = desdata.preruncycles
         context["runs"] = desdata.cycles
         context["refrun"] = desdata.running

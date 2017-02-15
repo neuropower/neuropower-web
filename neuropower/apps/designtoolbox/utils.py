@@ -150,7 +150,7 @@ def get_design_steps(template_page,sid):
         pages["design/review.html"]["enabled"] = 'no'
         pages["design/options.html"]["enabled"] = 'no'
     else:
-        desdata = DesignModel.objects.get(SID=sid)
+        desdata = DesignModel.objects.filter(SID=sid).last()
         if desdata.mainpars == False:
             pages["design/cons.html"]["enabled"] = 'no'
             pages["design/nested.html"]["enabled"] = 'no'
