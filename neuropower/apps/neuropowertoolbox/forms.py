@@ -88,9 +88,10 @@ class ParameterForm(forms.ModelForm):
             if not (map_url.endswith('.nii.gz') or map_url.endswith('.nii.gz')):
                 raise forms.ValidationError("The statistical map has the wrong format: please choose a nifti-file")
 
-        if spmfile.name:
-            if " " in spmfile.name:
-                raise forms.ValidationError("The app currently can't handle filenames that have spaces.  Please rename the statistical map without spaces.")
+        if not spmfile == None:
+            if spmfile.name:
+                if " " in spmfile.name:
+                    raise forms.ValidationError("The app currently can't handle filenames that have spaces.  Please rename the statistical map without spaces.")
 
         if not map_url and not spmfile == None:
             if not (spmfile.name.endswith('.nii') or spmfile.name.endswith('.nii.gz')):
