@@ -6,6 +6,7 @@ from django.shortcuts import render, render_to_response
 from django.core.mail import send_mail
 from django.conf import settings
 from scipy.stats import norm, t
+from django.db.models import Q
 import os
 from django.contrib.sessions.backends.db import SessionStore
 from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested,textify_code
@@ -478,8 +479,8 @@ def runGA(request):
             if deltamin > 10:
                 if desdata.taskID:
                     task = AsyncResult(desdata.taskID)
-                    elif task.status == "STARTED":
-                    revoke(desdata.taskID,terminate=True,signal='KILL')
+                    if task.status == "STARTED":
+                        revoke(desdata.taskID,terminate=True,signal='KILL')
                 form.taskstatus = 4
                 form.running = 0
         else:
@@ -727,3 +728,21 @@ def runGA(request):
 
 def updatepage(request):
     return render(request, "design/updatepage.html", {})
+
+def check(request):
+    now = datetime.now()
+    desdatalist = DesignModel.objects.filter(~Q(timestamp=""))
+    context = {}
+    context['stopped'] = 0
+    for desdata in desdatalist:
+        last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
+        delta = now-last
+        deltamin = delta.days*24*60.+delta.seconds/60.
+        if deltamin > 10: #40 hours max
+            if desdata.taskID:
+                task = AsyncResult(desdata.taskID)
+                if task.status == "STARTED":
+                    revoke(desdata.taskID,terminate=True,signal='KILL')
+                    context['stopped'] += 1
+
+    return render(request,"design/check.html",context)
