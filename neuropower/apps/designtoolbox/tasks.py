@@ -216,8 +216,8 @@ def local_naturalselection(POP,sid):
     form.save()
     for generation in range(POP.cycles):
         POP.to_next_generation(seed=POP.seed)
+        print("optimisation for sid "+str(sid)+": generation "+str(generation))
         if generation % 10 == 0:
-            print("optimisation for sid "+str(sid)+": generation "+str(generation))
             save_RDS(POP,sid,generation)
             desdata = DesignModel.objects.filter(SID=sid).last()
             runform = DesignRunForm(None, instance=desdata)
