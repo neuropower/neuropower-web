@@ -476,6 +476,10 @@ def runGA(request):
             delta = now-last
             deltamin = delta.days*24*60.+delta.seconds/60.
             if deltamin > 10:
+                if desdata.taskID:
+                    task = AsyncResult(desdata.taskID)
+                    elif task.status == "STARTED":
+                    revoke(desdata.taskID,terminate=True,signal='KILL')
                 form.taskstatus = 4
                 form.running = 0
         else:
