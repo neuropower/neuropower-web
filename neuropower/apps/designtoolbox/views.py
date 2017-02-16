@@ -738,7 +738,7 @@ def check(request):
         last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
         delta = now-last
         deltamin = delta.days*24*60.+delta.seconds/60.
-        if deltamin > 10: #40 hours max
+        if deltamin > 2400: #40 hours max
             if desdata.taskID:
                 task = AsyncResult(desdata.taskID)
                 if task.status == "STARTED":
