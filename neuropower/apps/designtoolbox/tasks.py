@@ -162,9 +162,9 @@ def local_naturalselection(POP,sid):
         POP.add_new_designs(weights=[1,0,0,0])
         # loop
         for generation in range(POP.preruncycles):
+            print("prerun1 for sid "+str(sid)+": generation "+str(generation))
             POP.to_next_generation(seed=POP.seed,weights=[1,0,0,0])
             if generation % 10 == 10:
-                print("optimisation for sid "+str(sid)+": generation "+str(generation))
                 save_RDS(POP,sid,generation)
                 desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
@@ -188,9 +188,9 @@ def local_naturalselection(POP,sid):
         POP.add_new_designs(weights=[0,1,0,0])
         # loop
         for generation in range(POP.preruncycles):
+            print("prerun2 for sid "+str(sid)+": generation "+str(generation))
             POP.to_next_generation(seed=POP.seed,weights=[0,1,0,0])
             if generation % 10 == 0:
-                print("optimisation for sid "+str(sid)+": generation "+str(generation))
                 save_RDS(POP,sid,generation)
                 desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
