@@ -1,0 +1,29 @@
+{% extends 'main/base.html' %}
+{% load staticfiles %}
+
+{% block head_title %}
+  Welcome | {{block.super}}
+{% endblock %}
+
+{% block jumbotron %}
+<div class="jumbotron">
+  <div class="Check">
+    <div class="row">
+      <div class="col-xs-8" style="padding-left:10px">
+        <h1>Check !</h1>
+        <p>Stopped {{ stopped }} processes.</p>
+      </div>
+      <div class="col-xs-4">
+        <img style="padding-left:50px;width:70%;padding-top:70px" src={% static 'img/brain.png'%} />
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block content %}
+{% endblock %}
+
+{% block footer %}
+ {% endblock %}

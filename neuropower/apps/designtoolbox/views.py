@@ -746,3 +746,21 @@ def check(request):
                     context['stopped'] += 1
 
     return render(request,"design/check.html",context)
+
+def stop(request):
+    now = datetime.now()
+    desdatalist = DesignModel.objects.filter(~Q(timestamp=""))
+    context = {}
+    context['stopped'] = 0
+    for desdata in desdatalist:
+        last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
+        delta = now-last
+        deltamin = delta.days*24*60.+delta.seconds/60.
+        if deltamin > 1: #40 hours max
+            if desdata.taskID:
+                task = AsyncResult(desdata.taskID)
+                if task.status == "STARTED":
+                    revoke(desdata.taskID,terminate=True,signal='KILL')
+                    context['stopped'] += 1
+
+    return render(request,"design/stop.html",context)
