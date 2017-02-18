@@ -438,7 +438,6 @@ def runGA(request):
         context['no_data'] = False
     except DesignModel.DoesNotExist:
         context['no_data']=True
-
         return render(request, template, context)
 
     retrieve_id = request.GET.get('retrieve','')
@@ -448,23 +447,12 @@ def runGA(request):
         desdata.save()
         context["steps"] = get_design_steps(template, sid)
 
-    try:
-        desdata = DesignModel.objects.filter(SID=sid).last()
-        context['no_data'] = False
-    except DesignModel.DoesNotExist:
-        context['no_data']=True
-
-        return render(request, template, context)
-
     # Do we know email?
     mailform = DesignMailForm(request.POST or None, instance=desdata)
     runform = DesignRunForm(request.POST, instance=desdata)
 
-    if desdata == None:
+    if not desdata.email:
         context["mailform"] = mailform
-    else:
-        if not desdata.email:
-            context["mailform"] = mailform
     else:
         context['runform'] = runform
 
