@@ -12,7 +12,7 @@ from sqlalchemy.exc import OperationalError, DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 
 sys.path.append("/usr/local/miniconda/lib/python2.7/")
-
+#sys.stdout = open("/var/log/worker.txt",'w')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'neuropower.settings')
 app = Celery('neuropower')
 app.config_from_object('django.conf:settings')
@@ -52,10 +52,11 @@ def GeneticAlgorithm(sid,ignore_result=False):
         ITImax = desdata.ITIunifmax
         ITImean = (desdata.ITIunifmin+desdata.ITIunifmax)/2.
 
-    if desdata.MaxRepeat<4 and desdata.S<3:
+    if desdata.MaxRepeat<4 and desdata.S<5:
         R = [0,1,0]
     else:
         R = [0.4,0.4,0.2]
+    print("R: "+str(R))
 
     EXP = geneticalgorithm.experiment(
         TR = desdata.TR,
@@ -185,6 +186,7 @@ def local_naturalselection(POP,sid):
         form.bestdesign = ''
         form.save()
         POP.clear()
+        print("adding new designs...")
         POP.add_new_designs(weights=[0,1,0,0])
         # loop
         for generation in range(POP.preruncycles):
