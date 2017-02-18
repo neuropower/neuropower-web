@@ -169,7 +169,7 @@ def get_neurovault_form(request,neurovault_id):
                              request.FILES or None,
                              default_url = "",
                              err = '',
-                             initial = {"url":neurovault_image["file"],
+                             initial = {"map_url":neurovault_image["file"],
                                         "ZorT":"T" if neurovault_image["map_type"] =="T map" else "Z",
                                         "Subj":neurovault_image["number_of_subjects"]})
 
