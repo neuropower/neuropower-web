@@ -3,6 +3,7 @@ from django.db import models
 from picklefield.fields import PickledObjectField
 import os
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 class DesignModel(models.Model):
     SID = models.CharField(max_length=300,default="")
@@ -143,7 +144,7 @@ class DesignModel(models.Model):
     cycles = models.IntegerField(default=100)
     preruncycles = models.IntegerField(default=10)
     ConfoundOrder = models.IntegerField(default=3)
-    MaxRepeat = models.IntegerField(default=6)
+    MaxRepeat = models.IntegerField(default=6,validators=[MinValueValidator(3)])
     HardProb = models.BooleanField(default=False)
     metrics = PickledObjectField(default = "")
     bestdesign = PickledObjectField(default = "")
