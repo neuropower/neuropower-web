@@ -49,6 +49,8 @@ worker:
   command: /code/run_worker.sh
   volumes_from:
     - uwsgi
+  volumes:
+    - logs/:/var/log/
   links:
     - redis
   environment:
