@@ -460,8 +460,11 @@ def runGA(request):
     mailform = DesignMailForm(request.POST or None, instance=desdata)
     runform = DesignRunForm(request.POST, instance=desdata)
 
-    if not desdata.email:
+    if desdata == None:
         context["mailform"] = mailform
+    else:
+        if not desdata.email:
+            context["mailform"] = mailform
     else:
         context['runform'] = runform
 
