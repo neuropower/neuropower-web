@@ -32,7 +32,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
 
     command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
         " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
-    os.system(command)
+    #os.system(command)
 
     matrices = probs_and_cons(sid)
 
@@ -135,7 +135,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
     subject = "NeuroDesign: optimisation process ended"
     sender = "NeuroDesign"
     sendermail = "joke.durnez@gmail.com"
-    message = "Your design optimisation has now ended.  You can download the results here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.SID)+". Thank you for using NeuroDesign."
+    message = "Your design optimisation has now ended.  You can download the results here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.shareID)+". Thank you for using NeuroDesign."
     recipient = str(desdata.email)
     key = settings.MAILGUN_KEY
 
