@@ -462,12 +462,13 @@ def runGA(request):
     if desdata.taskstatus == 0:
         form.running = 0
     elif desdata.taskstatus == 1 or desdata.taskstatus == 2:
+        maxdelta = 120 if desdata.taskstatus == 1 else 20
         if not desdata.timestamp == "":
             last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
             now = datetime.now()
             delta = now-last
             deltamin = delta.days*24*60.+delta.seconds/60.
-            if deltamin > 10:
+            if deltamin > maxdelta:
                 if desdata.taskID:
                     task = AsyncResult(desdata.taskID)
                     if task.status == "STARTED":
@@ -567,6 +568,8 @@ def runGA(request):
                 runform = DesignRunForm(None, instance=desdata)
                 form = runform.save(commit=False)
                 form.taskstatus = 0
+                form.timestamp = ""
+                form.timestart = ""
                 form.taskID = ""
                 form.save()
                 context["message"] = "The optimisation has been terminated."
@@ -580,6 +583,8 @@ def runGA(request):
             form = runform.save(commit=False)
             form.taskstatus = 0
             form.taskID = ""
+            form.timestamp = ""
+            form.timestart = ""
             form.finished = False
             form.convergence = False
             form.save()
@@ -605,7 +610,8 @@ def runGA(request):
                 res = GeneticAlgorithm.delay(sid)
                 form = runform.save(commit=False)
                 form.taskID = res.task_id
-                form.taskstatus = 2
+                form.timestamp = str(datetime.now())
+                form.timestart = str(datetime.now())
                 form.taskstatus = 1
                 form.save()
                 desdata = DesignModel.objects.filter(SID=sid).last()
@@ -686,8 +692,10 @@ def runGA(request):
         context['status'] = "NOT RUNNING"
 
         if desdata.taskstatus==0:
-            context['status'] = "PENDING"
-        if desdata.taskstatus==1 or desdata.taskstatus==2:
+            context['status'] = ""
+        elif desdata.taskstatus==1:
+            context['status'] = ""
+        elif desdata.taskstatus==2:
             context['status'] = "RUNNING"
             if desdata.preruncycles<1000 or desdata.cycles<1000 or desdata.resolution>0.2:
                 context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application but the results will be sub-optimal.  For a good optimisation, go to the settings and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
