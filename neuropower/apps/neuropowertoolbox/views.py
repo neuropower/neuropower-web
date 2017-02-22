@@ -188,6 +188,7 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
             context["parsform"] = parsform
             return render(request,template,context)
         else:
+            form.step = 1
             form.save()
 
         return HttpResponseRedirect('../neuropowertable/')
@@ -231,6 +232,7 @@ def neuropowertable(request):
     except NeuropowerModel.DoesNotExist:
         neuropowerdata = None
 
+    print(neuropowerdata.step)
     # Get the template/step status
     template = "neuropower/neuropowertable.html"
     context = {}
@@ -266,6 +268,7 @@ def neuropowertable(request):
         peaks['pval'] = pvalues
         form.peaktable = peaks
         context["peaks"] = peaks.to_html(classes=["table table-striped"])
+        form.step = 2
     form.save()
 
     return render(request,template,context)
@@ -320,6 +323,7 @@ def neuropowermodel(request):
     if bum['pi1']>0:
         form.mu = modelfit['mu']
         form.sigma = modelfit['sigma']
+        form.step = 3
     else:
         form.mu = 0
         form.sigma = 0

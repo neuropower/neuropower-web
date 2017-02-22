@@ -40,15 +40,10 @@ def get_neuropower_steps(template_page,sid,pi1=None):
             pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
         if neuropowerdata.step == 1:
-            pages["neuropower/neuropowermodel.html"]["enabled"] = "no"
             pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
             pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
         if neuropowerdata.step == 2:
-            pages["neuropower/neuropowersamplesize.html"]["enabled"] = "no"
-            pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
-
-        if neuropowerdata.step == 3:
             pages["neuropower/neuropowercrosstab.html"]["enabled"] = "no"
 
         if pi1==0:
