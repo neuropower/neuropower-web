@@ -10,7 +10,7 @@ import numpy as np
 class DesignMainForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','mainpars','duration_unitfree','duration_unit','durspec','ITImodel','ITIfixed','ITIunifmin','ITIunifmax','ITItruncmin','ITItruncmax','ITItruncmean','t_prestim','t_poststim']
+        fields = ['stim_duration','TR','L','S','Clen','Call','RestNum','RestDur','ConfoundOrder','MaxRepeat','W1','W2','W3','W4','duration_unitfree','duration_unit','durspec','ITImodel','ITIfixed','ITIunifmin','ITIunifmax','ITItruncmin','ITItruncmax','ITItruncmean','t_prestim','t_poststim']
 
     def __init__(self,*args,**kwargs):
         super(DesignMainForm,self).__init__(*args,**kwargs)
@@ -314,8 +314,7 @@ class DesignMainForm(forms.ModelForm):
             ),
         HTML("""<br><br><br><br><br>"""),
         FormActions(Submit('Submit', 'Save and next', css_class='btn-black')),
-        HTML("""<br><br><br><br><br>"""),
-        Div(Field('mainpars',type='hidden'),css_class='col-xs-12')
+        HTML("""<br><br><br><br><br>""")
         )
     )
 
@@ -373,7 +372,7 @@ class DesignConsForm(forms.ModelForm):
         'C10','C11','C12','C13','C14','C15','C16','C17','C18','C19',
         'C20','C21','C22','C23','C24','C25','C26','C27','C28','C29',
         'C30','C31','C32','C33','C34','C35','C36','C37','C38','C39',
-        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','G','conpars','I'
+        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','G','I'
         ]
         # fields.append('HardProb')
 
@@ -412,10 +411,6 @@ class DesignConsForm(forms.ModelForm):
             Field('G',type='hidden'),
             Field('I',type='hidden'),
             css_class=cssclass)
-            )
-
-        self.helper.layout.append(
-            Div(Field("conpars",type='hidden'),css_class=cssclass)
             )
 
         self.helper.layout.append(
@@ -506,7 +501,7 @@ class DesignNestedConsForm(forms.ModelForm):
         'C10','C11','C12','C13','C14','C15','C16','C17','C18','C19',
         'C20','C21','C22','C23','C24','C25','C26','C27','C28','C29',
         'C30','C31','C32','C33','C34','C35','C36','C37','C38','C39',
-        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb','G','conpars','I'
+        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb','G','I'
         ]
 
     def __init__(self,*args,**kwargs):

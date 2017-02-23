@@ -7,6 +7,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 class DesignModel(models.Model):
     SID = models.CharField(max_length=300,default="")
+    step = models.IntegerField(default=0,null=True,blank=True)
     shareID = models.CharField(max_length=300,default="")
     zip_filename = models.CharField(max_length=300,default="")
     zipfile = PickledObjectField(default="")
@@ -151,12 +152,12 @@ class DesignModel(models.Model):
     files = PickledObjectField(default = "")
     onsets_folder = PickledObjectField(default="")
     design_suffix = PickledObjectField(default="")
+    mainpars = models.NullBooleanField(default=False)
+    conpars = models.NullBooleanField(default=False)
+    nestpars = models.NullBooleanField(default=False)
     local_folder = PickledObjectField(default="")
     codefile = PickledObjectField(default="")
     codefilename = PickledObjectField(default="")
-    mainpars = models.BooleanField(default=False)
-    conpars = models.BooleanField(default=False)
-    nestpars = models.BooleanField(default=False)
     conv_crit = models.IntegerField(default=1000)
     convergence = models.BooleanField(default = False)
     name = models.CharField(default = "",max_length=500)

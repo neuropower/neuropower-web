@@ -101,10 +101,7 @@ def maininput(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
 
-    try:
-        desdata = DesignModel.objects.filter(SID=sid).last()
-    except DesignModel.DoesNotExist:
-        desdata = None
+    desdata = DesignModel.objects.filter(SID=sid).last()
 
     # Define form
 
@@ -127,12 +124,12 @@ def maininput(request):
         form = inputform.save(commit=False)
         form.shareID = sid
         form.SID = sid
-        form.mainpars = True
         form.local_folder = "/var/tmp/"
         form.design_suffix = "design_"+str(sid)
         form.onsets_folder = form.local_folder + form.design_suffix
         form.codefilename = "GeneticAlgorithm_"+str(sid)+".py"
         form.codefile = os.path.join(form.onsets_folder, form.codefilename)
+        form.step = 1
         form.save()
 
         if os.path.exists(form.onsets_folder):
@@ -189,9 +186,8 @@ def nested(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
 
-    try:
-        desdata = DesignModel.objects.filter(SID=sid).last()
-    except DesignModel.DoesNotExist:
+    desdata = DesignModel.objects.filter(SID=sid).last()
+    if desdata == None:
         return HttpResponseRedirect('../maininput/')
 
     # Define form
@@ -209,7 +205,6 @@ def nested(request):
     else:
         form = nestedform.save(commit=False)
         form.SID = sid
-        form.nestpars = True
         form.save()
 
         # get data and change parameters
@@ -246,9 +241,8 @@ def consinput(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
 
-    try:
-        desdata = DesignModel.objects.filter(SID=sid).last()
-    except DesignModel.DoesNotExist:
+    desdata = DesignModel.objects.filter(SID=sid).last()
+    if desdata == None:
         return HttpResponseRedirect('../maininput/')
 
     # Define form
@@ -272,7 +266,7 @@ def consinput(request):
     else:
         form = consform.save(commit=False)
         form.SID = sid
-        form.conpars = True
+        form.step=2
         form.save()
 
         # get data and change parameters
@@ -307,9 +301,8 @@ def review(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
 
-    try:
-        desdata = DesignModel.objects.filter(SID=sid).last()
-    except DesignModel.DoesNotExist:
+    desdata = DesignModel.objects.filter(SID=sid).last()
+    if desdata == None:
         return HttpResponseRedirect('../maininput/')
 
     # Define form
@@ -386,16 +379,8 @@ def options(request):
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
 
-    try:
-        desdata = DesignModel.objects.filter(SID=sid).last()
-    except DesignModel.DoesNotExist:
-        pass
-
-    # Define form
-    if "desdata" in locals():
-        opsform = DesignOptionsForm(request.POST or None, instance=desdata)
-    else:
-        opsform = DesignOptionsForm(request.POST or None)
+    desdata = DesignModel.objects.filter(SID=sid).last()
+    opsform = DesignOptionsForm(request.POST or None, instance=desdata)
 
     context["opsform"] = opsform
 
@@ -433,10 +418,10 @@ def runGA(request):
 
     # retrieve session information
 
-    try:
-        desdata = DesignModel.objects.filter(SID=sid).last()
+    desdata = DesignModel.objects.filter(SID=sid).last()
+    if not desdata == None:
         context['no_data'] = False
-    except DesignModel.DoesNotExist:
+    else:
         context['no_data']=True
         return render(request, template, context)
 

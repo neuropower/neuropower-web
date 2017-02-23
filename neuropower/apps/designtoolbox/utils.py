@@ -137,7 +137,7 @@ def get_design_steps(template_page,sid):
     # template name, step class, and color
     pages = {"design/start.html": {"class":"overview","color":"#c9c4c5","enabled":"yes"},
              "design/input.html": {"class":"maininput","color":"#c9c4c5","enabled":"yes"},
-             "design/nested.html": {"class":"nested","color":"#c9c4c5","enabled":"yes"},
+             "design/nested.html": {"class":"nested","color":"#c9c4c5","enabled":"no"},
              "design/cons.html": {"class":"consandprobs","color":"#c9c4c5","enabled":"yes"},
              "design/review.html": {"class":"review","color":"#c9c4c5","enabled":"yes"},
              "design/options.html": {"class":"options","color":"#c9c4c5","enabled":"yes"},
@@ -151,16 +151,12 @@ def get_design_steps(template_page,sid):
         pages["design/options.html"]["enabled"] = 'no'
     else:
         desdata = DesignModel.objects.filter(SID=sid).last()
-        if desdata.mainpars == False:
+        if desdata.step < 1:
             pages["design/cons.html"]["enabled"] = 'no'
             pages["design/nested.html"]["enabled"] = 'no'
-        if desdata.nestpars == False and desdata.nested == True:
-            pages["design/cons.html"]["enabled"] = 'no'
-        if desdata.conpars == False:
+        if desdata.step < 2:
             pages["design/review.html"]["enabled"] = 'no'
             pages["design/options.html"]["enabled"] = 'no'
-        if desdata.nested == False:
-            pages["design/nested.html"]["enabled"] = 'no'
 
 
 
