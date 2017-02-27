@@ -97,7 +97,7 @@ class ParameterForm(forms.ModelForm):
         if not map_url and not spmfile == None:
             if not (spmfile.name.endswith('.nii') or spmfile.name.endswith('.nii.gz')):
                 raise forms.ValidationError("The statistical map has the wrong format: please choose a nifti-file")
-            if spmfile.size > 10**7:
+            if spmfile.size > 10**9:
                 raise forms.ValidationError("Maximum file size for the statistical map: 100 MB")
 
         if not maskfile == None:
