@@ -60,10 +60,10 @@ def get_db_entries(template_page,sid):
     '''get_db_entries checks which db models have entries, and can as such redirect to right page if a certain model is missing.
     '''
     # template name, step class, and color
-    relink = {"pm":"neuropowerinput",
-            "ptm":"neuropowertable",
-            "mm":"neuropowermodel",
-            "powerm":"neuropowersamplesize"}
+    relink = {"pm":"neuropower/neuropowerinput",
+            "ptm":"neuropower/neuropowertable",
+            "mm":"neuropower/neuropowermodel",
+            "powerm":"neuropower/neuropowersamplesize"}
     message = {"pm":"Your session has expired and we can't find the description of the data.  Please fill out this form again to access your power analysis.",
             "ptm":"Something went wrong and we couldn't find the table of extracted peaks, so we've sent you back to this page.  Don't worry, we re-calculated the table here,so you can continue your power analysis now.",
             "mm":"Something went wrong and we couldn't find the estimated mixture distribution for your power analysis.  Don't worry, we re-estimated the model here, so you can continue your power analysis now.",
