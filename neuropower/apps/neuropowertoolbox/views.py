@@ -411,6 +411,7 @@ def neuropowersamplesize(request):
         savepowertableform = powertableform.save(commit=False)
         savepowertableform.SID = sid
         savepowertableform.data = powertable
+        savepowertableform.step = 4
         savepowertableform.save()
 
         context['plothtml'] = plotPower(sid)['code']
