@@ -20,7 +20,8 @@
       <li> <a href="#q1">How can I cite this toolbox?</a></li>
       <li> <a href="#q2">Who's behind the toolbox?</a></li>
       <li> <a href="#q3">Where can I find the code?</a></li>
-      <li> <a href="#q3">Where can I leave feedback?</a></li>
+      <li> <a href="#q4">Where can I leave feedback?</a></li>
+      <li> <a href="#q5">Known problems/bugs. </a></li>
     </ul>
 
       <div class="question">
@@ -45,6 +46,22 @@
       <a name="q4"></a>
       <h4> Where can I leave feedback? </h4>
       <p class="well">Did you find an error or a bug? Post an issue at <a href="https://github.com/neuropower/neuropower/issues">github</a> or write us an <a href="mailto:joke.durnez@gmail.com">email</a>. You have an idea for an added functionality?  Please let us know ! If you're a developer yourself, you can add functions and add a pull request on github. </p>
+      </div>
+
+      <div class="question">
+      <a name="q4"></a>
+      <h4> Known problems/bugs </h4>
+      <div class="well"><p>The software is very young and prone for certain problems/bugs.  Here are some problems we are aware of and what you can do if you experience one of these.</p>
+      <ul>
+        <li><h5>Restrictive maximum number of repeats: </h5>
+          <p>You don't want your experimental design to be predictable.  To that end, you can give a weights to psychological confounding.  However, you might wish that also the maximum number of repeated stimuli is restricted.  We have added that option. However, in some cases it is very difficult to address this.  An extreme case example is if you only have 2 different stimuli, and you want them to be repeated maximum once.  In that case, there is only one design possible: A B A B A B A B.  It is clear that an optimiser in this case is useless.  Luckily, for this case, there is an exception programmed.</p>
+          <p>Another, less clear example is with 3 stimuli, and you want them to be repeated maximum 2 times.  If you would randomly draw 3 trials, the probability that they are 3 trials of the same type is 1/27.  If you draw a series of 150 trials, this probability becomes so high that it is difficult to find just one design.  This optimiser draws thousands of random designs, and with very restrictive rules, the optimiser gets stuck when it runs out of options.  If you assume your optimisation didn't run for this reason: try again with a less restrictive rule on the maximum number of repeats.</p>
+          <p>Adding a warning before the optimisation starts, is one of the issues we're adding to neurodesign.</p>
+        <li><h5>Long optimisations: </h5>
+          <p>We are suggesting to use a large number of cycles for your optimisation.  However, we've already experienced some problems on our servers when running a long optimisation.  We're trying to address each problem case by case, and the software is getting better, smarter and faster.  However, if you run into problems: try to run the program locally.  We've made it super easy to download the right files for your optimisation (see Beyond the GUI).</p>
+            <li><h5>Did you discover a new problem?</h5>
+              <p>Please, please let us know ! A lot of time and effort went into the development of this program.  We don't want people to be stuck !! Write an email, post an issue on github,...  We'll try to figure out the problem.    </p>
+      </ul>
       </div>
 
 
