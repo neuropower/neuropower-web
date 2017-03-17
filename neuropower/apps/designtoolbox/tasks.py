@@ -52,7 +52,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         ITImax = desdata.ITIunifmax
         ITImean = (desdata.ITIunifmin+desdata.ITIunifmax)/2.
 
-    if desdata.MaxRepeat<4 and desdata.S<5:
+    if (desdata.MaxRepeat<4 and desdata.S<5) or desdata.S==2:
         R = [0,1,0]
     else:
         R = [0.4,0.4,0.2]
@@ -137,6 +137,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
     sendermail = "joke.durnez@gmail.com"
     message = "Your design optimisation has now ended.  You can download the results here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.shareID)+". Thank you for using NeuroDesign."
     recipient = str(desdata.email)
+    #recipient = 'joke.durnez@gmail.com'
     key = settings.MAILGUN_KEY
 
     command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
