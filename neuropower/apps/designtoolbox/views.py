@@ -398,7 +398,6 @@ def options(request):
 
 def runGA(request):
 
-
     # Get the template/step status
 
     template = "design/runGA.html"
@@ -410,7 +409,6 @@ def runGA(request):
         context['tasks_queued'] = 0
         context['tasks_running'] = 0
 
-
     # Get the session ID
 
     sid = get_session_id(request)
@@ -418,19 +416,19 @@ def runGA(request):
 
     # retrieve session information
 
-    desdata = DesignModel.objects.filter(SID=sid).last()
-    if not desdata == None:
-        context['no_data'] = False
-    else:
-        context['no_data']=True
-        return render(request, template, context)
-
     retrieve_id = request.GET.get('retrieve','')
     if retrieve_id:
         desdata = DesignModel.objects.get(shareID=retrieve_id)
         desdata.SID=sid
         desdata.save()
         context["steps"] = get_design_steps(template, sid)
+    else:
+        desdata = DesignModel.objects.filter(SID=sid).last()
+        if not desdata == None:
+            context['no_data'] = False
+        else:
+            context['no_data']=True
+            return render(request, template, context)
 
     # Do we know email?
     mailform = DesignMailForm(request.POST or None, instance=desdata)
