@@ -55,13 +55,14 @@
     <div class="col-xs-12 col-md-8">
       <div class="well" style="height:900px;">
         <center><h3>Control panel</h3></center>
-        <div  class="alert alert-warning alert-dismissible" role="alert">
+        <!-- <div  class="alert alert-warning alert-dismissible" role="alert">
         <p>We are currently experiencing some server problems with neurodesign.  Sorry for the inconvenience, and please check back later.</p>
-      </div>
+      </div> -->
         <br>
         {% if sure %}
         <br>
           <div class="col-sm-12">
+            <div class="well" style="height:100px;">
             <div  class="alert alert-warning alert-dismissible" role="alert">
             <p> <b>WARNING:</b></p>
             <p>You already have a finished optimal design.  If you run a new analyses, you will lose those results.  Are you sure about this?</p>
@@ -71,6 +72,7 @@
             {% crispy sureform %}
           </center>
           </div>
+        </div>
         </div>
         {% endif %}
 
