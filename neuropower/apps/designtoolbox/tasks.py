@@ -32,7 +32,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
 
     command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
         " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
-    #os.system(command)
+    os.system(command)
 
     matrices = probs_and_cons(sid)
 
