@@ -35,10 +35,11 @@ MAILGUN_KEY = os.environ['MAILGUN_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+LOCAL_DB = False
 
 ALLOWED_HOSTS = ['*','localhost']
 
-if 'RDS_DB_NAME' in os.environ:
+if 'RDS_DB_NAME' in os.environ and LOCAL_DB == False:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
