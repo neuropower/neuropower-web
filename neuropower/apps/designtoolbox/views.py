@@ -445,7 +445,7 @@ def runGA(request):
     if desdata.taskstatus == 0:
         form.running = 0
     elif desdata.taskstatus == 1 or desdata.taskstatus == 2:
-        maxdelta = 120 if desdata.taskstatus == 1 else 20
+        maxdelta = 1200 if desdata.taskstatus == 1 else 20
         if not desdata.timestamp == "":
             last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
             now = datetime.now()
