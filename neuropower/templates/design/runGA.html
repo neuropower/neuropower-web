@@ -57,11 +57,6 @@
         <center><h3>Control panel</h3></center>
         <div  class="alert alert-warning alert-dismissible" role="alert">
         <p>We are currently experiencing some server problems with neurodesign.  Sorry for the inconvenience, and please check back later.</p>
-        <br>
-        <center>
-        {% csrf_token %}
-        {% crispy sureform %}
-      </center>
       </div>
         <br>
         {% if sure %}
