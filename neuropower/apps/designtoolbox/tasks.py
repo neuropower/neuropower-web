@@ -233,33 +233,38 @@ def local_naturalselection(POP,sid):
     return POP
 
 def save_RDS(POP,sid,generation):
-    try:
-        desdata = DesignModel.objects.filter(SID=sid).last()
-    except OperationalError or ObjectDoesNotExist or DatabaseError:
-        return None
+    desdata = None
+    tries = 0
+    while desdata == None or tries < 5:
+        tries += 1
+        try:
+            desdata = DesignModel.objects.filter(SID=sid).last()
+        except OperationalError or ObjectDoesNotExist or DatabaseError:
+            return None
 
     # make metrics dictionary
-    if not isinstance(desdata.metrics,dict):
-        Out = {"FBest": [], 'FeBest': [], 'FfBest': [],'FcBest': [], 'FdBest': [], 'Gen': []}
-    else:
-        Out = desdata.metrics
-    opt = [POP.bestdesign.F,POP.bestdesign.Fe,POP.bestdesign.Ff,POP.bestdesign.Fc,POP.bestdesign.Fd]
-    k = 0
-    for key in ['FBest','FeBest','FfBest','FcBest','FdBest']:
-        Out[key].append(opt[k])
-        k = k+1
-    Out['Gen'].append(generation)
+    if not desdata == None:
+        if not isinstance(desdata.metrics,dict):
+            Out = {"FBest": [], 'FeBest': [], 'FfBest': [],'FcBest': [], 'FdBest': [], 'Gen': []}
+        else:
+            Out = desdata.metrics
+        opt = [POP.bestdesign.F,POP.bestdesign.Fe,POP.bestdesign.Ff,POP.bestdesign.Fc,POP.bestdesign.Fd]
+        k = 0
+        for key in ['FBest','FeBest','FfBest','FcBest','FdBest']:
+            Out[key].append(opt[k])
+            k = k+1
+        Out['Gen'].append(generation)
 
-    # make bestdesign dictionary
-    keys = ["Stimulus_"+str(i) for i in range(POP.exp.n_stimuli)]
-    Seq = {}
-    for s in keys:
-        Seq.update({s:[]})
-    for stim in range(POP.exp.n_stimuli):
-        Seq["Stimulus_"+str(stim)]=POP.bestdesign.Xconv[:,stim].tolist()
-    Seq.update({"tps":POP.bestdesign.experiment.r_tp.tolist()})
-    runform = DesignRunForm(None, instance=desdata)
-    form = runform.save(commit=False)
-    form.metrics = Out
-    form.bestdesign = Seq
-    form.save()
+        # make bestdesign dictionary
+        keys = ["Stimulus_"+str(i) for i in range(POP.exp.n_stimuli)]
+        Seq = {}
+        for s in keys:
+            Seq.update({s:[]})
+        for stim in range(POP.exp.n_stimuli):
+            Seq["Stimulus_"+str(stim)]=POP.bestdesign.Xconv[:,stim].tolist()
+        Seq.update({"tps":POP.bestdesign.experiment.r_tp.tolist()})
+        runform = DesignRunForm(None, instance=desdata)
+        form = runform.save(commit=False)
+        form.metrics = Out
+        form.bestdesign = Seq
+        form.save()
