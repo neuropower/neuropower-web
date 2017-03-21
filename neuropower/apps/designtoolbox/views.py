@@ -22,6 +22,7 @@ import zipfile
 import StringIO
 import shutil
 import urllib2
+import datetime as dt
 from datetime import datetime
 from celery import task
 from celery.task.control import revoke, inspect
@@ -590,7 +591,10 @@ def runGA(request):
             else:
                 desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
-                res = GeneticAlgorithm.delay(sid)
+                #maximum queue: 2 days
+                expires = int(2 * 24 * 60.)
+
+                res = GeneticAlgorithm.apply_async(args=[sid],expires=expires)
                 form = runform.save(commit=False)
                 form.taskID = res.task_id
                 form.timestamp = str(datetime.now())

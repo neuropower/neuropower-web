@@ -1,0 +1,19 @@
+remote:
+  host: "aws"
+  user: "ec2-user"
+  path: "/home/ec2-user/neuropower-web/neuropower"
+behaviour:
+  uploadOnSave: false
+  syncDownOnOpen: false
+  forgetConsole: false
+  autoHideConsole: true
+  alwaysSyncAll: false
+option:
+  deleteFiles: false
+  exclude: [
+    ".sync-config.cson"
+    ".git"
+    "node_modules"
+    "tmp"
+    "vendor"
+  ]
