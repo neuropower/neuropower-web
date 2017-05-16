@@ -165,19 +165,20 @@ def neuropowerinput(request,neurovault_id=None,end_session=False):
         form.ExcZ = float(neuropowerdata.Exc) if float(neuropowerdata.Exc)>1 else -norm.ppf(float(neuropowerdata.Exc))
 
         # if mask does not exist: create
-        if neuropowerdata.maskfile == "":
-            mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
-            nvox = np.sum(mask.get_data())
-            form.mask_local = neuropowerdata.mask_local+".nii.gz"
-            nib.save(mask,form.mask_local)
-            form.nvox = nvox
-        # if mask is given: check dimensions
-        else:
-            mask = nib.load(neuropowerdata.mask_local).get_data()
-            if SPM.get_data().shape != mask.shape:
-                error = "dim"
+        if not error == 'shape':
+            if neuropowerdata.maskfile == "":
+                mask = masking.compute_background_mask(SPM,border_size=2, opening=True)
+                nvox = np.sum(mask.get_data())
+                form.mask_local = neuropowerdata.mask_local+".nii.gz"
+                nib.save(mask,form.mask_local)
+                form.nvox = nvox
+            # if mask is given: check dimensions
             else:
-                form.nvox = np.sum(mask)
+                mask = nib.load(neuropowerdata.mask_local).get_data()
+                if SPM.get_data().shape != mask.shape:
+                    error = "dim"
+                else:
+                    form.nvox = np.sum(mask)
 
         # throw error if detected
         if error:
