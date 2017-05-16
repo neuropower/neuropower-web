@@ -232,7 +232,6 @@ def neuropowertable(request):
     except NeuropowerModel.DoesNotExist:
         neuropowerdata = None
 
-    print(neuropowerdata.step)
     # Get the template/step status
     template = "neuropower/neuropowertable.html"
     context = {}
