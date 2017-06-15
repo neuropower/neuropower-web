@@ -327,7 +327,7 @@ def review(request):
         context["message"] = context["message"] + "<br><p><b>Warning:</b> With only 2 stimuli, many random designs have repetitions larger than " + \
             str(desdata.MaxRepeat) + \
             ".  We increased the number of random designs per generation, but this might slow down the optimisation.  </p>"
-    if desdata.S>5 and desdata.L>200 and desdata.ITImax>3 and (desdata.Restnum<30 and desdata.Resdur>30) and desdata.C.shape[0]>5:
+    if desdata.S>5 and desdata.L>200 and (desdata.ITIunifmax>3 or desdata.ITItruncmax>3) and (desdata.Restnum<30 and desdata.Resdur>30) and desdata.C.shape[0]>5:
         context['message'] = context['message']+"<br><p><b>Warning:</b>This is a long and complex design.  Be aware that the optimisation will take a <b>long</b> time.</p>"
 
     # Duration
