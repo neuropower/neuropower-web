@@ -54,7 +54,7 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("duspec") == 2 and cleaned_data.get("L")==None:
             raise forms.ValidationError("You need to specify the total number of trials.")
 
-        if cleaned_data.get("TR")<0 or cleaned_data.get("TR")>5:
+        if cleaned_data.get("TR")<0 or cleaned_data.get("TR")>10:
             raise forms.ValidationError("Are you sure about that TR? Parameters not saved.")
 
         if cleaned_data.get("S")>10:
