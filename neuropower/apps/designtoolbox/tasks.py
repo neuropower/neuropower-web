@@ -23,17 +23,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def GeneticAlgorithm(sid,ignore_result=False):
     desdata = DesignModel.objects.filter(SID=sid).last()
 
-    subject = "NeuroDesign: optimisation process started"
-    sender = "NeuroDesign"
-    sendermail = "joke.durnez@gmail.com"
-    message = "Your design optimisation has now started.  You can follow the progress here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.shareID)+". Thank you for using NeuroDesign."
-    recipient = str(desdata.email)
-    key = settings.MAILGUN_KEY
-
-    command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
-        " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
-    os.system(command)
-
     matrices = probs_and_cons(sid)
 
     if desdata.ITImodel == 1:
@@ -93,6 +82,7 @@ def GeneticAlgorithm(sid,ignore_result=False):
         cycles = desdata.cycles,
         convergence=desdata.conv_crit,
         folder=desdata.onsets_folder,
+        outdes=desdata.outdes,
         Aoptimality = True if desdata.Aoptimality == 1 else False,
         seed=seed
     )
