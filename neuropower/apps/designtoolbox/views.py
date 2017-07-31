@@ -457,7 +457,9 @@ def runGA(request):
                     task = AsyncResult(desdata.taskID)
                     if task.status == "STARTED":
                         revoke(desdata.taskID,terminate=True,signal='KILL')
-                form.taskstatus = 4
+                        form.taskstatus = 5
+                    else:
+                        form.taskstatus = 4
                 form.running = 0
         else:
             form.taskstatus = 4
@@ -594,6 +596,17 @@ def runGA(request):
                 #maximum queue: 2 days
                 expires = int(2 * 24 * 60.)
 
+                subject = "NeuroDesign: optimisation process started"
+                sender = "NeuroDesign"
+                sendermail = "joke.durnez@gmail.com"
+                message = "Your design optimisation has now started.  You can follow the progress here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.shareID)+". Thank you for using NeuroDesign."
+                recipient = str(desdata.email)
+                key = settings.MAILGUN_KEY
+
+                command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
+                    " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
+                os.system(command)
+
                 res = GeneticAlgorithm.apply_async(args=[sid],expires=expires)
                 form = runform.save(commit=False)
                 form.taskID = res.task_id
@@ -686,13 +699,17 @@ def runGA(request):
             context['status'] = "RUNNING"
             if desdata.preruncycles<1000 or desdata.cycles<1000 or desdata.resolution>0.2:
                 context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application but the results will be sub-optimal.  For a good optimisation, go to the settings and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
-        if desdata.taskstatus==3:
+        elif desdata.taskstatus==3:
             context['refrun'] = 5
             context['status'] = "FINISHED"
-        if desdata.taskstatus == 4:
+        elif desdata.taskstatus == 4:
             context['refrun'] = 5
             context['status'] = "FAILED"
             context['alert'] = "Something went wrong and we don't know what.  Your optimisation has stopped.  You can see the optimisation below, but you can't download the results. Please contact us if the problem reoccurs."
+        elif desdata.taskstatus == 5:
+            context['refrun'] = 5
+            context['status'] = "FAILED"
+            context['alert'] = "Your analysis is taking too much time: each iteration takes more than 2 minutes.  It is apparently difficult to calculate the efficiency.  This could be because your design is too long, there are too many contrasts, or it is hard to find a random design within the restrictions.  Please run the code on a local/cluster environment, or check the FAQ to figure out why it is taking so long."
 
 
         context["message"] = ""
