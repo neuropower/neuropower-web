@@ -419,7 +419,9 @@ def runGA(request):
 
     retrieve_id = request.GET.get('retrieve','')
     if retrieve_id:
-        desdata = DesignModel.objects.get(shareID=retrieve_id)
+        desdata = DesignModel.objects.filter(shareID=retrieve_id)
+        if len(desdata)>1:
+            desdata = desdata[0]
         desdata.SID=sid
         desdata.save()
         context["steps"] = get_design_steps(template, sid)
