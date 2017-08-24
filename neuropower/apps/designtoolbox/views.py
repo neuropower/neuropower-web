@@ -10,7 +10,7 @@ from django.db.models import Q
 import os
 from django.contrib.sessions.backends.db import SessionStore
 from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested,textify_code
-from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm, DesignSureForm, DesignMailForm, DesignCodeForm
+from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm, DesignSureForm, DesignMailForm, DesignCodeForm, DesignRetrieveForm
 from .models import DesignModel
 from .tasks import GeneticAlgorithm
 import numpy as np
@@ -419,12 +419,11 @@ def runGA(request):
 
     retrieve_id = request.GET.get('retrieve','')
     if retrieve_id:
-        desdata = DesignModel.objects.filter(shareID=retrieve_id)
-        if len(desdata)>1:
-            desdata = desdata[0]
+        desdata = DesignModel.objects.filter(shareID=retrieve_id).last()
         desdata.SID=sid
-        desdata.save()
         context["steps"] = get_design_steps(template, sid)
+
+
     else:
         desdata = DesignModel.objects.filter(SID=sid).last()
         if not desdata == None:
@@ -434,8 +433,8 @@ def runGA(request):
             return render(request, template, context)
 
     # Do we know email?
-    mailform = DesignMailForm(request.POST or None, instance=desdata)
-    runform = DesignRunForm(request.POST, instance=desdata)
+    mailform = DesignMailForm(request.POST or None)
+    runform = DesignRunForm(request.POST, instance = desdata)
 
     if not desdata.email:
         context["mailform"] = mailform
