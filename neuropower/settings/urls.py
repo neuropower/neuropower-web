@@ -21,5 +21,6 @@ urlpatterns = [
     # that happens at the myapp/url.py level
     url(r'^', include('apps.main.urls')),
     url(r'^neuropower/', include('apps.neuropowertoolbox.urls')),
-    url(r'^design/', include('apps.designtoolbox.urls'))
+    url(r'^design/', include('apps.designtoolbox.urls')),
+    url(r'^blog/', include('apps.blog.urls'))
 ]
