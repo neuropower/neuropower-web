@@ -16,8 +16,5 @@ urlpatterns = [
     url(r'^tutorial/$',views.tutorial,name='DTutorial'),
     url(r'^methods/$',views.methods,name='DMethods'),
     url(r'^package/$',views.package,name='DPackage'),
-    url(r'^end/$',views.end_session,name='DReset'),
-    url(r'^check_long/$',views.check,name='Check'),
-    url(r'^stop/$',views.stop,name='Stop'),
-    url(r'^updatepage/$',views.updatepage,name='DUpdate'),
-        ]
+    url(r'^end/$',views.end_session,name='DReset')
+    ]
