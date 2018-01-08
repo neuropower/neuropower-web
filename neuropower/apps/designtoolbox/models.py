@@ -149,7 +149,7 @@ class DesignModel(models.Model):
     HardProb = models.BooleanField(default=False)
     metrics = PickledObjectField(default = "")
     bestdesign = PickledObjectField(default = "")
-    files = PickledObjectField(default = "")
+    #files = PickledObjectField(default = "")
     onsets_folder = PickledObjectField(default="")
     design_suffix = PickledObjectField(default="")
     mainpars = models.NullBooleanField(default=False)
@@ -163,8 +163,6 @@ class DesignModel(models.Model):
     name = models.CharField(default = "",max_length=500)
     email = models.CharField(default = "",max_length=500)
     outdes = models.IntegerField(default=1)
-    timestart = models.CharField(default="",max_length=500)
-    timestamp = models.CharField(default="",max_length=500)
-    generation = models.IntegerField(default=0)
+    jobid = models.CharField(default="",max_length=100)
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID
