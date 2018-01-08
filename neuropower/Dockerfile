@@ -55,8 +55,9 @@ RUN pip install progressbar
 RUN pip install reportlab
 RUN pip install seaborn
 RUN pip install pdfrw
+RUN pip install boto3
 
-RUN pip install neurodesign > 0.1.4
+RUN pip install neurodesign > 0.1.5
 RUN pip install django-cors-headers
 
 # Clear apt cache to reduce image size
