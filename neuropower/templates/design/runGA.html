@@ -32,18 +32,11 @@
 {% block content %}
 <div class="row">
 
-    <!-- Current load frame -->
     <div class="col-xs-12 col-md-4">
       <div class="well" style="height:900px;">
         <center><h3>Current load</h3></center>
         <br>
         <table class="table">
-          <tr>
-            <th>CPU load:</th><th> {{ tasks_running }}</th>
-          </tr>
-          <tr>
-            <th> Queued processes:</th><th> {{ tasks_queued }}</th>
-          </tr>
           <tr>
             <th> Your optimisation:</th><th> {{ status }}</th>
           </tr>
@@ -59,23 +52,6 @@
         <p>We are currently experiencing some server problems with neurodesign.  Sorry for the inconvenience, and please check back later.</p>
       </div> -->
         <br>
-        {% if sure %}
-        <br>
-          <div class="col-sm-12">
-            <div class="well" style="height:100px;">
-            <div  class="alert alert-warning alert-dismissible" role="alert">
-            <p> <b>WARNING:</b></p>
-            <p>You already have a finished optimal design.  If you run a new analyses, you will lose those results.  Are you sure about this?</p>
-            <br>
-            <center>
-            {% csrf_token %}
-            {% crispy sureform %}
-          </center>
-          </div>
-        </div>
-        </div>
-        {% endif %}
-
 
 
         {% if message %}
