@@ -41,7 +41,12 @@ def create_neurodesign_string(sid):
     else:
         R = [0.4,0.4,0.2]
 
-    neurodesign_string = "from neurodesign import geneticalgorithm \n" + \
+    neurodesign_string = "import os \n" + \
+    "if 'TASK_UID' in os.environ.keys(): \n" + \
+    "    import geneticalgorithm \n" + \
+    "else: \n" + \
+    "    from neurodesign import geneticalgorithm, generate, msequence \n" + \
+    "from neurodesign import geneticalgorithm \n" + \
     "EXP = geneticalgorithm.experiment( \n" + \
     "    TR = %s, \n " %desdata.TR + \
     "    n_trials = %s, \n " %desdata.L + \
