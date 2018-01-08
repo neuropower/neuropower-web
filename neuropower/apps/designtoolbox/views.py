@@ -1,33 +1,31 @@
 from __future__ import unicode_literals
 import sys
 sys.path = sys.path[1:]
+
+from django.contrib.sessions.backends.db import SessionStore
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, render_to_response
 from django.core.mail import send_mail
 from django.conf import settings
 from scipy.stats import norm, t
+from utils.prepare_GA import *
 from django.db.models import Q
-import os
-from django.contrib.sessions.backends.db import SessionStore
-from utils import get_session_id, probs_and_cons, get_design_steps, weights_html, combine_nested,textify_code
-from .forms import DesignMainForm, DesignConsForm, DesignReviewForm, DesignWeightsForm, DesignProbsForm, DesignOptionsForm, DesignRunForm, DesignDownloadForm, ContactForm, DesignNestedForm,DesignNestedConsForm, DesignSureForm, DesignMailForm, DesignCodeForm, DesignRetrieveForm
-from .models import DesignModel
-from .tasks import GeneticAlgorithm
+from datetime import datetime
+from utils.utils import *
+from .models import *
+import datetime as dt
+from .forms import *
+import pandas as pd
 import numpy as np
+import StringIO
+import requests
+import zipfile
+import urllib2
+import shutil
 import time
 import json
-import pandas as pd
 import csv
-import zipfile
-import StringIO
-import shutil
-import urllib2
-import datetime as dt
-from datetime import datetime
-from celery import task
-from celery.task.control import revoke, inspect
-from celery.result import AsyncResult
-import requests
+import os
 
 
 def end_session(request):
@@ -53,7 +51,6 @@ def methods(request):
 
 def package(request):
     return render(request, "design/pythonpackage.html", {})
-
 
 def start(request, end_session=False):
 
@@ -125,23 +122,9 @@ def maininput(request):
         form = inputform.save(commit=False)
         form.shareID = sid
         form.SID = sid
-        form.local_folder = "/var/tmp/"
-        form.design_suffix = "design_"+str(sid)
-        form.onsets_folder = form.local_folder + form.design_suffix
-        form.codefilename = "GeneticAlgorithm_"+str(sid)+".py"
-        form.codefile = os.path.join(form.onsets_folder, form.codefilename)
         form.step = 1
         form.save()
 
-        if os.path.exists(form.onsets_folder):
-            files = os.listdir(form.onsets_folder)
-            for f in files:
-                if os.path.isdir(os.path.join(form.onsets_folder,f)):
-                    shutil.rmtree(os.path.join(form.onsets_folder,f))
-                else:
-                    os.remove(os.path.join(form.onsets_folder,f))
-        else:
-            os.mkdir(form.onsets_folder)
         # get data and change parameters
 
         desdata = DesignModel.objects.filter(SID=sid).last()
@@ -227,8 +210,6 @@ def nested(request):
         form.save()
 
         return HttpResponseRedirect('../consinput/')
-
-
 
 def consinput(request):
 
@@ -403,27 +384,19 @@ def runGA(request):
 
     template = "design/runGA.html"
     context = {}
-    if not inspect().reserved() == None:
-        context['tasks_queued'] = len(list(inspect().reserved().values())[0])
-        context['tasks_running'] = float(len(list(inspect().active().values())[0]))/settings.CELERYD_CONCURRENCY
-    else:
-        context['tasks_queued'] = 0
-        context['tasks_running'] = 0
 
     # Get the session ID
 
     sid = get_session_id(request)
     context["steps"] = get_design_steps(template, sid)
 
-    # retrieve session information
+    # retrieve DB entry (eiter retrieve or session)
 
     retrieve_id = request.GET.get('retrieve','')
     if retrieve_id:
         desdata = DesignModel.objects.filter(shareID=retrieve_id).last()
         desdata.SID=sid
         context["steps"] = get_design_steps(template, sid)
-
-
     else:
         desdata = DesignModel.objects.filter(SID=sid).last()
         if not desdata == None:
@@ -433,6 +406,7 @@ def runGA(request):
             return render(request, template, context)
 
     # Do we know email?
+
     mailform = DesignMailForm(request.POST or None)
     runform = DesignRunForm(request.POST, instance = desdata)
 
@@ -441,57 +415,11 @@ def runGA(request):
     else:
         context['runform'] = runform
 
-    # check status of job
+    # is there a process started? If yes, what's the status?
 
-    form = runform.save(commit=False)
-    if desdata.taskstatus == 0:
-        form.running = 0
-    elif desdata.taskstatus == 1 or desdata.taskstatus == 2:
-        maxdelta = 1200 if desdata.taskstatus == 1 else 20
-        if not desdata.timestamp == "":
-            last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
-            now = datetime.now()
-            delta = now-last
-            deltamin = delta.days*24*60.+delta.seconds/60.
-            if deltamin > maxdelta:
-                if desdata.taskID:
-                    task = AsyncResult(desdata.taskID)
-                    if task.status == "STARTED":
-                        revoke(desdata.taskID,terminate=True,signal='KILL')
-                        form.taskstatus = 5
-                    else:
-                        form.taskstatus = 4
-                form.running = 0
-        else:
-            form.taskstatus = 4
-            form.running = 0
-    elif desdata.taskstatus > 2:
-        form.running = 0
-    form.save()
-
-    # This approach needs access to the workers which is not guaranteed with EB
-    # if desdata.taskID:
-    #     task = AsyncResult(desdata.taskID)
-    #     if task.status == "PENDING":
-    #         form.taskstatus = 1
-    #         form.running = 0
-    #         if desdata.finished == True:
-    #             form.taskstatus = 3
-    #             form.running = 0
-    #     elif task.status == "STARTED":
-    #         form.taskstatus = 2
-    #     elif ((task.status == "RETRY"
-    #         or  task.status == "FAILURE"
-    #         or task.status == "SUCCESS")):
-    #         form.taskstatus = 3
-    #         form.running = 0
-    #     else:
-    #         form.taskstatus = 0
-    #         form.running = 0
-    # else:
-    #     form.taskstatus = 0
-    #     form.running = 0
-    # form.save()
+    status = None
+    if not desdata.jobid == "":
+        status = get_job_status(sid)['status']
 
     # pass results for visualisation
 
@@ -506,20 +434,21 @@ def runGA(request):
 
     # show downloadform if results are available
     desdata = DesignModel.objects.filter(SID=sid).last()
-    if desdata.taskstatus == 3:
+    if status == 'SUCCEEDED':
         downform = DesignDownloadForm(
             request.POST or None, instance=desdata)
         context["downform"] = downform
 
-    if desdata.taskstatus>1:
+    # show downloadform for py-file if submitted
+    if status:
         codeform = DesignCodeForm(
             request.POST or None, instance=desdata)
         context['codeform'] = codeform
+        context['status'] = status
 
     # Responsive loop
 
     if request.method == "POST":
-        someonesure = False
 
         # if mail is given
         if request.POST.get("Mail") == "Submit":
@@ -547,224 +476,65 @@ def runGA(request):
         # If stop is requested
         if request.POST.get("GA") == "Stop":
 
-            if not (desdata.taskstatus == 2 or desdata.taskstatus == 1):
+            if not status or status == 'SUCCEEDED' or status == 'FAILED':
                 context['message'] = "You want to stop the optimisation, but nothing is running."
             else:
-                revoke(desdata.taskID,terminate=True,signal='KILL')
-                desdata = DesignModel.objects.filter(SID=sid).last()
-                runform = DesignRunForm(None, instance=desdata)
-                form = runform.save(commit=False)
-                form.taskstatus = 0
-                form.timestamp = ""
-                form.timestart = ""
-                form.taskID = ""
-                form.save()
-                context["message"] = "The optimisation has been terminated."
-
+                stop_job(sid)
+                context['message'] = "Your optimisation is halted."
             return render(request, template, context)
 
-        if request.POST.get("Sure") == "I'm sure about this":
-            someonesure = True
-            desdata = DesignModel.objects.filter(SID=sid).last()
-            runform = DesignRunForm(None, instance=desdata)
-            form = runform.save(commit=False)
-            form.taskstatus = 0
-            form.taskID = ""
-            form.timestamp = ""
-            form.timestart = ""
-            form.finished = False
-            form.convergence = False
-            form.save()
 
         # If run is requested
-        if request.POST.get("GA") == "Run" or someonesure:
+        if request.POST.get("GA") == "Run":
 
             desdata = DesignModel.objects.filter(SID=sid).last()
-            if desdata.taskstatus > 0 and not desdata.taskstatus == 4:
-                if desdata.taskstatus == 1:
-                    context['message'] = "There is already an optimisation process queued.  You can only queue or run one design optimisation at a time."
-                elif desdata.taskstatus == 2:
-                    context['message'] = "There is already an optimisation process running.  You can only queue or run one design optimisation at a time."
-                elif desdata.taskstatus == 3:
-                    context['sure'] = True
-                    sureform = DesignSureForm(
-                        request.POST or None, instance=desdata)
-                    context['sureform'] = sureform
-                return render(request, template, context)
+            if status and not ( status == 'SUCCEEDED' or status == 'FAILED' ):
+                context['message'] = "There is already an optimisation process running.  You can only queue or run one design optimisation at a time."
             else:
                 desdata = DesignModel.objects.filter(SID=sid).last()
                 runform = DesignRunForm(None, instance=desdata)
-                #maximum queue: 2 days
-                expires = int(2 * 24 * 60.)
-
+                # send email
                 subject = "NeuroDesign: optimisation process started"
                 sender = "NeuroDesign"
                 sendermail = "joke.durnez@gmail.com"
                 message = "Your design optimisation has now started.  You can follow the progress here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.shareID)+". Thank you for using NeuroDesign."
                 recipient = str(desdata.email)
                 key = settings.MAILGUN_KEY
-
                 command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
                     " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
                 os.system(command)
 
-                res = GeneticAlgorithm.apply_async(args=[sid],expires=expires)
+                # start process
+                write_neurodesign_script(sid)
+                jobid = submit_batch(sid)
                 form = runform.save(commit=False)
-                form.taskID = res.task_id
-                form.timestamp = str(datetime.now())
-                form.timestart = str(datetime.now())
-                form.taskstatus = 1
+                form.jobid = jobid
                 form.save()
                 desdata = DesignModel.objects.filter(SID=sid).last()
                 context['refresh'] = True
-                context['status'] = "PENDING"
                 context['message'] = "Job succesfully submitted."
                 return render(request, template, context)
 
 
         # If request = download
         if request.POST.get("Code") == "Download script":
-            cmd = textify_code(sid)
-            desdata = DesignModel.objects.filter(SID=sid).last()
-
-            resp = HttpResponse(
-                cmd
-                )
-            resp['Content-Disposition'] = 'attachment; filename=%s' % desdata.codefilename
-
-            return resp
+            url = get_s3_url("%s.py"%sid)
+            return HttpResponseRedirect(url)
 
         # If request = download
         if request.POST.get("Download") == "Download optimal sequence":
-            desdata = DesignModel.objects.filter(SID=sid).last()
-
-            if os.path.exists(form.onsets_folder):
-                files = os.listdir(form.onsets_folder)
-                for f in files:
-                    if os.path.isdir(os.path.join(form.onsets_folder,f)):
-                        shutil.rmtree(os.path.join(form.onsets_folder,f))
-                    else:
-                        os.remove(os.path.join(form.onsets_folder,f))
-            else:
-                os.mkdir(form.onsets_folder)
-
-            localfiles = []
-            for fl in desdata.files:
-                # check if part right after "design_sid" is a folder, if yes: make folder
-                stripped = fl.split("/")[1]
-                if len(stripped.split("."))==1:
-                    # means it's a folder under onsetsfolder
-                    folder = desdata.onsets_folder+"/"+stripped
-                    if not os.path.exists(folder):
-                        os.mkdir(folder)
-                aws_url = "https://"+settings.AWS_S3_CUSTOM_DOMAIN+"/designs/"+fl
-                local = desdata.local_folder+fl
-
-                response = requests.get(aws_url)
-                if response.status_code == 200:
-                    with open(local,"wb") as f:
-                        f.write(response.content)
-
-                localfiles.append(local)
-
-            # zip up
-            zip_subdir = "OptimalDesign"
-            zip_filename = "%s.zip" % zip_subdir
-            popfile = StringIO.StringIO()
-            zf = zipfile.ZipFile(popfile,"w")
-
-            for fpath in localfiles:
-                zf.write(os.path.join(desdata.design_suffix,fpath),os.path.join(zip_subdir,fpath))
-            zf.close()
-
-            resp = HttpResponse(
-                popfile.getvalue(),
-                content_type="application/x-zip-compressed"
-                )
-            resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
-
-            return resp
+            url = get_s3_url("%s.tar.gz"%sid)
+            return HttpResponseRedirect(url)
 
     else:
         desdata = DesignModel.objects.filter(SID=sid).last()
         context["preruns"] = desdata.preruncycles
         context["runs"] = desdata.cycles
         context["refrun"] = desdata.running
-        context['status'] = "NOT RUNNING"
 
-        if desdata.taskstatus==0:
-            context['status'] = ""
-        elif desdata.taskstatus==1:
-            context['status'] = ""
-        elif desdata.taskstatus==2:
-            context['status'] = "RUNNING"
-            if desdata.preruncycles<1000 or desdata.cycles<1000 or desdata.resolution>0.2:
-                context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application but the results will be sub-optimal.  For a good optimisation, go to the settings and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
-        elif desdata.taskstatus==3:
-            context['refrun'] = 5
-            context['status'] = "FINISHED"
-        elif desdata.taskstatus == 4:
-            context['refrun'] = 5
-            context['status'] = "FAILED"
+        if desdata.preruncycles<1000 or desdata.cycles<1000 or desdata.resolution>0.2:
+            context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application but the results will be sub-optimal.  For a good optimisation, go to the settings and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
+        if status == 'FAILED':
             context['alert'] = "Something went wrong and we don't know what.  Your optimisation has stopped.  You can see the optimisation below, but you can't download the results. Please contact us if the problem reoccurs."
-        elif desdata.taskstatus == 5:
-            context['refrun'] = 5
-            context['status'] = "FAILED"
-            context['alert'] = "Your analysis is taking too much time: each iteration takes more than 2 minutes.  It is apparently difficult to calculate the efficiency.  This could be because your design is too long, there are too many contrasts, or it is hard to find a random design within the restrictions.  Please run the code on a local/cluster environment, or check the FAQ to figure out why it is taking so long."
-
-
-        context["message"] = ""
-        if desdata.running == 1:
-            context["message"] = "Design optimisation initiated."
-        elif desdata.running == 2:
-            context["message"] = "Running first pre-run to find maximum efficiency."
-        elif desdata.running == 3:
-            context["message"] = "Running second pre-run to find maximum power."
-        elif desdata.running == 4:
-            context["message"] = "Running design optimisation."
-        elif desdata.taskstatus == 3 and desdata.convergence:
-            context['message'] = 'Design optimisation finished after convergence.'
-        elif desdata.taskstatus == 3:
-            context['message'] = 'Design optimisation finished, convergence not reached.  Consider increasing the number of generations.'
-
 
     return render(request, template, context)
-
-def updatepage(request):
-    return render(request, "design/updatepage.html", {})
-
-def check(request):
-    now = datetime.now()
-    desdatalist = DesignModel.objects.filter(~Q(timestamp=""))
-    context = {}
-    context['stopped'] = 0
-    for desdata in desdatalist:
-        last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
-        delta = now-last
-        deltamin = delta.days*24*60.+delta.seconds/60.
-        if deltamin > 2400: #40 hours max
-            if desdata.taskID:
-                task = AsyncResult(desdata.taskID)
-                if task.status == "STARTED":
-                    revoke(desdata.taskID,terminate=True,signal='KILL')
-                    context['stopped'] += 1
-
-    return render(request,"design/check.html",context)
-
-def stop(request):
-    now = datetime.now()
-    desdatalist = DesignModel.objects.filter(~Q(timestamp=""))
-    context = {}
-    context['stopped'] = 0
-    for desdata in desdatalist:
-        last = datetime.strptime(desdata.timestamp,'%Y-%m-%d %H:%M:%S.%f')
-        delta = now-last
-        deltamin = delta.days*24*60.+delta.seconds/60.
-        if deltamin > 1: #40 hours max
-            if desdata.taskID:
-                task = AsyncResult(desdata.taskID)
-                if task.status == "STARTED":
-                    revoke(desdata.taskID,terminate=True,signal='KILL')
-                    context['stopped'] += 1
-
-    return render(request,"design/stop.html",context)

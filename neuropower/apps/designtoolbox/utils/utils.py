@@ -8,7 +8,7 @@ import urllib
 from django.conf import settings
 from django.http import HttpResponseRedirect
 import numpy as np
-from .models import DesignModel
+from ..models import DesignModel
 
 def get_session_id(request):
     '''get_session_id gets the user session id, and creates one if it doesn't exist'''
@@ -163,24 +163,3 @@ def get_design_steps(template_page,sid):
     # Set the active page
     pages["active"] = pages[template_page]
     return pages
-
-def push_to_s3(filename,key):
-    # http://www.laurentluce.com/posts/upload-and-download-files-tofrom-amazon-s3-using-pythondjango/
-    import boto
-    from boto.s3.key import Key
-    # set boto lib debug to critical
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    # connect to the bucket
-    conn = boto.connect_s3(settings.AWS_ACCESS_KEY_ID,
-                    settings.AWS_SECRET_ACCESS_KEY)
-    bucket = conn.get_bucket(bucket_name)
-    # go through each version of the file
-    # create a key to keep track of our file in the storage
-    k = Key(bucket)
-    k.key = key
-    k.set_contents_from_filename(filename)
-    # we need to make it public so it can be accessed publicly
-    # using a URL like http://s3.amazonaws.com/bucket_name/key
-    k.make_public()
-    # remove the file from the web server
-    os.remove(filename)

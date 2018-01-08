@@ -13,6 +13,7 @@ media/designs/*
 media/designonsets/*
 ../dockernotes.sh
 ../dockernotes.txt
+apps/designtoolbox/archive/
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
