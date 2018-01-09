@@ -513,6 +513,7 @@ def runGA(request):
                 desdata = DesignModel.objects.filter(SID=sid).last()
                 context['refresh'] = True
                 context['message'] = "Job succesfully submitted."
+                context['status'] = 'SUBMITTED'
                 return render(request, template, context)
 
 
@@ -536,5 +537,14 @@ def runGA(request):
             context['alert'] = "Please be aware that the number of iterations for the optimisation is low.  These values are perfect for trying out the application but the results will be sub-optimal.  For a good optimisation, go to the settings and change the number of runs and preruns and the resolution.  Some reasonable values are: 10,000 preruns, 10,000 runs and a resolution of 0.1s."
         if status == 'FAILED':
             context['alert'] = "Something went wrong and we don't know what.  Your optimisation has stopped.  You can see the optimisation below, but you can't download the results. Please contact us if the problem reoccurs."
+
+    if status == 'RUNNING':
+        if desdata.running == 2:
+            context['message'] = 'Running first pre-run to find maximum efficiency.'
+        elif desdata.running == 3:
+            context["message"] = "Running second pre-run to find maximum power."
+        elif desdata.running == 4:
+            context['message'] = 'Design optimisation finished.'
+        context['refrun'] = desdata.running
 
     return render(request, template, context)

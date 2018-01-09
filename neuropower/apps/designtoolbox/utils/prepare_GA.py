@@ -164,7 +164,7 @@ def stop_job(sid):
     desdata = DesignModel.objects.filter(SID=sid).last()
     client = boto3.client('batch')
     jobid = desdata.jobid
-    client.terminate_job(jobId=jobid)
+    client.terminate_job(jobId=jobid,reason="User cancelled job.")
 
 def get_s3_url(key):
     client = boto3.client('s3')

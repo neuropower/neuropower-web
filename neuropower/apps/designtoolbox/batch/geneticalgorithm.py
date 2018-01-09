@@ -26,6 +26,18 @@ class experiment(geneticalgorithm.experiment):
 
 class population(geneticalgorithm.population):
     def naturalselection(POP):
+        desdata = DesignModel.objects.filter(SID=sid).last()
+        runform = DesignRunForm(None, instance=desdata)
+        # send email
+        subject = "NeuroDesign: optimisation process started"
+        sender = "NeuroDesign"
+        sendermail = "joke.durnez@gmail.com"
+        message = "Your design optimisation has now started.  You can follow the progress here:"+" http://www.neuropowertools.org/design/runGA/?retrieve="+str(desdata.shareID)+". Thank you for using NeuroDesign."
+        recipient = str(desdata.email)
+        key = settings.MAILGUN_KEY
+        command = "curl -s --user '" + key + "' https://api.mailgun.net/v3/neuropowertools.org/messages -F from='" + sender + \
+            " <" + sendermail + ">' -F to=" + recipient + " -F subject="+subject+" -F text='" + message + "'"
+        os.system(command)
 
         sid = os.environ.get('TASK_UID')
         '''
