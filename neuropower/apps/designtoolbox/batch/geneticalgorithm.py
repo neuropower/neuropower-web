@@ -15,8 +15,6 @@ from celery import task, Celery
 from datetime import datetime
 import numpy as np
 
-sid = os.environ['TASK_UID']
-
 class design(geneticalgorithm.design):
     def no_func():
         return 0
@@ -27,6 +25,7 @@ class experiment(geneticalgorithm.experiment):
 
 class population(geneticalgorithm.population):
     def naturalselection(POP):
+        sid = os.environ['TASK_UID']
         desdata = DesignModel.objects.filter(SID=sid).last()
         runform = DesignRunForm(None, instance=desdata)
         # send email
