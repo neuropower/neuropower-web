@@ -15,6 +15,7 @@ media/designonsets/*
 ../dockernotes.txt
 apps/designtoolbox/archive/
 ../.remote-sync.json
+env.list
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

@@ -497,6 +497,9 @@ def runGA(request):
                 jobid = submit_batch(sid)
                 form = runform.save(commit=False)
                 form.jobid = jobid
+                form.metrics = ""
+                form.bestdesign = ""
+                form.running = 0
                 form.save()
                 desdata = DesignModel.objects.filter(SID=sid).last()
                 context['refresh'] = True
@@ -532,7 +535,11 @@ def runGA(request):
         elif desdata.running == 3:
             context["message"] = "Running second pre-run to find maximum power."
         elif desdata.running == 4:
-            context['message'] = 'Design optimisation finished.'
+            context['message'] = 'Design optimisation running.'
+        if desdata.running in [2,3,4]:
+            context['refrun'] = desdata.running
+    if status == 'SUCCEEDED':
         context['refrun'] = desdata.running
+        context['message'] = 'Design optimisation finished.'
 
     return render(request, template, context)
