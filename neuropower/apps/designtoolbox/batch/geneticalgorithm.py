@@ -15,6 +15,7 @@ from celery import task, Celery
 from datetime import datetime
 import numpy as np
 
+sid = os.environ['TASK_UID']
 
 class design(geneticalgorithm.design):
     def no_func():

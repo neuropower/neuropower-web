@@ -46,7 +46,6 @@ def create_neurodesign_string(sid):
     "    import geneticalgorithm \n" + \
     "else: \n" + \
     "    from neurodesign import geneticalgorithm, generate, msequence \n" + \
-    "from neurodesign import geneticalgorithm \n" + \
     "EXP = geneticalgorithm.experiment( \n" + \
     "    TR = %s, \n " %desdata.TR + \
     "    n_trials = %s, \n " %desdata.L + \
