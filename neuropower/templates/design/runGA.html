@@ -33,7 +33,7 @@
 <div class="row">
 
     <div class="col-xs-12 col-md-4">
-      <div class="well" style="height:900px;">
+      <div class="well">
         <center><h3>Current load</h3></center>
         <br>
         <table class="table">
@@ -46,7 +46,7 @@
 
     <!-- Control panel frame -->
     <div class="col-xs-12 col-md-8">
-      <div class="well" style="height:900px;">
+      <div class="well" style="padding-bottom:80px;">
         <center><h3>Control panel</h3></center>
         <!-- <div  class="alert alert-warning alert-dismissible" role="alert">
         <p>We are currently experiencing some server problems with neurodesign.  Sorry for the inconvenience, and please check back later.</p>
@@ -76,18 +76,17 @@
         {% if runform %}
         <p> In this panel, you can control your design optimisation.</p>
         <p> Upon starting the design optimisation, you'll receive an email with a link that will take you back to this page.  You'll be able to follow the optimisation process.  Once the optimisation is done, you'll get another notification.
-        <p> You can still go to other tabs to see your settings.  While your design optimisation is in the queue, you can still change settings.  As soon as the design optimisation started, your changes will not affect the ongoing process.</p>
         <p> You can only run 1 optimisation at a time.  The stop-button will stop the optimisation, whether it is queued or running.</p>
         <p> Once the optimisation is finished, you can download here a zipfile.  In the zipfile, there will be a text file with onsets for each stimulus type.</p>
         <br><br>
-        <div class="col-xs-12 col-md-6">
+        <div class="col-xs-4 col-md-4">
         <form id="runform" method='POST' action='.'>
           {% csrf_token %}
           {% crispy runform %}
         </form>
       </div>
         {% if downform %}
-        <div class ='col-xs-12 col-md-6'>
+        <div class ='col-xs-4 col-md-4'>
         <form id="downform" method='POST' action='.'>
           {% csrf_token %}
           {% crispy downform %}
@@ -95,7 +94,7 @@
     </div>
       {% endif %}
       {% if codeform %}
-      <div class ='col-xs-12 col-md-6'>
+      <div class ='col-xs-4 col-md-4'>
       <form id="codeform" method='POST' action='.'>
         {% csrf_token %}
         {% crispy codeform %}
