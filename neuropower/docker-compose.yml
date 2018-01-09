@@ -6,8 +6,6 @@ uwsgi:
     - .:/code
     - /var/www/static
     - /var/tmp
-  links:
-    - redis
   environment:
     - AWS_ACCESS_KEY_ID
     - AWS_SECRET_ACCESS_KEY
@@ -24,8 +22,6 @@ uwsgi:
     - RDS_PASSWORD
     - RDS_HOSTNAME
     - RDS_PORT
-
-
 
 nginx:
   restart: always
@@ -40,35 +36,3 @@ nginx:
     - uwsgi
   links:
     - uwsgi
-
-redis:
-  restart: always
-  image: redis
-  command: redis-server --appendonly yes
-
-
-worker:
-  image: neuropower/neuropower
-  command: /code/run_worker.sh
-  volumes_from:
-    - uwsgi
-  volumes:
-    - logs/:/var/log/
-  links:
-    - redis
-  environment:
-    - AWS_ACCESS_KEY_ID
-    - AWS_SECRET_ACCESS_KEY
-    - AWS_STORAGE_BUCKET_NAME
-    - AWS_BATCH_JOB_DEFINITION
-    - AWS_DEFAULT_REGION
-    - OPBEAT_ORG
-    - OPBEAT_APP_ID
-    - OPBEAT_TOKEN
-    - MAILGUN_KEY
-    - DJANGO_KEY
-    - RDS_DB_NAME
-    - RDS_USERNAME
-    - RDS_PASSWORD
-    - RDS_HOSTNAME
-    - RDS_PORT
