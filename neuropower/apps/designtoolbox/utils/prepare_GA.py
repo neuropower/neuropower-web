@@ -125,7 +125,29 @@ def submit_batch(sid):
                 {"name":"AWS_ACCESS_KEY_ID",
                  "value":settings.AWS_ACCESS_KEY_ID},
                 {"name":"AWS_SECRET_ACCESS_KEY",
-                 "value":settings.AWS_SECRET_ACCESS_KEY}
+                 "value":settings.AWS_SECRET_ACCESS_KEY},
+                {"name":"AWS_STORAGE_BUCKET_NAME",
+                 "value":settings.AWS_STORAGE_BUCKET_NAME},
+                {"name":"RDS_DB_NAME",
+                 "value":settings.RDS_DB_NAME},
+                {"name":"RDS_USERNAME",
+                 "value":settings.RDS_USERNAME},
+                {"name":"RDS_PASSWORD",
+                 "value":settings.RDS_PASSWORD},
+                {"name":"RDS_HOSTNAME",
+                 "value":settings.RDS_HOSTNAME},
+                {"name":"RDS_PORT",
+                 "value":settings.RDS_PORT},
+                {"name":"OPBEAT_ORG",
+                 "value":settings.OPBEAT_ORG},
+                {"name":"OPBEAT_APP_ID",
+                 "value":settings.OPBEAT_APP_ID},
+                {"name":"OPBEAT_TOKEN",
+                 "value":settings.OPBEAT_TOKEN},
+                {"name":"MAILGUN_KEY",
+                 "value":settings.MAILGUN_KEY},
+                {"name":"DJANGO_KEY",
+                 "value":settings.DJANGO_KEY}
                 ]
         }
     )
