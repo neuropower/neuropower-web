@@ -21,11 +21,10 @@
     <ul>
       <li><a class="step-link" id="#step0">Getting Started</a></li>
       <li><a class="step-link" id="#step1">Data input</a></li>
-      <li><a class="step-link" id="#step2">Viewer</a></li>
-      <li><a class="step-link" id="#step3">Extract Peaks</a></li>
-      <li><a class="step-link" id="#step4">Fit Model</a></li>
-      <li><a class="step-link" id="#step5">Power Analysis</a></li>
-      <li><a class="step-link" id="#step6">Power table</a></li>
+      <li><a class="step-link" id="#step2">Extract Peaks</a></li>
+      <li><a class="step-link" id="#step3">Fit Model</a></li>
+      <li><a class="step-link" id="#step4">Power Analysis</a></li>
+      <li><a class="step-link" id="#step5">Power table</a></li>
     </ul>
   </div>
 
@@ -118,29 +117,13 @@
 
        <!-- Next and previous buttons -->
        <a class="btn btn-primary btn-lg step-button" text="Getting Started" id="previous0">Previous: Getting Started</a>
-       <a class="btn btn-primary btn-lg step-button" text="Viewer" id="next2" style="float:right">Next: Viewer</a>
+       <a class="btn btn-primary btn-lg step-button" text="Peak Table" id="next2" style="float:right">Next: Peak Table</a>
     </div>
   </div>
+
 
 
   <div class="panel panel-default hidden" id="step2-content">
-    <div class="panel-body">
-      <div class="col-md-12">
-        <h4><b>Note that we have disabled the viewer for now due to some security measures on our servers.<b></h4>
-        <p>If you have loaded your data through a public link (not uploaded), then you can see in the tab <button type="button" class="btn btn-secondary btn-xs">Viewer</button> a preview of your map using <a href="https://github.com/rii-mango/Papaya" target="_blank">Papaya viewer</a>.</p>
-      </div>
-      <div class="col-md-12">
-        <a href="{% static "documentation/2_viewer.png" %}" target="_blank"><img src='{% static "documentation/2_viewer.png" %}' width="80%"/></a>
-      </div>
-
-       <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" text="Data Input" id="previous1">Previous: Data Input</a>
-       <a class="btn btn-primary btn-lg step-button" text="Extract Peaks" id="next3" style="float:right">Next: Extract Peaks</a>
-
-    </div>
-  </div>
-
-  <div class="panel panel-default hidden" id="step3-content">
     <div class="panel-body">
       <div class="col-md-12">
         Clicking the tab <button type="button" class="btn btn-secondary btn-xs">Peak Table</button> invokes the extraction of the local maxima in the statistical map.  This step, while not of particular interest to the user, is crucial for the power calculations.  Depending on the size of the dataset, this step might take a while.  Once all peaks are extracted, a table is shown with the coordinates, the values and the p-values for each peak.
@@ -150,14 +133,14 @@
       </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" text="Viewer" id="previous2">Previous: Viewer</a>
-       <a class="btn btn-primary btn-lg step-button" text="Fit Model" id="next4" style="float:right">Next: Fit Model</a>
+       <a class="btn btn-primary btn-lg step-button" text="Peak Table" id="previous1">Previous: Peak Table</a>
+       <a class="btn btn-primary btn-lg step-button" text="Fit Model" id="next3" style="float:right">Next: Fit Model</a>
 
 
     </div>
   </div>
 
-  <div class="panel panel-default hidden" id="step4-content">
+  <div class="panel panel-default hidden" id="step3-content">
     <div class="panel-body">
 
       <div class="col-md-12">
@@ -195,14 +178,14 @@
       </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" text="Extract Peaks" id="previous3">Previous: Extract Peaks</a>
-       <a class="btn btn-primary btn-lg step-button" text="Power Analysis" id="next5" style="float:right">Next: Power Analysis</a>
+       <a class="btn btn-primary btn-lg step-button" text="Extract Peaks" id="previous2">Previous: Extract Peaks</a>
+       <a class="btn btn-primary btn-lg step-button" text="Power Analysis" id="next4" style="float:right">Next: Power Analysis</a>
 
 
     </div>
   </div>
 
-  <div class="panel panel-default hidden" id="step5-content">
+  <div class="panel panel-default hidden" id="step4-content">
     <div class="panel-body">
 
       <div class="col-md-12">
@@ -230,14 +213,14 @@
       </div>
 
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" text="Fit Model" id="previous4">Previous: Fit Model</a>
-       <a class="btn btn-primary btn-lg step-button" text="Power Table" id="next6" style="float:right">Next: Power Table</a>
+       <a class="btn btn-primary btn-lg step-button" text="Fit Model" id="previous3">Previous: Fit Model</a>
+       <a class="btn btn-primary btn-lg step-button" text="Power Table" id="next5" style="float:right">Next: Power Table</a>
 
 
     </div>
   </div>
 
-  <div class="panel panel-default hidden" id="step6-content">
+  <div class="panel panel-default hidden" id="step5-content">
     <div class="panel-body">
       <div class="col-md-12">
         <p> Finally, this table is the data that is used for the power curves.  You see a overview of all possible sample sizes for the different MCP's and which power these have.</p>
@@ -249,7 +232,7 @@
       </div>
     </div><br><br>
        <!-- Next and previous buttons -->
-       <a class="btn btn-primary btn-lg step-button" text="Power Analysis" id="previous5" style="float:right">Previous: Power Analysis</a>
+       <a class="btn btn-primary btn-lg step-button" text="Power Analysis" id="previous4" style="float:right">Previous: Power Analysis</a>
 
   </div>
 </div>
