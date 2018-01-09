@@ -133,7 +133,6 @@ def textify_code(sid):
 
 
 def get_design_steps(template_page,sid):
-
     # template name, step class, and color
     pages = {"design/start.html": {"class":"overview","color":"#c9c4c5","enabled":"yes"},
              "design/input.html": {"class":"maininput","color":"#c9c4c5","enabled":"yes"},

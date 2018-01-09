@@ -15,7 +15,7 @@
 # It can also download a zip file from S3 and run a script from inside.
 # See below for usage instructions.
 
-export PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/conda/bin"
+export PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/conda/bin:$PATH"
 export PYTHONPATH="$PYTHONPATH:/opt/conda/lib/python2.7/site-packages"
 BASENAME="${0##*/}"
 

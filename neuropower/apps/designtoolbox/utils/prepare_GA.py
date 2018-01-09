@@ -2,18 +2,16 @@ import requests
 import os
 import shutil
 import json
-from django.conf import settings
-import encodings.idna
-
 import boto3
-import boto
+from django.conf import settings
+import xml.etree.cElementTree
 os.environ['http_proxy']=''
 import urllib
-from django.conf import settings
 from django.http import HttpResponseRedirect
 import numpy as np
 from ..models import DesignModel
 from .utils import *
+import encodings.idna
 
 def create_neurodesign_string(sid):
     desdata = DesignModel.objects.filter(SID=sid).last()
@@ -43,6 +41,8 @@ def create_neurodesign_string(sid):
 
     neurodesign_string = "import os \n" + \
     "if 'TASK_UID' in os.environ.keys(): \n" + \
+    "    import sys \n" + \
+    "    sys.path.append('/usr/local/bin/') \n" + \
     "    import geneticalgorithm \n" + \
     "else: \n" + \
     "    from neurodesign import geneticalgorithm, generate, msequence \n" + \
@@ -100,24 +100,9 @@ def write_neurodesign_script(sid):
     push_to_s3(filename,S3filename)
 
 def push_to_s3(filename,key):
-    # http://www.laurentluce.com/posts/upload-and-download-files-tofrom-amazon-s3-using-pythondjango/
-    import boto
-    from boto.s3.key import Key
-    # set boto lib debug to critical
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    # connect to the bucket
-    conn = boto.connect_s3(settings.AWS_ACCESS_KEY_ID,
-                    settings.AWS_SECRET_ACCESS_KEY)
-    bucket = conn.get_bucket(bucket_name)
-    # go through each version of the file
-    # create a key to keep track of our file in the storage
-    k = Key(bucket)
-    k.key = key
-    k.set_contents_from_filename(filename)
-    # we need to make it public so it can be accessed publicly
-    # using a URL like http://s3.amazonaws.com/bucket_name/key
-    k.make_public()
-    # remove the file from the web server
+    client = boto3.client('s3')
+    client.upload_file(filename,settings.AWS_STORAGE_BUCKET_NAME,key)
+    response = client.put_object_acl(ACL='public-read', Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=key)
     os.remove(filename)
 
 def submit_batch(sid):
@@ -159,9 +144,7 @@ def stop_job(sid):
     jobid = desdata.jobid
     client.terminate_job(jobId=jobid)
 
-def get_s3_url(filename):
-    conn = boto.connect_s3()
-    bucket = conn.get_bucket(settings.AWS_STORAGE_BUCKET_NAME)
-    s3_file_path = bucket.get_key(filename)
-    url = s3_file_path.generate_url(expires_in=600)
+def get_s3_url(key):
+    client = boto3.client('s3')
+    url = os.path.join(client.meta.endpoint_url,settings.AWS_STORAGE_BUCKET_NAME,key)
     return url

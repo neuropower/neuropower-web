@@ -164,5 +164,9 @@ class DesignModel(models.Model):
     email = models.CharField(default = "",max_length=500)
     outdes = models.IntegerField(default=1)
     jobid = models.CharField(default="",max_length=100)
+    timestart = models.CharField(default="",max_length=500)
+    timestamp = models.CharField(default="",max_length=500)
+    generation = models.IntegerField(default=0)
+    files = PickledObjectField(default = "")
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID

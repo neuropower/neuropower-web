@@ -20,9 +20,12 @@ RUN pip install django-storages
 ADD fetch_and_run.sh /usr/local/bin/fetch_and_run.sh
 
 # add local genetic algorithm
-RUN mkdir /usr/local/bin/neurodesign/
 ADD geneticalgorithm.py /usr/local/bin/
 
 ENV LD_LIBRARY_PATH=/opt/conda/lib:$LD_LIBRARY_PATH
+
+RUN pip install awscli==1.14.19
+#RUN chmod +x ~/.local/bin/aws
+#ENV PATH=/root/.local/bin:$PATH
 
 ENTRYPOINT ["/usr/local/bin/fetch_and_run.sh"]
