@@ -2,6 +2,7 @@
 import os
 import sys
 import encodings.idna
+import xml.etree.cElementTree
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.settings")
