@@ -34,7 +34,7 @@ MAILGUN_KEY = os.environ['MAILGUN_KEY']
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 LOCAL_DB = False
 
 ALLOWED_HOSTS = ['*','localhost']
