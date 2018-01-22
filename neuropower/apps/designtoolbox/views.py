@@ -135,10 +135,6 @@ def maininput(request):
             W = W / np.sum(W)
         weightsform.W = W
 
-        if not desdata.TR%desdata.resolution == 0:
-            resfact = np.ceil(desdata.TR/desdata.resolution)
-            weightsform.resolution = desdata.TR/resfact
-
         # get duration in seconds
         if desdata.duration_unitfree:
             if desdata.duration_unit == 2:
