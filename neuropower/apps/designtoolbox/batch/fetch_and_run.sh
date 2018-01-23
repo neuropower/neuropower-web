@@ -86,7 +86,7 @@ fetch_and_run_script () {
 
   # following lines are specifically for my application !
   tar -czvf /tmp/$TASK_UID.tar.gz /tmp/design_* /tmp/report.pdf
-  aws s3 cp --acl=public-read /tmp/$TASK_UID.tar.gz s3://joke-neuropower/$TASK_UID.tar.gz
+  aws s3 cp --acl=public-read /tmp/$TASK_UID.tar.gz s3://neuropower/$TASK_UID.tar.gz
 
 }
 
