@@ -109,7 +109,7 @@ def submit_batch(sid):
     filename = "%s.py"%sid
     response = client.submit_job(
         jobName = "neurodesign_%s"%sid,
-        jobQueue = 'neurodesign',
+        jobQueue = 'neuropower',
         jobDefinition = os.environ.get("AWS_BATCH_JOB_DEFINITION"),
         containerOverrides={
             'command':["%s.py"%sid],
