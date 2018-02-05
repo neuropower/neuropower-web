@@ -77,14 +77,8 @@ def probs_and_cons(sid):
         empty = True
     if empty == False:
         # correct for scale
-        if desdata.nested:
-            for cl in xrange(desdata.nest_classes):
-                ind = np.where(np.array(desdata.nest_structure)==(cl+1))[0].tolist()
-                P = [val*PG[cl] if id in ind else val for id,val in enumerate(P)]
-
-        else:
-            P = P/np.sum(P)
-            P = np.around(P.astype(np.double),2)
+        P = P/np.sum(P)
+        P = np.around(P.astype(np.double),2)
 
     ## to html
 
@@ -93,22 +87,6 @@ def probs_and_cons(sid):
 
     return {"C":C,"P":P,"Phtml":Phtml,"Chtml":Chtml,"empty":empty}
 
-def combine_nested(sid):
-    desdata = DesignModel.objects.filter(SID=sid).last()
-    empty = False
-
-    G = np.array(
-    [desdata.G0,desdata.G1,desdata.G2,desdata.G3,desdata.G4,desdata.G5,desdata.G6,desdata.G7,desdata.G8,desdata.G9]
-    )
-    G = G[:desdata.S]
-    if np.any(np.equal(G,None)):
-        empty = True
-
-    ## to html
-
-    Ghtml = "".join(["<tr><td>Stimulus "+str(d+1)+":&emsp;</td><td>"+str(G[d])+"</td></tr>" for d in range(len(G))])
-
-    return {"G":G,"Ghtml":Ghtml,"empty":empty}
 
 def weights_html(weights):
     html = [
