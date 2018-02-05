@@ -82,6 +82,7 @@ def create_neurodesign_string(sid):
     "    folder = '/tmp', \n " + \
     "    outdes = %s, \n " %desdata.outdes + \
     "    Aoptimality = %s, \n " %(True if desdata.Aoptimality == 1 else False) + \
+    "    optimisation = %s, \n " %('GA' if desdata.Optimisation == 1 else 'random') + \
     "    seed = seed \n " + \
     ") \n \n" + \
     "POP.naturalselection() \n" + \

@@ -145,6 +145,8 @@ class DesignModel(models.Model):
     Aoptimality = models.IntegerField(choices=Aoptimality_c,default=1)
     Saturation_c = ((1,"Saturation"),(2,"No Saturation"))
     Saturation = models.IntegerField(choices=Saturation_c,default=1)
+    Optimisation_c = ((1,"Genetic Algorithm"),(2,"Simulations"))
+    Optimisation = models.IntegerField(choices=Optimisation_c,default=1)
     resolution = models.FloatField(default=0.25)
     G = models.IntegerField(default=20)
     q = models.FloatField(default=0.01)

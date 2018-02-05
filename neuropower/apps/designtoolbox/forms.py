@@ -493,6 +493,7 @@ class DesignOptionsForm(forms.ModelForm):
         self.fields['conv_crit'].label = "Number of stable generations to reach convergence"
         self.fields['HardProb'].label = "Do you want a hard limit on the probabilities? (experimental)"
         self.fields['outdes'].label = 'How many designs do you want to get?'
+        self.fields['Optimisation'].label = "Do you want to optimise using the Genetic Algorithm or with random designs?"
 
     def clean(self):
         cleaned_data = super(DesignOptionsForm,self).clean()
@@ -509,7 +510,7 @@ class DesignOptionsForm(forms.ModelForm):
             Div(
             Div(Field('rho'),css_class='col-xs-12'),
             Div(Field('Aoptimality'),css_class='col-xs-12'),
-            #Div(Field('Saturation'),css_class='col-xs-12'),
+            Div(Field('Optimisation'),css_class='col-xs-12'),
             Div(Field('resolution'),css_class='col-xs-12'),
             Div(Field('outdes'),css_class='col-xs-12'),
             Div(Field('HardProb'),css_class='col-xs-4'),
