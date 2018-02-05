@@ -105,6 +105,7 @@ def push_to_s3(filename,key):
     os.remove(filename)
 
 def submit_batch(sid):
+    desdata = DesignModel.objects.filter(SID=sid).last()
     client = boto3.client('batch')
     filename = "%s.py"%sid
     response = client.submit_job(
@@ -166,6 +167,6 @@ def stop_job(sid):
     client.terminate_job(jobId=jobid,reason="User cancelled job.")
 
 def get_s3_url(key):
-    client = boto3.client('s3')
+    client = boto3.client('s3',region_name=os.environ.get("AWS_S3_REGION"))
     url = os.path.join(client.meta.endpoint_url,settings.AWS_STORAGE_BUCKET_NAME,key)
     return url
