@@ -12,6 +12,7 @@ from utils.prepare_GA import *
 from django.db.models import Q
 from datetime import datetime
 from utils.utils import *
+from copy import deepcopy
 from .models import *
 import datetime as dt
 from .forms import *
@@ -100,6 +101,8 @@ def maininput(request):
     context["steps"] = get_design_steps(template, sid)
 
     desdata = DesignModel.objects.filter(SID=sid).last()
+    if desdata == None:
+        desdata = DesignModel.create(sid)
 
     # Define form
 
@@ -116,94 +119,23 @@ def maininput(request):
         return render(request, template, context)
 
     else:
-
         # initial save
-
-        form = inputform.save(commit=False)
-        form.shareID = sid
-        form.SID = sid
-        form.step = 1
-        form.save()
+        desdata.SID = sid
+        desdata.step = 1
 
         # get data and change parameters
-
-        desdata = DesignModel.objects.filter(SID=sid).last()
-        weightsform = DesignWeightsForm(None, instance=desdata)
-        weightsform = weightsform.save(commit=False)
         W = np.array([desdata.W1, desdata.W2, desdata.W3, desdata.W4])
         if np.sum(W) != 1:
             W = W / np.sum(W)
-        weightsform.W = W
+        desdata.W = W
 
         # get duration in seconds
         if desdata.duration_unitfree:
             if desdata.duration_unit == 2:
-                weightsform.duration = desdata.duration_unitfree*60
+                desdata.duration = desdata.duration_unitfree*60
             elif desdata.duration_unit == 1:
-                weightsform.duration = desdata.duration_unitfree
-        weightsform.save()
-
-        if desdata.nested and desdata.nest_classes == None:
-            context['message'] = "For a nested design, please specify the number of classes."
-            context["inputform"] = inputform
-            return render(request, "design/input.html", context)
-
-        if desdata.nested:
-            return HttpResponseRedirect('../nested/')
-        else:
-            return HttpResponseRedirect('../consinput/')
-
-
-def nested(request):
-
-    # Get the template/step status
-
-    template = "design/nested.html"
-    context = {}
-
-    # Get the session ID and database entry
-
-    sid = get_session_id(request)
-    context["steps"] = get_design_steps(template, sid)
-
-    desdata = DesignModel.objects.filter(SID=sid).last()
-    if desdata == None:
-        return HttpResponseRedirect('../maininput/')
-
-    # Define form
-
-    nestedform = DesignNestedForm(
-        request.POST or None, instance=desdata, stim=desdata.S)
-    inputform = DesignMainForm(request.POST or None, instance=desdata)
-
-    # If page was result of POST or not valid: show form with db entries
-    # Else: go to next page
-
-    if not request.method == "POST" or not nestedform.is_valid():
-        context["nestedform"] = nestedform
-        return render(request, template, context)
-    else:
-        form = nestedform.save(commit=False)
-        form.SID = sid
-        form.save()
-
-        # get data and change parameters
-
-        matrices = combine_nested(sid)
-        if matrices['empty'] == True:
-            context['message'] = "Please fill out all stimuli"
-            context["nestedform"] = DesignNestedForm(
-                request.POST or None, instance=desdata, stim=desdata.S)
-            return render(request, "design/nested.html", context)
-        if np.max(matrices['G']) > desdata.nest_classes:
-            context['message'] = "There are more classes than was specified in the previous screen."
-            context["nestedform"] = DesignNestedForm(
-                request.POST or None, instance=desdata, stim=desdata.S)
-            return render(request, "design/nested.html", context)
-
-
-        form.nest_structure = matrices['G']
-        form.save()
+                desdata.duration = desdata.duration_unitfree
+        desdata.save()
 
         return HttpResponseRedirect('../consinput/')
 
@@ -223,46 +155,38 @@ def consinput(request):
     if desdata == None:
         return HttpResponseRedirect('../maininput/')
 
-    # Define form
-
-    # If page was result of POST or not valid: show form with db entries
-    # Else: go to next page
-
-    if desdata.nested == True:
-        a = np.array(['P0','P1','P2','P3','P4','P5','P6','P7','P8','P9'])
-        b = np.array(desdata.nest_structure)
-        Pmat = [a[b==(i+1)].tolist() for i in xrange(desdata.nest_classes)]
-        consform = DesignNestedConsForm(
-            request.POST or None, instance=desdata, stim=desdata.S, cons=desdata.Clen, structure=Pmat, classes=desdata.nest_structure)
-    else:
-        consform = DesignConsForm(
-            request.POST or None, instance=desdata, stim=desdata.S, cons=desdata.Clen)
+    consform = DesignConsForm(
+        request.POST or None, instance=desdata, stim=desdata.S, cons=desdata.Clen)
 
     if not request.method == "POST":
+
         context["consform"] = consform
         return render(request, template, context)
+
     else:
+
         form = consform.save(commit=False)
+        form.set=2
         form.SID = sid
-        form.step=2
         form.save()
 
         # get data and change parameters
 
-        consform = DesignProbsForm(None, instance=desdata)
-        consform = consform.save(commit=False)
-        matrices = probs_and_cons(sid)
+        matrices = probs_and_cons(desdata.SID)
+        print(desdata.SID)
+
         if matrices['empty'] == True:
             context['message'] = "Please fill out all probabilities and contrasts"
             context["consform"] = DesignConsForm(
                 request.POST or None, instance=desdata, stim=desdata.S, cons=desdata.Clen)
             return render(request, "design/cons.html", context)
-        consform.P = matrices['P']
-        consform.C = matrices['C']
+
+        desdata.P = matrices['P']
+        desdata.C = matrices['C']
         if desdata.HardProb == True:
-            consform.G = 200
-            consform.I = 100
-        consform.save()
+            desdata.G = 200
+            desdata.I = 100
+        desdata.save()
 
         return HttpResponseRedirect('../review/')
 
@@ -338,9 +262,8 @@ def review(request):
     if not request.method == "POST":
         return render(request, template, context)
     else:
-        form = revform.save(commit=False)
-        form.SID = sid
-        form.save()
+        desdata.SID = sid
+        desdata.save()
 
         return HttpResponseRedirect('../runGA/')
 
@@ -368,9 +291,8 @@ def options(request):
     if not request.method == "POST":
         return render(request, template, context)
     else:
-        form = opsform.save(commit=False)
-        form.SID = sid
-        form.save()
+        desdata.SID = sid
+        desdata.save()
         return HttpResponseRedirect('../review/')
 
 
@@ -390,8 +312,9 @@ def runGA(request):
 
     retrieve_id = request.GET.get('retrieve','')
     if retrieve_id:
-        desdata = DesignModel.objects.filter(shareID=retrieve_id).last()
-        desdata.SID=sid
+        desdata = DesignModel.objects.filter(shareID=retrieve_id).first()
+        desdata.SID = sid
+        desdata.save()
         context["steps"] = get_design_steps(template, sid)
     else:
         desdata = DesignModel.objects.filter(SID=sid).last()
@@ -494,6 +417,7 @@ def runGA(request):
                 form = runform.save(commit=False)
                 form.jobid = jobid
                 form.metrics = ""
+                form.shareID = sid
                 form.bestdesign = ""
                 form.running = 0
                 form.save()
@@ -504,14 +428,15 @@ def runGA(request):
                 return render(request, template, context)
 
 
-        # If request = download
         if request.POST.get("Code") == "Download script":
-            url = get_s3_url("%s.py"%sid)
+            desdata = DesignModel.objects.filter(SID=sid).last()
+            url = get_s3_url("%s.py"%desdata.shareID)
             return HttpResponseRedirect(url)
 
         # If request = download
         if request.POST.get("Download") == "Download optimal sequence":
-            url = get_s3_url("%s.tar.gz"%sid)
+            desdata = DesignModel.objects.filter(SID=sid).last()
+            url = get_s3_url("%s.tar.gz"%desdata.shareID)
             return HttpResponseRedirect(url)
 
     else:
