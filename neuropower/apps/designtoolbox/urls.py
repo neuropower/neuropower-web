@@ -7,7 +7,6 @@ urlpatterns = [
     url(r'^start/$',views.start,name='DStart'),
     url(r'^maininput/$',views.maininput,name='DMainInput'),
     url(r'^consinput/$',views.consinput,name='DConsInput'),
-    url(r'^nested/$',views.nested,name='DNested'),
     url(r'^review/$',views.review,name='DReview'),
     url(r'^runGA/(?P<retrieve>\w+)/$',views.runGA,name='DRunGA'),
     url(r'^runGA/$',views.runGA,name='DRunGA'),
