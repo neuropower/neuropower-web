@@ -26,7 +26,7 @@ class experiment(geneticalgorithm.experiment):
 class population(geneticalgorithm.population):
     def naturalselection(POP):
         sid = os.environ['TASK_UID']
-        desdata = DesignModel.objects.filter(SID=sid).last()
+        desdata = DesignModel.objects.filter(SID=sid).first()
         runform = DesignRunForm(None, instance=desdata)
         # send email
         subject = "NeuroDesign: optimisation process started"
@@ -48,7 +48,7 @@ class population(geneticalgorithm.population):
             POP.max_eff()
 
         if POP.weights[0] > 0:
-            desdata = DesignModel.objects.filter(SID=sid).last()
+            desdata = DesignModel.objects.filter(SID=sid).first()
             runform = DesignRunForm(None, instance=desdata)
             form = runform.save(commit=False)
             form.running = 2
@@ -62,7 +62,7 @@ class population(geneticalgorithm.population):
                 POP.to_next_generation(seed=POP.seed,weights=[1,0,0,0])
                 if generation % 10 == 10:
                     save_RDS(POP,sid,generation)
-                    desdata = DesignModel.objects.filter(SID=sid).last()
+                    desdata = DesignModel.objects.filter(SID=sid).first()
                     runform = DesignRunForm(None, instance=desdata)
                     form = runform.save(commit=False)
                     form.timestamp = str(datetime.now())
@@ -73,7 +73,7 @@ class population(geneticalgorithm.population):
             POP.exp.FeMax = np.max(POP.bestdesign.F)
 
         if POP.weights[1] > 0:
-            desdata = DesignModel.objects.filter(SID=sid).last()
+            desdata = DesignModel.objects.filter(SID=sid).first()
             runform = DesignRunForm(None, instance=desdata)
             form = runform.save(commit=False)
             form.running = 3
@@ -89,7 +89,7 @@ class population(geneticalgorithm.population):
                 POP.to_next_generation(seed=POP.seed,weights=[0,1,0,0])
                 if generation % 10 == 0:
                     save_RDS(POP,sid,generation)
-                    desdata = DesignModel.objects.filter(SID=sid).last()
+                    desdata = DesignModel.objects.filter(SID=sid).first()
                     runform = DesignRunForm(None, instance=desdata)
                     form = runform.save(commit=False)
                     form.timestamp = str(datetime.now())
@@ -104,7 +104,7 @@ class population(geneticalgorithm.population):
         POP.add_new_designs()
 
         # loop
-        desdata = DesignModel.objects.filter(SID=sid).last()
+        desdata = DesignModel.objects.filter(SID=sid).first()
         runform = DesignRunForm(None, instance=desdata)
         form = runform.save(commit=False)
         form.running = 4
@@ -116,7 +116,7 @@ class population(geneticalgorithm.population):
             print("optimisation for sid "+str(sid)+": generation "+str(generation))
             if generation % 10 == 0:
                 save_RDS(POP,sid,generation)
-                desdata = DesignModel.objects.filter(SID=sid).last()
+                desdata = DesignModel.objects.filter(SID=sid).first()
                 runform = DesignRunForm(None, instance=desdata)
                 form = runform.save(commit=False)
                 form.timestamp = str(datetime.now())
@@ -133,7 +133,7 @@ def save_RDS(POP,sid,generation):
     while desdata == None or tries < 5:
         tries += 1
         try:
-            desdata = DesignModel.objects.filter(SID=sid).last()
+            desdata = DesignModel.objects.filter(SID=sid).first()
         except OperationalError or ObjectDoesNotExist or DatabaseError:
             return None
 
