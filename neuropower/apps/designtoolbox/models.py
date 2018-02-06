@@ -6,16 +6,27 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 class DesignModel(models.Model):
+    # flow variables
     SID = models.CharField(max_length=300,default="")
     step = models.IntegerField(default=0,null=True,blank=True)
     shareID = models.CharField(max_length=300,default="")
-    zip_filename = models.CharField(max_length=300,default="")
-    zipfile = PickledObjectField(default="")
     taskstatus = models.IntegerField(default=0)
     running = models.IntegerField(default=0)
-    finished = models.BooleanField(default=False)
     taskID = models.CharField(max_length=300,default="")
     cmd = models.CharField(max_length=10000,default="")
+    metrics = PickledObjectField(default = "")
+    bestdesign = PickledObjectField(default = "")
+    conv_crit = models.IntegerField(default=1000)
+    convergence = models.BooleanField(default = False)
+    name = models.CharField(default = "",max_length=500)
+    email = models.CharField(default = "",max_length=500)
+    outdes = models.IntegerField(default=1)
+    jobid = models.CharField(default="",max_length=100)
+    timestart = models.CharField(default="",max_length=500)
+    timestamp = models.CharField(default="",max_length=500)
+    generation = models.IntegerField(default=0)
+
+    # design options
     ITImodel = models.IntegerField(choices=((1,'fixed'),(2,'truncated exponential'),(3,'uniform')),default=3)
     ITIfixed = models.FloatField(default=None, null=True, blank=True)
     ITIunifmin = models.FloatField(default=None, null=True, blank=True)
@@ -34,10 +45,6 @@ class DesignModel(models.Model):
     stim_duration = models.FloatField(default=1,null=True,blank=True)
     t_prestim = models.FloatField(default=0)
     t_poststim = models.FloatField(default=0)
-    nested = models.BooleanField(default=False)
-    nest_classes = models.IntegerField(null=True, blank=True)
-    nest_symmetry = models.BooleanField(default=False)
-    nest_structure = PickledObjectField(default="")
     Call = models.BooleanField(default=False)
     Clen = models.IntegerField(default=0,null=True, blank=True)
     RestNum = models.IntegerField(default=0,null=True,blank=True)
@@ -138,6 +145,8 @@ class DesignModel(models.Model):
     Aoptimality = models.IntegerField(choices=Aoptimality_c,default=1)
     Saturation_c = ((1,"Saturation"),(2,"No Saturation"))
     Saturation = models.IntegerField(choices=Saturation_c,default=1)
+    Optimisation_c = ((1,"Genetic Algorithm"),(2,"Simulations"))
+    Optimisation = models.IntegerField(choices=Optimisation_c,default=1)
     resolution = models.FloatField(default=0.25)
     G = models.IntegerField(default=20)
     q = models.FloatField(default=0.01)
@@ -147,24 +156,11 @@ class DesignModel(models.Model):
     ConfoundOrder = models.IntegerField(default=3)
     MaxRepeat = models.IntegerField(default=6,validators=[MinValueValidator(3)])
     HardProb = models.BooleanField(default=False)
-    metrics = PickledObjectField(default = "")
-    bestdesign = PickledObjectField(default = "")
-    files = PickledObjectField(default = "")
-    onsets_folder = PickledObjectField(default="")
-    design_suffix = PickledObjectField(default="")
-    mainpars = models.NullBooleanField(default=False)
-    conpars = models.NullBooleanField(default=False)
-    nestpars = models.NullBooleanField(default=False)
-    local_folder = PickledObjectField(default="")
-    codefile = PickledObjectField(default="")
-    codefilename = PickledObjectField(default="")
-    conv_crit = models.IntegerField(default=1000)
-    convergence = models.BooleanField(default = False)
-    name = models.CharField(default = "",max_length=500)
-    email = models.CharField(default = "",max_length=500)
-    outdes = models.IntegerField(default=1)
-    timestart = models.CharField(default="",max_length=500)
-    timestamp = models.CharField(default="",max_length=500)
-    generation = models.IntegerField(default=0)
+
     def __unicode__(self): # Python 3: __str__
         return "<DesignModel:%s>" %self.SID
+
+    @classmethod
+    def create(cls,SID):
+        desdata = cls(SID=SID)
+        return desdata

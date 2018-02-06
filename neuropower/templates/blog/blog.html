@@ -1,0 +1,56 @@
+{% extends 'main/base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+  NeuroPower | {{block.super}}
+{% endblock %}
+
+{% block navbar %}
+{% include 'main/navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+    <h2>Tips and Tricks</h2>
+    <br>
+    <p>I'm a psychologist and a statistician.  However, the past years, informatics have become more and more important for my research.  I'm analysing huge amounts of data on cluster computers.  And with the neuropowertools, I've learned to create both back-end and front-end programming.  During this learning process, I relied very much on online resources.  Which means: google, stack overflow, google, blogs,...  So many people have helped me becoming a semi-informatician without even knowing.  It's now time to pass it forward.  On this page, I'll try to post from time to time little tips and tricks that made my life as a scientist easier.
+      <br>
+
+    <h4>Chapter 1. Interactive high-performance computing with screen</h4>
+    <br>
+    <h5>Catching a small bug in a long script</h5>
+    <p>This one is for those of you who rely on high performance computing for their research !  I recently discovered a few commands that make life really easy.  My first steps to a data scientist were made with R.  As a consequence, I still like writing all my programs interactively: first line by line.  Once I get through a program without errors/bugs, I submit a job on the HPC.  However, most of my programs are statistical analyses, so often I have to deal with <b>ALL THE RANDOMNESS !</b> For example: I run thousands of simulations in a loop for multiple hours or days, and somewhere there is a bug.  Aarghhh!! </p>
+    <p>Now there are multiple solutions:</p>
+    <ul>
+      <li> For a short program, you can rerun the job interactively.  As such, I'll have the whole environment when the error was caught, and I can do some trial-and-error to fix it.</li>
+      <li> For a longer program, it's advisable to set random seeds for every random choice and after the job check the logs, check the seed at which the error occurs and reproduce the error.  This is definitely the best choice !</li>
+      <li>However, sometimes none of those two work.  Running a long interactive job is difficult on a cluster computer if you're on the go (I take my laptop everywhere I go, so I can't stay connected).  Also, it's a difficult bug to catch and you don't want to re-run multiple times a 20-hour job.  Basically: I want an semi-interactive session : I want the job to run as far as possible, and when it stops, I want to be able to login to the session and fix it.  This is what I'm going to do here !</li>
+    </ul>
+
+    <pre>
+    <code> [joke@mycomputer ~] ssh joke@othercomputer </code>
+    <code> [joke@othercomputer ~] screen </code>
+    <code> [joke@othercomputer ~] srun --time=20:00:00 bash </code>
+    <code> [joke@computenode ~] python -i myprogram.py </code>
+    <code> [Control-A-D] </code>
+    <code> [joke@othercomputer ~] exit </code>
+  </pre>
+    <p> When I get home in the evening:</p>
+    <pre>
+    <code> [joke@mycomputer ~] ssh joke@othercomputer </code>
+    <code> [joke@othercomputer ~] screen -list </code>
+    <code>
+      There are screens on:
+            8502.pts-103.othercomputer     (Detached)
+          </code>
+    <code> [joke@othercomputer ~] screen -r 8502 </code>
+    <code> [joke@computenode ~]  Error !! Message about the error</code>
+    <code> [joke@computenode ~] >> </code>
+  </pre>
+  </div>
+  <div class="col-md-2"></div>
+</div>
+{% endblock %}

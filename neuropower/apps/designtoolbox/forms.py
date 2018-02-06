@@ -323,52 +323,6 @@ class DesignMainForm(forms.ModelForm):
         )
     )
 
-class DesignNestedForm(forms.ModelForm):
-    class Meta:
-        model = DesignModel
-        fields = ['G0','G1','G2','G3','G4','G5','G6','G7','G8','G9']
-
-    def __init__(self,*args,**kwargs):
-
-        self.stim = kwargs.pop('stim')
-
-        self.helper = FormHelper()
-        self.helper.form_method = 'POST'
-        self.helper.field_class = 'col-lg-12'
-        self.helper.label_class = 'col-lg-12'
-
-        if self.stim<6:
-            cssclass = "col-xs-"+str(int(np.floor(12/self.stim)))
-        else:
-            cssclass = "col-xs-"+str(int(np.floor(12/5)))
-        fieldsP = ['G0','G1','G2','G3','G4','G5','G6','G7','G8','G9']
-
-        self.helper.layout = Layout(Fieldset("Contrasts and probabilities"))
-
-        self.helper.layout.append(
-            HTML('<h5>In which classes are stimuli be grouped (1,2,...) </h5><br>')
-            )
-
-        for indf,field in enumerate(fieldsP):
-            self.helper.layout.append(
-                Div(Field(field,type='hidden' if indf>=self.stim else None),css_class=cssclass)
-                )
-
-        # finalise layout: submit FormActions
-
-        self.helper.layout.append(
-            HTML("<br><br><br><br>")
-            )
-        self.helper.layout.append(
-            FormActions(Submit('Submit', 'Save and next', css_class='btn-secondary'))
-            )
-        super(DesignNestedForm,self).__init__(*args,**kwargs)
-
-
-    def clean(self):
-        cleaned_data = super(DesignNestedForm,self).clean()
-
-
 class DesignConsForm(forms.ModelForm):
     class Meta:
         model = DesignModel
@@ -497,188 +451,6 @@ class DesignConsForm(forms.ModelForm):
         cleaned_data = super(DesignConsForm,self).clean()
         return cleaned_data
 
-class DesignNestedConsForm(forms.ModelForm):
-    class Meta:
-        model = DesignModel
-        fields = ['P0','P1','P2','P3','P4','P5','P6','P7','P8','P9',
-        'PG0','PG1','PG2','PG3','PG4','PG5','PG6','PG7','PG8','PG9',
-        'C00','C01','C02','C03','C04','C05','C06','C07','C08','C09',
-        'C10','C11','C12','C13','C14','C15','C16','C17','C18','C19',
-        'C20','C21','C22','C23','C24','C25','C26','C27','C28','C29',
-        'C30','C31','C32','C33','C34','C35','C36','C37','C38','C39',
-        'C40','C41','C42','C43','C44','C45','C46','C47','C48','C49','HardProb','G','I'
-        ]
-
-    def __init__(self,*args,**kwargs):
-
-        # extract arguments for shape of form
-
-        self.stim = kwargs.pop('stim')
-        self.cons = kwargs.pop('cons')
-        self.structure = kwargs.pop('structure')
-        self.classes = kwargs.pop('classes')
-
-        # add helper for layout of form
-
-        self.helper = FormHelper()
-        self.helper.form_method = 'POST'
-        self.helper.field_class = 'col-lg-12'
-        self.helper.label_class = 'col-lg-12'
-        self.helper.layout = Layout(Fieldset("Contrasts and probabilities"))
-
-        # define iterable fields and compute width of each box
-        if self.stim<6:
-            cssclass = "col-xs-"+str(int(np.floor(12/self.stim)))
-        else:
-            cssclass = "col-xs-"+str(int(np.floor(12/5)))
-
-        fields = [['C00','C01','C02','C03','C04','C05','C06','C07','C08','C09'],
-            ['C10','C11','C12','C13','C14','C15','C16','C17','C18','C19'],
-            ['C20','C21','C22','C23','C24','C25','C26','C27','C28','C29'],
-            ['C30','C31','C32','C33','C34','C35','C36','C37','C38','C39'],
-            ['C40','C41','C42','C43','C44','C45','C46','C47','C48','C49']]
-        fieldsPG = ['PG0','PG1','PG2','PG3','PG4','PG5','PG6','PG7','PG8','PG9']
-        fieldsP = ['P0','P1','P2','P3','P4','P5','P6','P7','P8','P9']
-
-        # add layout: probabilities
-
-        self.helper.layout.append(
-            Div(
-            Field('G',type='hidden'),
-            Field('I',type='hidden'),
-            css_class=cssclass)
-            )
-
-        self.helper.layout.append(
-            Div(Field("conpars",type='hidden'),css_class=cssclass)
-            )
-
-        self.helper.layout.append(
-            HTML('<h5> What are the probabilities (or relative frequencies) for each stimulus type? </h5><p>The probabilities for each stimulus should be specified within each class of stimuli.  Ideally, the probabilities sum to 1 within each class (or the should be relative to each other within the class).<p><br>')
-            )
-
-        for indl in xrange(10): # loop over lines (contrasts)
-
-            # titles
-            if indl>0 and indl<len(self.structure):
-                self.helper.layout.append(HTML("<br><br><br><br>"))
-            # self.helper.layout.append(
-            #     HTML('<h6> Probability for class %s (C%s)</h6>'%(indl+1,indl+1))
-            #     )
-            self.helper.layout.append(
-                Div(Field(fieldsPG[indl],type='hidden' if indl>= len(self.structure) else None),css_class="col-sm-5")
-                )
-
-            # fields
-            if indl<len(self.structure):
-                for indf,field in enumerate(self.structure[indl]): # loop over fields (stimuli)
-                    self.helper.layout.append(
-                        Div(
-                            Field(field),
-                            css_class="col-sm-3"
-                            )
-                        )
-
-        Pflat = [item for sublist in self.structure for item in sublist]
-        Pnot = [val for val in fieldsP if not val in Pflat]
-        for field in Pnot:
-            self.helper.layout.append(
-                Div(Field(field,type='hidden'),css_class="col-xs-1")
-                )
-
-        for ind in xrange(len(self.structure)):
-            self.helper.layout.append(HTML("<br><br>"))
-
-        # hard limit
-        self.helper.layout.append(
-            HTML('<h5> Do you want a hard limit on those probabilities? </h5><br><p>Check if you want to preserve the probabilities exactly.  This largely restricts the possibilities to search over, so the optimisation will take (a lot) longer.</p>')
-            )
-
-        self.helper.layout.append(
-            Div(
-            Div(Field('HardProb'),css_class='col-lg-3 col-sm-12'),
-            css_class='row-md-12 col-xs-12'
-            )
-            )
-
-
-        # add layout: contrasts
-
-        if self.cons>0:
-            self.helper.layout.append(
-                HTML('<br><br><br><br><br>')
-                )
-            self.helper.layout.append(
-                HTML('''<h5> What are the specific contrasts that will be tested? </h5><br>
-                <p>If the contrast sums to 0, you will model the difference between stimuli.  Examples with 3 stimulus types:</p>
-                <ul>
-                <li>The contrast [1 0 -1] will model the difference between stimulus type 1 and stimulus type 3.</li>
-                <li>The contrast [1 -0.5 -0.5] will model the difference between stimulus type 1 and the average of stimulus type 2 and 3.</li>
-                </ul>
-                <p>If the contrast sums to 1, you will model the main effect of a certain stimulus.  Examples with 3 stimulus types:</p>
-                <ul>
-                <li>The contrast [1 0 0] will model the main effect of stimulus type 1 (vs. baseline). </li>
-                <li>The contrast [0.33,0.33,0.33] will model the average effect of all stimulus types versus baseline.  (don't worry that they don't exactly sum to 1, this will be rescaled)</li>
-                </ul><br><br><br>
-                ''')
-                )
-
-        for indl,line in enumerate(fields): # loop over lines (contrasts)
-
-            # titles
-            if indl<self.cons:
-                if indl>0:
-                    self.helper.layout.append(HTML("<br><br><br><br>"))
-                self.helper.layout.append(
-                    HTML('<h6> Contrast %s </h6>'%(indl+1))
-                    )
-
-            # fields
-            for indf,field in enumerate(fields[indl]): # loop over fields (stimuli)
-                self.helper.layout.append(
-                    Div(
-                        Field(field,type='hidden' if indf>=self.stim or indl>=self.cons else None),
-                        css_class=cssclass
-                        )
-                    )
-
-        # finalise layout: submit FormActions
-
-        self.helper.layout.append(
-            HTML("<br><br><br><br>")
-            )
-        self.helper.layout.append(
-            FormActions(Submit('Submit', 'Save and next', css_class='btn-secondary'))
-            )
-
-        # initiate the form
-
-        super(DesignNestedConsForm,self).__init__(*args,**kwargs)
-
-        # only labels for the fields from the probabilities
-
-        s = 0
-        for ind,field in enumerate(self.fields.keys()):
-            s = s+1
-            snew = "Class "+str(int(self.classes[s-1]))+" - Stim "+str(s) if s<(len(self.classes)+1) else ""
-            self.fields[field].label=snew
-
-        s = 0
-        for ind in np.arange(10,20):
-            s = s+1
-            snew = "Class "+str(int(s))+" probabilities" if s<(len(self.classes)+1) else ""
-            self.fields[self.fields.keys()[ind]].label=snew
-
-        s = 0
-        for ind in np.arange(20,30):
-            s = s+1
-            snew = "C"+str(int(self.classes[s-1]))+" - S"+str(s) if s<(len(self.classes)+1) else ""
-            self.fields[self.fields.keys()[ind]].label=snew
-
-
-    def clean(self):
-        cleaned_data = super(DesignNestedConsForm,self).clean()
-        return cleaned_data
 
 class DesignReviewForm(forms.ModelForm):
     class Meta:
@@ -702,34 +474,10 @@ class DesignReviewForm(forms.ModelForm):
         HTML("""<br><br><br><br><br>"""),
         )
 
-class DesignWeightsForm(forms.ModelForm):
-    class Meta:
-        model = DesignModel
-        fields = '__all__'
-
-    def __init__(self,*args,**kwargs):
-        super(DesignWeightsForm,self).__init__(*args,**kwargs)
-
-    def clean(self):
-        cleaned_data = super(DesignWeightsForm,self).clean()
-        return cleaned_data
-
-class DesignProbsForm(forms.ModelForm):
-    class Meta:
-        model = DesignModel
-        fields = '__all__'
-
-    def __init__(self,*args,**kwargs):
-        super(DesignProbsForm,self).__init__(*args,**kwargs)
-
-    def clean(self):
-        cleaned_data = super(DesignProbsForm,self).clean()
-        return cleaned_data
-
 class DesignOptionsForm(forms.ModelForm):
     class Meta:
         model = DesignModel
-        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles','conv_crit','HardProb','outdes']
+        fields = ['rho','Aoptimality','resolution','G','q','I','cycles','preruncycles','conv_crit','HardProb','outdes','Optimisation']
 
     def __init__(self,*args,**kwargs):
         super(DesignOptionsForm,self).__init__(*args,**kwargs)
@@ -745,6 +493,7 @@ class DesignOptionsForm(forms.ModelForm):
         self.fields['conv_crit'].label = "Number of stable generations to reach convergence"
         self.fields['HardProb'].label = "Do you want a hard limit on the probabilities? (experimental)"
         self.fields['outdes'].label = 'How many designs do you want to get?'
+        self.fields['Optimisation'].label = "Do you want to optimise using the Genetic Algorithm or with random designs?"
 
     def clean(self):
         cleaned_data = super(DesignOptionsForm,self).clean()
@@ -761,7 +510,7 @@ class DesignOptionsForm(forms.ModelForm):
             Div(
             Div(Field('rho'),css_class='col-xs-12'),
             Div(Field('Aoptimality'),css_class='col-xs-12'),
-            #Div(Field('Saturation'),css_class='col-xs-12'),
+            Div(Field('Optimisation'),css_class='col-xs-12'),
             Div(Field('resolution'),css_class='col-xs-12'),
             Div(Field('outdes'),css_class='col-xs-12'),
             Div(Field('HardProb'),css_class='col-xs-4'),
@@ -805,27 +554,6 @@ class DesignRunForm(forms.ModelForm):
     helper.label_class = 'col-lg-12'
     helper.add_input(Submit('GA','Run',css_class=".btn-stanford"))
     helper.add_input(Submit('GA','Stop',css_class=".btn-stanford"))
-
-
-class DesignSureForm(forms.ModelForm):
-    class Meta:
-        model = DesignModel
-        fields = []
-
-    def __init__(self,*args,**kwargs):
-        super(DesignSureForm,self).__init__(*args,**kwargs)
-
-    def clean(self):
-        cleaned_data = super(DesignSureForm,self).clean()
-        return cleaned_data
-
-    helper = FormHelper()
-    helper.form_method = 'POST'
-    helper.field_class = 'col-lg-12'
-    helper.label_class = 'col-lg-12'
-    helper.layout = Layout(
-        FormActions(Submit('Sure', "I'm sure about this", css_class='btn-alert')),
-        )
 
 
 class DesignRetrieveForm(forms.ModelForm):

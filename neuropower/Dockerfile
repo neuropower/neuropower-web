@@ -1,18 +1,61 @@
-FROM oesteban/crn_nipype:freesurfer
+# Use Ubuntu 16.04 LTS
+FROM ubuntu:xenial-20161213
 
-# Update packages and install the minimal set of tools
+# Pre-cache neurodebian key
+COPY docker/neurodebian.gpg /root/.neurodebian.gpg
+
+# Prepare environment
 RUN apt-get update && \
-    apt-get dist-upgrade -y && \
-    apt-get install -y curl git xvfb bzip2 apt-utils
-ENV LANG C.UTF-8
+    apt-get install -y --no-install-recommends \
+                    curl \
+                    bzip2 \
+                    ca-certificates \
+                    xvfb \
+                    build-essential \
+                    autoconf \
+                    libtool \
+                    pkg-config && \
+    curl -sSL http://neuro.debian.net/lists/xenial.us-ca.full >> /etc/apt/sources.list.d/neurodebian.sources.list && \
+    apt-key add /root/.neurodebian.gpg && \
+    (apt-key adv --refresh-keys --keyserver hkp://ha.pool.sks-keyservers.net 0xA5D32F012649A5A9 || true) && \
+    apt-get update
 
-# Install conda
-RUN conda install nose && \
-    conda install numpy && \
-    conda install scipy && \
-    conda install pandas && \
-    conda install matplotlib && \
-    conda install xvfbwrapper
+ENV FSL_DIR=/usr/share/fsl/5.0 \
+    OS=Linux \
+    FS_OVERRIDE=0 \
+    FIX_VERTEX_AREA= \
+    FSF_OUTPUT_FORMAT=nii.gz
+
+# Installing Neurodebian packages (FSL, AFNI, git)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+                    fsl-core=5.0.9-4~nd16.04+1 \
+                    fsl-mni152-templates=5.0.7-2
+
+ENV FSLDIR=/usr/share/fsl/5.0 \
+    FSLOUTPUTTYPE=NIFTI_GZ \
+    LD_LIBRARY_PATH=/usr/lib/fsl/5.0:$LD_LIBRARY_PATH
+ENV PATH=/usr/lib/fsl/5.0:$PATH
+
+RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
+    apt-get install wget && \
+    wget --quiet https://repo.continuum.io/miniconda/Miniconda2-4.3.31-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh
+
+ENV PATH /opt/conda/bin:$PATH
+
+RUN conda config --add channels conda-forge
+
+RUN conda install numpy=1.12.0 && \
+    conda install scipy=0.18.1 && \
+    conda install pandas=0.19.2 && \
+    conda install matplotlib=2.0.0
+
+ENV LD_LIBRARY_PATH=/opt/conda/lib:$LD_LIBRARY_PATH
+
+# Clear apt cache to reduce image size
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mkdir /code
 
@@ -21,44 +64,17 @@ ADD requirements.txt /code/
 
 RUN conda install psycopg2 mpld3==0.2 scikit-learn==0.17.1 cycler && \
   apt-get update && \
-  apt-get install -y build-essential && \
-  curl https://bootstrap.pypa.io/ez_setup.py -o - | python && \
-  pip install -r requirements.txt && \
-  apt-get install -y libglib2.0-0 && \
-  apt-get install -y libfreetype6-dev libxft-dev && \
   conda install uwsgi && \
-  conda install Jinja2
+  conda install Jinja2 && \
+  conda install celery && \
+  conda install SQLAlchemy && \
+  conda install django-celery
 
-RUN conda install celery
-RUN conda install SQLAlchemy
-RUN pip install neuropower
-RUN conda install django-celery
-RUN pip install opbeat
-RUN pip install django
-RUN pip install django-crispy-forms
-RUN pip install django-secure
-RUN pip install django-sslserver
-RUN pip install django-storages
-RUN pip install boto
-RUN pip install psycopg2
-RUN pip install django-picklefield
-RUN pip install palettable
-RUN pip install mpld3
-RUN pip install jinja2
-RUN pip install sklearn
-RUN pip install nilearn
-RUN pip install sqlalchemy
-RUN pip install kombu
-RUN pip install redis && \
-    pip install celery[redis]
-RUN pip install progressbar
-RUN pip install reportlab
-RUN pip install seaborn
-RUN pip install pdfrw
-RUN pip install boto3
-
-RUN pip install neurodesign > 0.1.5
-RUN pip install django-cors-headers
+RUN pip install -r requirements.txt
+RUN pip install awscli --upgrade --user
 
 # Clear apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+ENV PATH=~/.local/bin:$PATH
+ENV PATH=/usr/lib/python2.7:$PATH
