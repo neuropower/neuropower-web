@@ -31,7 +31,7 @@ kombu==3.0.34
 MarkupSafe==0.23
 mpld3
 neuropower==0.2.2
-neurodesign == 0.1.7
+neurodesign == 0.1.11
 nibabel==2.0.2
 nilearn==0.2.2
 opbeat==3.3
