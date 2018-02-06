@@ -1,8 +1,12 @@
 FROM neuropower/neurodesign
 MAINTAINER Joke Durnez <joke.durnez@gmail.com>
 
-# get neuropower from github repo
+RUN apt-get update && \
+    apt-get install -y libgl1-mesa-glx && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+
+# get neuropower from github repo
 RUN apt-get install git
 WORKDIR /tmp
 RUN git clone -b awsbatch https://github.com/neuropower/neuropower-web.git
