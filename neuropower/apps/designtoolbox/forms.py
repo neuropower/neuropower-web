@@ -88,8 +88,8 @@ class DesignMainForm(forms.ModelForm):
 
         if cleaned_data.get("MaxRepeat") < 4:
                 raise forms.ValidationError("It will be hard to avoid designs with a stimulus type repeated maximum 4 times.  In that case you might better manually design the experiment, rather than using an optimiser.")
-                
-        if cleaned_data.get("MaxRepeat") < 8 and (cleaned_data.get("S")<3 or clenaed_data.get("L")>100 or cleaned_data.get("duration")>600):
+
+        if cleaned_data.get("MaxRepeat") < 8 and (cleaned_data.get("S")<3 or claened_data.get("L")>100 or cleaned_data.get("duration")>600):
                 raise forms.ValidationError("It will be hard to avoid designs with a stimulus type repeated maximum 8 given that you're looking for a longer design or one with fewer stimulus types.  In that case you might better manually design the experiment, rather than using an optimiser.")
 
         if cleaned_data.get("ITImean") > 50:
