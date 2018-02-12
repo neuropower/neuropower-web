@@ -86,6 +86,15 @@ class DesignMainForm(forms.ModelForm):
         if cleaned_data.get("ITImodel") == 3 and (cleaned_data.get("ITIunifmin")==None or cleaned_data.get("ITIunifmax")==None):
                 raise forms.ValidationError("For ITI's sampled from a uniform distribution, please fill out the min and max.")
 
+        if cleaned_data.get("MaxRepeat") < 4:
+                raise forms.ValidationError("It will be hard to avoid designs with a stimulus type repeated maximum 4 times.  In that case you might better manually design the experiment, rather than using an optimiser.")
+                
+        if cleaned_data.get("MaxRepeat") < 8 and (cleaned_data.get("S")<3 or clenaed_data.get("L")>100 or cleaned_data.get("duration")>600):
+                raise forms.ValidationError("It will be hard to avoid designs with a stimulus type repeated maximum 8 given that you're looking for a longer design or one with fewer stimulus types.  In that case you might better manually design the experiment, rather than using an optimiser.")
+
+        if cleaned_data.get("ITImean") > 50:
+                raise forms.ValidationError("Are you sure about that ITI?  That looks too long.  Don't forget it's in seconds.")
+
         # if cleaned_data.get("ITImin")==None and cleaned_data.get("ITImax")==None and cleaned_data.get("ITImean")==None:
         #     raise forms.ValidationError("You need to specify at least either a range of ITI, or the average (fixed) ITI.")
         #
