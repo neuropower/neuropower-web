@@ -184,7 +184,7 @@ STATIC_ROOT = '/var/www/static/'
 
 MEDIA_URL= "https://%s/" % AWS_S3_CUSTOM_DOMAIN
 MEDIA_ROOT='/'
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3BotoStorage'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Celery config
 
