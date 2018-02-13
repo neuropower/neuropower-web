@@ -43,10 +43,11 @@ def create_neurodesign_string(sid):
     "if 'TASK_UID' in os.environ.keys(): \n" + \
     "    import sys \n" + \
     "    sys.path.append('/usr/local/bin/') \n" + \
-    "    import geneticalgorithm \n" + \
+    "    from neurodesign import experiment, optimisation \n" + \
+    "     \n" + \
     "else: \n" + \
-    "    from neurodesign import geneticalgorithm, generate, msequence \n" + \
-    "EXP = geneticalgorithm.experiment( \n" + \
+    "    from neurodesign import experiment, optimisation \n" + \
+    "EXP = experiment( \n" + \
     "    TR = %s, \n " %desdata.TR + \
     "    n_trials = %s, \n " %desdata.L + \
     "    P = %s, \n " %matrices['P'].tolist() + \
@@ -69,7 +70,7 @@ def create_neurodesign_string(sid):
     "    t_post = %s, \n" %desdata.t_poststim + \
     ") \n \n" + \
     "seed = %s \n" %np.random.randint(10000) + \
-    "POP = geneticalgorithm.population( \n" + \
+    "POP = optimisation( \n" + \
     "    experiment = EXP, \n " + \
     "    G = %s, \n " %desdata.G + \
     "    R = %s, \n " %R + \
