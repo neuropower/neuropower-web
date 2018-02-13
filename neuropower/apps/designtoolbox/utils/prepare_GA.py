@@ -86,7 +86,7 @@ def create_neurodesign_string(sid):
     "    optimisation = '%s', \n " %('GA' if desdata.Optimisation == 1 else 'simulation') + \
     "    seed = seed \n " + \
     ") \n \n" + \
-    "POP.naturalselection() \n" + \
+    "POP.optimise() \n" + \
     "POP.download()"
 
     return neurodesign_string
