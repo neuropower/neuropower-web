@@ -5,7 +5,7 @@ sys.path.append('/tmp/neuropower-web/neuropower')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings.settings'
 django.setup()
 
-from neurodesign import geneticalgorithm, generate, msequence, report
+from neurodesign import design, experiment, population, generate, msequence, report
 from sqlalchemy.exc import OperationalError, DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 from apps.designtoolbox.forms import DesignRunForm
@@ -15,16 +15,16 @@ from celery import task, Celery
 from datetime import datetime
 import numpy as np
 
-class design(geneticalgorithm.design):
+class design(design):
     def no_func():
         return 0
 
-class experiment(geneticalgorithm.experiment):
+class experiment(experiment):
     def no_func():
         return 0
 
-class population(geneticalgorithm.population):
-    def naturalselection(POP):
+class population(population):
+    def optimise(POP):
         sid = os.environ['TASK_UID']
         desdata = DesignModel.objects.filter(SID=sid).first()
         runform = DesignRunForm(None, instance=desdata)
