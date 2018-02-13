@@ -24,7 +24,7 @@ RUN pip install django-storages
 ADD fetch_and_run.sh /usr/local/bin/fetch_and_run.sh
 
 # add local genetic algorithm
-ADD geneticalgorithm.py /usr/local/bin/
+ADD neurodesign.py /usr/local/bin/
 
 ENV LD_LIBRARY_PATH=/opt/conda/lib:$LD_LIBRARY_PATH
 
