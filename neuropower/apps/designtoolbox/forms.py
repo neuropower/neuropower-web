@@ -104,6 +104,9 @@ class DesignMainForm(forms.ModelForm):
         if (cleaned_data.get("RestNum")>0 and cleaned_data.get("RestDur")==0):
             raise forms.ValidationError("You wanted restblocks but you didn't specify their duration.")
 
+        if (cleaned_data.get("stim_duration")==None):
+            raise forms.ValidationError("Please specify the duration of the stimulus.")
+
         smaller = [
             cleaned_data.get("TR")<0,
             cleaned_data.get("ITIunifmin")<0,
