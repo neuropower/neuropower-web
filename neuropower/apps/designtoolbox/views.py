@@ -291,8 +291,9 @@ def options(request):
     if not request.method == "POST":
         return render(request, template, context)
     else:
-        desdata.SID = sid
-        desdata.save()
+        form = opsform.save(commit=False)
+        form.SID = sid
+        form.save()
         return HttpResponseRedirect('../review/')
 
 
