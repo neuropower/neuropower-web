@@ -11,7 +11,7 @@ celery==3.1.23
 celery[redis]
 cement==2.4.0
 colorama==0.3.3
-Django==1.9.2
+Django==1.11.23
 django-celery==3.1.17
 django-cors-headers
 django-crispy-forms==1.6.0
