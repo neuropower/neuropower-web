@@ -23,14 +23,12 @@ sys.path.append(os.path.join(BASE_DIR,"lib"))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['DJANGO_KEY']
+SECRET_KEY = os.environ.get('DJANGO_KEY', 'no key provided')
 
-OPBEAT={
-    'ORGANIZATION_ID': os.environ['OPBEAT_ORG'],
-    'APP_ID': os.environ['OPBEAT_APP_ID'],
-    'SECRET_TOKEN': os.environ['OPBEAT_TOKEN'],
-}
-MAILGUN_KEY = os.environ['MAILGUN_KEY']
+MAILGUN_KEY = os.environ.get('MAILGUN_KEY')
+if MAILGUN_KEY is None:
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = '/code/errors'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -78,7 +76,6 @@ INSTALLED_APPS = [
     'djangosecure',
     'sslserver',
     "djcelery",
-    "opbeat.contrib.django",
     "kombu.transport.django",
 ]
 
@@ -153,9 +150,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
-AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
-AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_S3_CUSTOM_DOMAIN = "%s.s3.amazonaws.com" % AWS_STORAGE_BUCKET_NAME
 
 # Internationalization
@@ -210,41 +207,3 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': True,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-        },
-    },
-    'handlers': {
-        'opbeat': {
-            'level': 'WARNING',
-            'class': 'opbeat.contrib.django.handlers.OpbeatHandler',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        }
-    },
-    'loggers': {
-        'django.db.backends': {
-            'level': 'ERROR',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'mysite': {
-            'level': 'WARNING',
-            'handlers': ['opbeat'],
-            'propagate': False,
-        },
-        # Log errors from the Opbeat module to the console (recommended)
-        'opbeat.errors': {
-            'level': 'ERROR',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-    },
-}

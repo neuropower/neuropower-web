@@ -34,7 +34,6 @@ neuropower==0.2.2
 neurodesign == 0.1.7
 nibabel==2.0.2
 nilearn==0.2.2
-opbeat==3.3
 palettable==2.1.1
 pathspec==0.3.3
 pdfrw
